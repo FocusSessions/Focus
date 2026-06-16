@@ -1,0 +1,96 @@
+@import "./theme.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply bg-cream font-sans text-brown antialiased;
+    line-height: 1.6;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-serif font-medium tracking-tight text-brown;
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-terracotta ring-offset-2 ring-offset-cream;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-cozy border border-border bg-surface shadow-cozy;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-cozy px-4 py-2.5 text-sm font-medium transition-[opacity,transform,background-color] duration-cozy ease-out;
+  }
+
+  .btn-primary {
+    @apply btn bg-terracotta text-white hover:bg-terracotta-hover;
+  }
+
+  .btn-secondary {
+    @apply btn border border-border bg-surface text-brown hover:bg-cream;
+  }
+
+  .btn-ghost {
+    @apply btn text-brown-muted hover:bg-surface hover:text-brown;
+  }
+
+  .input {
+    @apply w-full rounded-cozy border border-border bg-surface px-3 py-2.5 text-sm text-brown placeholder:text-brown-muted focus:border-terracotta focus:outline-none focus:ring-2 focus:ring-terracotta;
+  }
+}
+
+@layer utilities {
+  /* Composable entrance animation utility */
+  .animate-in {
+    animation-duration: 400ms;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+    animation-fill-mode: both;
+  }
+  .animate-in.fade-in {
+    animation-name: fade-in;
+  }
+  .animate-in.slide-in-from-bottom-2 {
+    animation-name: fade-in, slide-in-from-bottom-2;
+  }
+  .animate-in.slide-in-from-top-2 {
+    animation-name: fade-in, slide-in-from-top-2;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    height: 6px;
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgb(var(--color-border));
+    border-radius: 100px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(var(--color-brown-muted));
+  }
+}
+

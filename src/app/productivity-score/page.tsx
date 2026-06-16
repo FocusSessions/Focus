@@ -1,0 +1,286 @@
+"use client";
+
+import { ArrowLeft, Zap, ChevronDown } from "lucide-react";
+import Link from "next/link";
+import React, { useState } from "react";
+
+const RANKS = [
+  { range: "0–99", name: "Novice", color: "#9B9B8C", pct: 10 },
+  { range: "100–249", name: "Builder", color: "#84936C", pct: 25 },
+  { range: "250–449", name: "Craftsman", color: "#A07B52", pct: 45 },
+  { range: "450–699", name: "Deep Worker", color: "#7A5C3A", pct: 70 },
+  { range: "700–899", name: "Master", color: "#5C3D24", pct: 90 },
+  { range: "900–1000", name: "Elite", color: "#2C1810", pct: 100 },
+];
+
+const V_REF = [
+  { h: "100 hrs", pts: "~110 pts", pct: 22 },
+  { h: "300 hrs", pts: "~265 pts", pct: 53 },
+  { h: "700 hrs", pts: "~415 pts", pct: 83 },
+  { h: "1,500 hrs", pts: "~490 pts", pct: 98 },
+];
+
+function Callout({ question, children }: { question: string; children: React.ReactNode }) {
+  const [isOpen, setIsOpen] = useState(false);
+  return (
+    <div className="mt-3 border-t border-brown/10 pt-3">
+      <button
+        className="flex w-full items-start justify-between gap-2 text-left hover:opacity-80 transition-opacity"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span className="text-[13px] font-semibold leading-snug text-brown">{question}</span>
+        <ChevronDown className={`mt-0.5 h-4 w-4 flex-shrink-0 text-brown-muted transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
+      </button>
+      <div
+        className={`grid transition-all duration-300 ease-in-out ${isOpen ? "grid-rows-[1fr] mt-2 opacity-100" : "grid-rows-[0fr] opacity-0"
+          }`}
+      >
+        <div className="overflow-hidden">
+          <div className="text-[13px] leading-relaxed text-brown-muted pb-1">
+            {children}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RefTile({ h, pts, pct }: { h: string; pts: string; pct: number }) {
+  return (
+    <div className="rounded-xl border border-[#8A9282]/20 bg-[#8A9282]/5 px-3.5 py-3">
+      <div className="mb-1.5 flex items-baseline justify-between">
+        <span className="text-xs text-brown-muted">{h}</span>
+        <span className="text-[13px] font-semibold text-brown">{pts}</span>
+      </div>
+      <div className="h-1 w-full overflow-hidden rounded-full bg-[#8A9282]/20">
+        <div className="h-full rounded-full bg-[#8A9282]" style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  );
+}
+
+function ComponentCard({ letter, name, maxPts, accentColor, formula, children }: {
+  letter: string; name: string; maxPts: number; accentColor: string; formula: React.ReactNode; children: React.ReactNode;
+}) {
+  return (
+    <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-brown/5">
+      <div className="h-1 w-full" style={{ backgroundColor: accentColor }} />
+      <div className="p-6 md:p-7">
+        <div className="mb-4 flex items-center gap-4">
+          <div
+            className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl font-serif text-xl text-white"
+            style={{ backgroundColor: accentColor }}
+          >
+            {letter}
+          </div>
+          <div className="flex-1">
+            <h2 className="font-serif text-xl leading-none text-brown">{name}</h2>
+            <div className="mt-1.5 text-[11px] font-bold uppercase tracking-wider text-brown-muted">
+              Max {maxPts} pts
+            </div>
+          </div>
+          <div className="font-serif text-3xl text-brown/15">{maxPts}</div>
+        </div>
+        <div className="mb-4 rounded-xl border border-brown/10 bg-brown/5 px-4 py-3 font-mono text-sm tracking-wide text-brown">
+          {formula}
+        </div>
+        <div className="space-y-3">
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function ProductivityScorePage() {
+  return (
+    <div className="min-h-screen bg-cream pb-20 pt-8">
+      <div className="mx-auto max-w-[680px] px-6">
+        <Link
+          href="/profile"
+          className="group mb-8 inline-flex items-center gap-2 text-[13px] font-medium text-brown-muted transition-colors hover:text-brown"
+        >
+          <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
+          Back to Profile
+        </Link>
+
+        <h1 className="mb-3 font-serif text-[26px] leading-[1.2] text-brown md:text-[34px]">
+          How Your Productivity<br />Score Is Calculated
+        </h1>
+        <p className="mb-10 text-[15px] leading-relaxed text-brown-muted">
+          A raw score between 0 and 1,000. Three components, each capped at a fixed maximum. No single habit carries the whole score.
+        </p>
+
+        <div className="flex flex-col gap-5">
+          {/* Hero Card */}
+          <div className="rounded-[18px] bg-[#3A2920] p-7">
+            <div className="mb-5 font-mono text-[15px] tracking-[0.02em] text-[#F5F0EB] md:text-[20px]">
+              P = min(1000, <span style={{ color: "#BEC9B0" }}>500</span>V + <span style={{ color: "#A4BC8C" }}>400</span>K + <span style={{ color: "#D4A87A" }}>100</span>Q)
+            </div>
+
+            <div className="mb-4 flex h-[7px] w-full overflow-hidden rounded">
+              <div className="h-full bg-[#8A9282]" style={{ flex: 5 }} />
+              <div className="h-full bg-[#7A8B64]" style={{ flex: 4 }} />
+              <div className="h-full bg-[#A07B52]" style={{ flex: 1 }} />
+            </div>
+
+            <div className="grid grid-cols-3 gap-3">
+              <div className="rounded-xl bg-white/5 p-3">
+                <div className="mb-1 font-serif text-[17px] text-[#8A9282]">V</div>
+                <div className="leading-none text-[22px] font-semibold text-[#F5F0EB]">500</div>
+                <div className="mt-1 text-[11px] text-[#F5F0EB]/50">Hours</div>
+              </div>
+              <div className="rounded-xl bg-white/5 p-3">
+                <div className="mb-1 font-serif text-[17px] text-[#7A8B64]">K</div>
+                <div className="leading-none text-[22px] font-semibold text-[#F5F0EB]">400</div>
+                <div className="mt-1 text-[11px] text-[#F5F0EB]/50">Consistency</div>
+              </div>
+              <div className="rounded-xl bg-white/5 p-3">
+                <div className="mb-1 font-serif text-[17px] text-[#A07B52]">Q</div>
+                <div className="leading-none text-[22px] font-semibold text-[#F5F0EB]">100</div>
+                <div className="mt-1 text-[11px] text-[#F5F0EB]/50">Depth</div>
+              </div>
+            </div>
+          </div>
+
+          {/* V Card */}
+          <ComponentCard
+            letter="V"
+            name="Hours"
+            maxPts={500}
+            accentColor="#8A9282"
+            formula={<span>V = 1 &minus; e<sup className="ml-0.5 text-xs">&minus;H / 400</sup></span>}
+          >
+            <p className="text-[14px] leading-relaxed text-brown-muted">
+              H is your total lifetime focus hours. The formula maps that to a 0–1 value then multiplies by 500. The curve is steepest right at the start — your first hours produce the highest per-hour point gains of your entire history. Past 400 hours total, the returns slow considerably.
+            </p>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              {V_REF.map(r => <RefTile key={r.h} h={r.h} pts={r.pts} pct={r.pct} />)}
+            </div>
+          </ComponentCard>
+
+          {/* K Card */}
+          <ComponentCard
+            letter="K"
+            name="Consistency"
+            maxPts={400}
+            accentColor="#7A8B64"
+            formula={<span>K = r<sub className="text-[10px]">30</sub><sup className="text-xs">0.6</sup> &times; r<sub className="text-[10px]">90</sub><sup className="text-xs">0.4</sup></span>}
+          >
+            <p className="text-[14px] leading-relaxed text-brown-muted">
+              r₃₀ is the fraction of the past 30 days where you logged at least one session; r₉₀ is the same for 90 days. Recent habit carries more weight. Multiply K by 400 for up to 400 points.
+            </p>
+            <div className="mt-3 flex gap-2">
+              <div className="flex-[6] rounded-xl border border-[#7A8B64]/20 bg-[#7A8B64]/5 p-2.5 text-center">
+                <div className="text-[19px] font-semibold leading-none text-[#7A8B64]">60%</div>
+                <div className="mt-1 text-[11px] text-brown-muted">30-day window</div>
+              </div>
+              <div className="flex-[4] rounded-xl border border-brown/10 bg-brown/5 p-2.5 text-center">
+                <div className="text-[19px] font-semibold leading-none text-brown-muted">40%</div>
+                <div className="mt-1 text-[11px] text-brown-muted">90-day window</div>
+              </div>
+            </div>
+            <div className="mt-1">
+              <Callout question="Why not use streaks?">
+                A streak resets to zero the moment you miss a day. Here, a missed day drops r₃₀ by 1/30 once your account is 30 days or older. Log again and it starts recovering. One hard rule: if r₃₀ is zero — no sessions in the past 30 days — K drops to zero regardless of your 90-day history.
+              </Callout>
+              <Callout question="What about new accounts?">
+                The denominator scales with account age. At 15 days old, r₃₀ divides by 15, not 30. A perfect record on a 15-day account gives K = 1.0 — identical to a veteran. Days before you signed up don&apos;t count against you.
+              </Callout>
+              <Callout question="What counts as a day?">
+                Days run 4am to 4am rather than midnight to midnight. A session starting at 23:30 belongs entirely to the day it started — late-night work is never split across two dates.
+              </Callout>
+              <Callout question="I took a month off. What happened to my K?">
+                K dropped to zero. The formula&apos;s one hard rule is that if r₃₀ hits zero, K becomes zero regardless of prior 90-day history. When you return, account age is still intact so the new-user protection no longer applies. K rebuilds as you log sessions over the following 30 and 90 days.
+              </Callout>
+              <Callout question="Why did my K drop even though I logged a session yesterday?">
+                K is a rolling window. Sessions that were inside the 30-day window 31 days ago just fell out of r₃₀ today. If a string of active days rolled off the window, the net result can be a small drop even on days you log a session.
+              </Callout>
+              <Callout question="I imported historical data. Why didn't my consistency score go up?">
+                K only looks at the past 30 and 90 calendar days. Old sessions don&apos;t move r₃₀ or r₉₀ regardless of how many there were. They do count toward H (V score) and your average session length for Q. Consistency is a measure of current habit.
+              </Callout>
+            </div>
+          </ComponentCard>
+
+          {/* Q Card */}
+          <ComponentCard
+            letter="Q"
+            name="Session Depth"
+            maxPts={100}
+            accentColor="#A07B52"
+            formula={<span>Q = 1 &minus; e<sup className="ml-0.5 text-xs">&minus;avg / 35</sup></span>}
+          >
+            <p className="text-[14px] leading-relaxed text-brown-muted">
+              avg is your average session length in minutes: total hours × 60, divided by total sessions. At 35 minutes, Q ≈ 0.63. At 70 minutes, Q ≈ 0.86.
+            </p>
+            <div className="mt-3 flex gap-2">
+              <div className="flex-1 rounded-xl border border-[#A07B52]/20 bg-[#A07B52]/5 p-2.5 text-center">
+                <div className="text-[12px] font-semibold text-[#A07B52]">Higher Q</div>
+                <div className="mt-0.5 text-[12px] text-brown-muted">5 × 2hr blocks</div>
+              </div>
+              <div className="flex-1 rounded-xl border border-brown/10 bg-brown/5 p-2.5 text-center">
+                <div className="text-[12px] font-semibold text-brown-muted">Lower Q</div>
+                <div className="mt-0.5 text-[12px] text-brown-muted">60 × 10min stints</div>
+              </div>
+            </div>
+            <p className="mt-3 text-[13px] italic text-sage">
+              Q is capped at 100 because it&apos;s a quality check, not the primary driver. Work in proper focused blocks and it looks after itself.
+            </p>
+            <div className="mt-1">
+              <Callout question="Can I raise Q without logging more total hours?">
+                No. Q depends on avg = (total hours × 60) / total sessions. With fixed total hours, the only way to raise avg is to reduce total sessions. The practical lever is simply working in longer, uninterrupted blocks.
+              </Callout>
+              <Callout question="Does it matter how many sessions I log, or just total hours?">
+                Both matter for different components. V only cares about total hours. K only cares about whether you logged at least one session per day. Q depends on the ratio between hours and sessions — so the number of sessions directly affects your depth score.
+              </Callout>
+            </div>
+          </ComponentCard>
+
+          {/* How Combine */}
+          <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-brown/5 md:p-8">
+            <h2 className="mb-4 font-serif text-xl text-brown">How the three combine</h2>
+            <div className="mb-4 rounded-xl border border-brown/10 bg-brown/5 px-4 py-3 font-mono text-sm tracking-wide text-brown">
+              P = min(1000, 500V + 400K + 100Q)
+            </div>
+            <p className="text-[14px] leading-relaxed text-brown-muted">
+              Each component has a ceiling, so no single habit carries the whole score. Getting above 900 means all three are strong — accumulated hours, near-daily attendance, and sessions long enough to count.
+            </p>
+            <div className="mt-4 pt-1 border-t border-brown/10">
+              <Callout question="Can my score ever reach exactly 1000?">
+                Not in practice. V and Q are both exponential curves that approach 1 but never reach it with finite hours or session length. K can reach exactly 1.0 with perfect attendance, but that alone only gets you 400 points. Scores in the high 900s are possible after thousands of hours; 1000 itself is an asymptote.
+              </Callout>
+              <Callout question="Is there a shortcut to Elite?">
+                No. To score above 900, you need all three components strong simultaneously. V alone maxes at 500. Getting to 900 requires V at roughly 400+ points (around 700+ total hours), K near 1.0 (near-daily sessions over 90 days), and a reasonable Q. That combination takes sustained time to build.
+              </Callout>
+            </div>
+          </div>
+
+          {/* Ranks */}
+          <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-brown/5 md:p-8">
+            <h2 className="mb-5 font-serif text-xl text-brown">The Ranks</h2>
+            <div className="flex flex-col gap-2.5">
+              {RANKS.map((r) => (
+                <div key={r.name} className="flex items-center gap-3">
+                  <span className="w-14 flex-shrink-0 text-right font-mono text-[11px] text-brown-muted">{r.range}</span>
+                  <div className="h-5 flex-1 overflow-hidden rounded bg-brown/5">
+                    <div className="h-full rounded transition-all duration-500 ease-out" style={{ width: `${r.pct}%`, backgroundColor: r.color }} />
+                  </div>
+                  <span className="w-[85px] flex-shrink-0 text-right text-[13px] font-semibold" style={{ color: r.color }}>{r.name}</span>
+                </div>
+              ))}
+            </div>
+            <p className="mt-5 text-[13px] leading-relaxed text-brown-muted">
+              Most users land between Builder and Deep Worker. Reaching Master takes several months of regular, substantive sessions. Elite is rare by design.
+            </p>
+            <div className="mt-4 pt-1 border-t border-brown/10">
+              <Callout question="Why does my score feel slow to move at first?">
+                It probably isn&apos;t. V&apos;s curve is steepest right at the start — each hour produces more points in your first hundred hours than it ever will again. What creates the feeling of slow progress is the width of rank bands. Novice spans 100 points. Builder spans 150. The progress is real; the visible feedback is delayed. Once you push into Craftsman and above, each rank change starts to feel more frequent.
+              </Callout>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  );
+}
