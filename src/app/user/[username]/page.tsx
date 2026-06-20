@@ -11,6 +11,7 @@ import { RankBadgeIcon } from "@/components/profile/rank-icons";
 import { computeStats, buildHeatmapData } from "@/lib/analytics";
 import { ActivityHeatmap } from "@/components/profile/activity-heatmap";
 import { formatDurationShort } from "@/lib/time";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
 import {
   UserPlus,
   UserCheck,
@@ -212,10 +213,7 @@ export default function UserProfilePage() {
                   <h1 className="font-serif text-2xl font-medium text-brown">
                     {profile.display_name || profile.username}
                   </h1>
-                  <div
-                    title={`Rank: ${currentRank.name}`}
-                    className="flex items-center justify-center cursor-help"
-                  >
+                  <div className="flex items-center justify-center cursor-help">
                     <RankBadgeIcon
                       rankId={currentRank.id}
                       className="w-6 h-6 drop-shadow-sm transition-transform hover:scale-110"
@@ -295,46 +293,50 @@ export default function UserProfilePage() {
       </header>
 
       {/* Quick Stats */}
-      <div className="mb-6 grid grid-cols-3 gap-3">
-        <div className="card p-4 text-center">
-          <Clock className="mx-auto mb-1 h-4 w-4 text-brown-muted" />
-          <p className="text-lg font-serif font-medium text-brown">
-            {formatDurationShort(stats.totalFocusMs)}
-          </p>
-          <p className="text-[10px] uppercase tracking-wider text-brown-muted">
-            Total Focus
-          </p>
+      <ErrorBoundary title="Failed to load quick stats">
+        <div className="mb-6 grid grid-cols-3 gap-2 md:gap-3">
+          <div className="card p-3 md:p-4 text-center">
+            <Clock className="mx-auto mb-1 h-4 w-4 text-brown-muted" />
+            <p className="text-lg font-serif font-medium text-brown">
+              {formatDurationShort(stats.totalFocusMs)}
+            </p>
+            <p className="text-[10px] uppercase tracking-wider text-brown-muted">
+              Total Focus
+            </p>
+          </div>
+          <div className="card p-3 md:p-4 text-center">
+            <Trophy className="mx-auto mb-1 h-4 w-4 text-brown-muted" />
+            <p className="text-lg font-serif font-medium text-brown">
+              {stats.totalSessions}
+            </p>
+            <p className="text-[10px] uppercase tracking-wider text-brown-muted">
+              Sessions
+            </p>
+          </div>
+          <div className="card p-3 md:p-4 text-center">
+            <Flame className="mx-auto mb-1 h-4 w-4 text-brown-muted" />
+            <p className="text-lg font-serif font-medium text-brown">
+              {stats.longestStreak}
+            </p>
+            <p className="text-[10px] uppercase tracking-wider text-brown-muted">
+              Best Streak
+            </p>
+          </div>
         </div>
-        <div className="card p-4 text-center">
-          <Trophy className="mx-auto mb-1 h-4 w-4 text-brown-muted" />
-          <p className="text-lg font-serif font-medium text-brown">
-            {stats.totalSessions}
-          </p>
-          <p className="text-[10px] uppercase tracking-wider text-brown-muted">
-            Sessions
-          </p>
-        </div>
-        <div className="card p-4 text-center">
-          <Flame className="mx-auto mb-1 h-4 w-4 text-brown-muted" />
-          <p className="text-lg font-serif font-medium text-brown">
-            {stats.longestStreak}
-          </p>
-          <p className="text-[10px] uppercase tracking-wider text-brown-muted">
-            Best Streak
-          </p>
-        </div>
-      </div>
+      </ErrorBoundary>
 
       {/* Heatmap */}
       {sessions.length > 0 && (
-        <section className="card p-5">
-          <h2 className="mb-4 font-serif text-lg text-brown">Activity</h2>
-          <ActivityHeatmap
-            days={heatmapDays}
-            granularity={granularity}
-            onGranularityChange={setGranularity}
-          />
-        </section>
+        <ErrorBoundary title="Failed to load activity heatmap">
+          <section className="card p-5">
+            <h2 className="mb-4 font-serif text-lg text-brown">Activity</h2>
+            <ActivityHeatmap
+              days={heatmapDays}
+              granularity={granularity}
+              onGranularityChange={setGranularity}
+            />
+          </section>
+        </ErrorBoundary>
       )}
 
       {sessions.length === 0 && (

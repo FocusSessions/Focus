@@ -53,6 +53,7 @@ export interface Database {
           started_at: string;
           ended_at: string;
           created_at: string;
+          tz_offset: number | null;
         };
         Insert: {
           id?: string;
@@ -64,12 +65,14 @@ export interface Database {
           visibility?: string;
           started_at: string;
           ended_at: string;
+          tz_offset?: number | null;
         };
         Update: {
           title?: string;
           description?: string | null;
           category?: string;
           visibility?: string;
+          tz_offset?: number | null;
         };
       };
     };

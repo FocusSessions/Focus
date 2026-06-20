@@ -107,20 +107,21 @@ function SessionRow({
                 aria-label="Session description"
               />
               <div className="flex gap-2">
-                <select
+                <input
                   value={draftCategory}
-                  onChange={(e) => setDraftCategory(e.target.value as SessionCategory)}
+                  onChange={(e) => setDraftCategory(e.target.value)}
+                  placeholder="Category..."
+                  list="edit-category-suggestions"
+                  maxLength={30}
                   className="input flex-1 px-2 py-1 text-sm"
-                >
-                  <option value="studying">Studying</option>
-                  <option value="coding">Coding</option>
-                  <option value="reading">Reading</option>
-                  <option value="writing">Writing</option>
-                  <option value="research">Research</option>
-                  <option value="project work">Project Work</option>
-                  <option value="interview preparation">Interview Prep</option>
-                  <option value="other">Other</option>
-                </select>
+                />
+                <datalist id="edit-category-suggestions">
+                  <option value="Work" />
+                  <option value="Study" />
+                  <option value="Coding" />
+                  <option value="Reading" />
+                  <option value="Writing" />
+                </datalist>
                 <select
                   value={draftVisibility}
                   onChange={(e) => setDraftVisibility(e.target.value as SessionVisibility)}

@@ -23,7 +23,7 @@ const V_REF = [
 function Callout({ question, children }: { question: string; children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   return (
-    <div className="mt-3 border-t border-brown/10 pt-3">
+    <div className="mt-3 border-t border-border pt-3">
       <button
         className="flex w-full items-start justify-between gap-2 text-left hover:opacity-80 transition-opacity"
         onClick={() => setIsOpen(!isOpen)}
@@ -63,7 +63,7 @@ function ComponentCard({ letter, name, maxPts, accentColor, formula, children }:
   letter: string; name: string; maxPts: number; accentColor: string; formula: React.ReactNode; children: React.ReactNode;
 }) {
   return (
-    <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-brown/5">
+    <div className="overflow-hidden rounded-2xl bg-surface shadow-sm ring-1 ring-border">
       <div className="h-1 w-full" style={{ backgroundColor: accentColor }} />
       <div className="p-6 md:p-7">
         <div className="mb-4 flex items-center gap-4">
@@ -81,7 +81,7 @@ function ComponentCard({ letter, name, maxPts, accentColor, formula, children }:
           </div>
           <div className="font-serif text-3xl text-brown/15">{maxPts}</div>
         </div>
-        <div className="mb-4 rounded-xl border border-brown/10 bg-brown/5 px-4 py-3 font-mono text-sm tracking-wide text-brown">
+        <div className="mb-4 rounded-xl border border-border bg-brown/5 px-4 py-3 font-mono text-sm tracking-wide text-brown">
           {formula}
         </div>
         <div className="space-y-3">
@@ -125,17 +125,17 @@ export default function ProductivityScorePage() {
             </div>
 
             <div className="grid grid-cols-3 gap-3">
-              <div className="rounded-xl bg-white/5 p-3">
+              <div className="rounded-xl bg-surface/5 p-3">
                 <div className="mb-1 font-serif text-[17px] text-[#8A9282]">V</div>
                 <div className="leading-none text-[22px] font-semibold text-[#F5F0EB]">500</div>
                 <div className="mt-1 text-[11px] text-[#F5F0EB]/50">Hours</div>
               </div>
-              <div className="rounded-xl bg-white/5 p-3">
+              <div className="rounded-xl bg-surface/5 p-3">
                 <div className="mb-1 font-serif text-[17px] text-[#7A8B64]">K</div>
                 <div className="leading-none text-[22px] font-semibold text-[#F5F0EB]">400</div>
                 <div className="mt-1 text-[11px] text-[#F5F0EB]/50">Consistency</div>
               </div>
-              <div className="rounded-xl bg-white/5 p-3">
+              <div className="rounded-xl bg-surface/5 p-3">
                 <div className="mb-1 font-serif text-[17px] text-[#A07B52]">Q</div>
                 <div className="leading-none text-[22px] font-semibold text-[#F5F0EB]">100</div>
                 <div className="mt-1 text-[11px] text-[#F5F0EB]/50">Depth</div>
@@ -175,7 +175,7 @@ export default function ProductivityScorePage() {
                 <div className="text-[19px] font-semibold leading-none text-[#7A8B64]">60%</div>
                 <div className="mt-1 text-[11px] text-brown-muted">30-day window</div>
               </div>
-              <div className="flex-[4] rounded-xl border border-brown/10 bg-brown/5 p-2.5 text-center">
+              <div className="flex-[4] rounded-xl border border-border bg-brown/5 p-2.5 text-center">
                 <div className="text-[19px] font-semibold leading-none text-brown-muted">40%</div>
                 <div className="mt-1 text-[11px] text-brown-muted">90-day window</div>
               </div>
@@ -218,7 +218,7 @@ export default function ProductivityScorePage() {
                 <div className="text-[12px] font-semibold text-[#A07B52]">Higher Q</div>
                 <div className="mt-0.5 text-[12px] text-brown-muted">5 × 2hr blocks</div>
               </div>
-              <div className="flex-1 rounded-xl border border-brown/10 bg-brown/5 p-2.5 text-center">
+              <div className="flex-1 rounded-xl border border-border bg-brown/5 p-2.5 text-center">
                 <div className="text-[12px] font-semibold text-brown-muted">Lower Q</div>
                 <div className="mt-0.5 text-[12px] text-brown-muted">60 × 10min stints</div>
               </div>
@@ -237,15 +237,15 @@ export default function ProductivityScorePage() {
           </ComponentCard>
 
           {/* How Combine */}
-          <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-brown/5 md:p-8">
+          <div className="rounded-2xl bg-surface p-6 shadow-sm ring-1 ring-border md:p-8">
             <h2 className="mb-4 font-serif text-xl text-brown">How the three combine</h2>
-            <div className="mb-4 rounded-xl border border-brown/10 bg-brown/5 px-4 py-3 font-mono text-sm tracking-wide text-brown">
+            <div className="mb-4 rounded-xl border border-border bg-brown/5 px-4 py-3 font-mono text-sm tracking-wide text-brown">
               P = min(1000, 500V + 400K + 100Q)
             </div>
             <p className="text-[14px] leading-relaxed text-brown-muted">
               Each component has a ceiling, so no single habit carries the whole score. Getting above 900 means all three are strong — accumulated hours, near-daily attendance, and sessions long enough to count.
             </p>
-            <div className="mt-4 pt-1 border-t border-brown/10">
+            <div className="mt-4 pt-1 border-t border-border">
               <Callout question="Can my score ever reach exactly 1000?">
                 Not in practice. V and Q are both exponential curves that approach 1 but never reach it with finite hours or session length. K can reach exactly 1.0 with perfect attendance, but that alone only gets you 400 points. Scores in the high 900s are possible after thousands of hours; 1000 itself is an asymptote.
               </Callout>
@@ -256,7 +256,7 @@ export default function ProductivityScorePage() {
           </div>
 
           {/* Ranks */}
-          <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-brown/5 md:p-8">
+          <div className="rounded-2xl bg-surface p-6 shadow-sm ring-1 ring-border md:p-8">
             <h2 className="mb-5 font-serif text-xl text-brown">The Ranks</h2>
             <div className="flex flex-col gap-2.5">
               {RANKS.map((r) => (
@@ -272,7 +272,7 @@ export default function ProductivityScorePage() {
             <p className="mt-5 text-[13px] leading-relaxed text-brown-muted">
               Most users land between Builder and Deep Worker. Reaching Master takes several months of regular, substantive sessions. Elite is rare by design.
             </p>
-            <div className="mt-4 pt-1 border-t border-brown/10">
+            <div className="mt-4 pt-1 border-t border-border">
               <Callout question="Why does my score feel slow to move at first?">
                 It probably isn&apos;t. V&apos;s curve is steepest right at the start — each hour produces more points in your first hundred hours than it ever will again. What creates the feeling of slow progress is the width of rank bands. Novice spans 100 points. Builder spans 150. The progress is real; the visible feedback is delayed. Once you push into Craftsman and above, each rank change starts to feel more frequent.
               </Callout>

@@ -45,7 +45,7 @@ function BadgeRenderer({ achievement }: { achievement: Achievement }) {
 
   if (!isUnlocked) {
     return (
-      <div className="flex flex-col items-center flex-shrink-0 w-28 group">
+      <div className="flex flex-col items-center flex-shrink-0 w-28 group cursor-default" title={achievement.description}>
         <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-surface-dark border-4 border-transparent shadow-inner opacity-60 transition-transform duration-300 group-hover:scale-105">
           <div className="absolute inset-0 rounded-full bg-black/10 mix-blend-multiply"></div>
           <IconComponent className="h-10 w-10 text-brown-muted/40 stroke-[1.5]" />
@@ -141,7 +141,7 @@ function CategorySection({ category, items }: { category: string; items: Achieve
       <div className="relative group/scroll">
         <div
           ref={scrollRef}
-          className={`pb-4 pt-2 px-1 custom-scrollbar ${isExpanded
+          className={`py-8 px-2 -my-8 scrollbar-hide ${isExpanded
               ? "grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4 justify-items-center"
               : "flex gap-4 overflow-x-auto snap-x"
             }`}
@@ -199,7 +199,7 @@ function RanksSection({ currentRank, productivityScore, items }: { currentRank: 
       <div className="relative group/scroll">
         <div
           ref={scrollRef}
-          className={`pb-4 pt-2 px-1 custom-scrollbar ${isExpanded
+          className={`py-8 px-2 -my-8 scrollbar-hide ${isExpanded
               ? "grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4 justify-items-center"
               : "flex gap-4 overflow-x-auto snap-x"
             }`}

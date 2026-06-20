@@ -1,12 +1,4 @@
-export type SessionCategory = 
-  | 'studying'
-  | 'coding'
-  | 'reading'
-  | 'writing'
-  | 'research'
-  | 'project work'
-  | 'interview preparation'
-  | 'other';
+export type SessionCategory = string;
 
 export type SessionVisibility = 'private' | 'friends' | 'public';
 
@@ -25,6 +17,7 @@ export interface FocusSessionActivity extends BaseActivity {
   visibility: SessionVisibility;
   startedAt: number;
   endedAt: number;
+  timezoneOffset?: number;
 }
 
 export type Activity = FocusSessionActivity; // Extend this union with other activity types later

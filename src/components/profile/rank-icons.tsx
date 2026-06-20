@@ -26,13 +26,26 @@ export function RankBadgeIcon({
   const handleMouseEnter = () => {
     if (badgeRef.current && rank) {
       const rect = badgeRef.current.getBoundingClientRect();
-      setTooltipStyle({
-        position: "fixed",
-        bottom: window.innerHeight - rect.top + 8,
-        left: rect.left + rect.width / 2,
-        transform: "translateX(-50%)",
-        zIndex: 9999,
-      });
+      const tooltipHeight = 130; // Approx height
+      const showAbove = rect.top > tooltipHeight;
+      
+      if (showAbove) {
+        setTooltipStyle({
+          position: "fixed",
+          bottom: window.innerHeight - rect.top + 8,
+          left: rect.left + rect.width / 2,
+          transform: "translateX(-50%)",
+          zIndex: 9999,
+        });
+      } else {
+        setTooltipStyle({
+          position: "fixed",
+          top: rect.bottom + 8,
+          left: rect.left + rect.width / 2,
+          transform: "translateX(-50%)",
+          zIndex: 9999,
+        });
+      }
       setVisible(true);
     }
   };
@@ -87,11 +100,15 @@ export function RankBadgeIcon({
 
             {/* Tooltip arrow */}
             <div
-              className="absolute left-1/2 -bottom-[7px] -translate-x-1/2 w-3 h-3 rotate-45"
+              className={`absolute left-1/2 -translate-x-1/2 w-3 h-3 rotate-45 ${
+                tooltipStyle.top ? "-top-[7px]" : "-bottom-[7px]"
+              }`}
               style={{
                 background: "#18181b",
-                borderRight: `1px solid ${rank.borderColor}44`,
-                borderBottom: `1px solid ${rank.borderColor}44`,
+                borderRight: !tooltipStyle.top ? `1px solid ${rank.borderColor}44` : "none",
+                borderBottom: !tooltipStyle.top ? `1px solid ${rank.borderColor}44` : "none",
+                borderLeft: tooltipStyle.top ? `1px solid ${rank.borderColor}44` : "none",
+                borderTop: tooltipStyle.top ? `1px solid ${rank.borderColor}44` : "none",
               }}
             />
           </div>

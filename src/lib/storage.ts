@@ -169,7 +169,7 @@ export async function loadActivities(): Promise<Activity[]> {
   return lsGetActivities().sort((a, b) => b.createdAt - a.createdAt);
 }
 
-async function persistActivities(activities: Activity[]): Promise<void> {
+export async function persistActivities(activities: Activity[]): Promise<void> {
   lsSetActivities(activities);
   const ok = await ensureDb();
   if (!ok) return;
@@ -228,6 +228,7 @@ export async function saveActivityToCloud(
       visibility: activity.visibility,
       started_at: new Date(activity.startedAt).toISOString(),
       ended_at: new Date(activity.endedAt).toISOString(),
+      tz_offset: activity.timezoneOffset ?? new Date().getTimezoneOffset(),
     });
   } catch (err) {
     console.error("[CloudSync] Failed to save activity:", err);
@@ -258,6 +259,7 @@ export async function loadCloudActivities(
       startedAt: new Date(s.started_at).getTime(),
       endedAt: new Date(s.ended_at).getTime(),
       createdAt: new Date(s.created_at).getTime(),
+      timezoneOffset: s.tz_offset ?? undefined,
     }));
   } catch {
     return [];

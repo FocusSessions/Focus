@@ -6,7 +6,7 @@ import { formatDurationShort } from "@/lib/time";
 import type { SessionCategory, SessionVisibility } from "@/types";
 
 export function StopDialog() {
-  const { pendingStop, confirmStop, cancelStop, plannedCategory } = useFocus();
+  const { pendingStop, confirmStop, cancelStop, discardSession, plannedCategory } = useFocus();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState<SessionCategory>(plannedCategory);
@@ -74,21 +74,36 @@ export function StopDialog() {
         <label className="mt-4 block text-sm text-brown-muted" htmlFor="session-category">
           Category
         </label>
-        <select
-          id="session-category"
-          className="input mt-1 w-full"
-          value={category}
-          onChange={(e) => setCategory(e.target.value as SessionCategory)}
-        >
-          <option value="studying">Studying</option>
-          <option value="coding">Coding</option>
-          <option value="reading">Reading</option>
-          <option value="writing">Writing</option>
-          <option value="research">Research</option>
-          <option value="project work">Project Work</option>
-          <option value="interview preparation">Interview Preparation</option>
-          <option value="other">Other</option>
-        </select>
+        <div className="mt-1">
+          <input
+            id="session-category"
+            className="input w-full"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            placeholder="e.g. Coding"
+            list="category-suggestions"
+            maxLength={30}
+          />
+          <datalist id="category-suggestions">
+            <option value="Work" />
+            <option value="Study" />
+            <option value="Coding" />
+            <option value="Reading" />
+            <option value="Writing" />
+          </datalist>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {['Work', 'Study', 'Coding', 'Reading'].map(c => (
+              <button
+                key={c}
+                type="button"
+                className={`rounded-full px-3 py-1 text-[11px] font-medium border transition-colors ${category.toLowerCase() === c.toLowerCase() ? 'bg-terracotta text-white border-terracotta' : 'bg-surface text-brown-muted border-border hover:bg-brown/5'}`}
+                onClick={() => setCategory(c)}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+        </div>
 
         <label className="mt-4 block text-sm text-brown-muted" htmlFor="session-visibility">
           Visibility
@@ -110,9 +125,14 @@ export function StopDialog() {
           </button>
         </div>
         {!showConfirmCancel ? (
-          <button type="button" className="btn-ghost mt-2 w-full" onClick={() => setShowConfirmCancel(true)}>
-            Cancel Session
-          </button>
+          <div className="mt-2 flex gap-2">
+            <button type="button" className="btn-ghost flex-1" onClick={cancelStop}>
+              Resume Timer
+            </button>
+            <button type="button" className="btn-ghost flex-1 text-terracotta hover:bg-terracotta/10" onClick={() => setShowConfirmCancel(true)}>
+              Discard Session
+            </button>
+          </div>
         ) : (
           <div className="mt-2 text-center bg-terracotta/5 p-3 rounded-xl border border-terracotta/20 animate-zoom-in">
             <p className="text-xs text-terracotta mb-3 font-medium">Discard this session?</p>
@@ -120,7 +140,7 @@ export function StopDialog() {
               <button type="button" className="btn-ghost flex-1 text-brown-muted bg-surface hover:bg-surface-dark text-xs py-1.5" onClick={() => setShowConfirmCancel(false)}>
                 Keep it
               </button>
-              <button type="button" className="btn-primary flex-1 bg-terracotta hover:bg-terracotta-dark text-xs border-none py-1.5" onClick={cancelStop}>
+              <button type="button" className="btn-primary flex-1 bg-terracotta hover:bg-terracotta-dark text-xs border-none py-1.5" onClick={discardSession}>
                 Discard
               </button>
             </div>

@@ -47,8 +47,8 @@ export function calculateProductivityScore(activities: Activity[], joinedAt?: nu
 
   const accountAgeDays = joinedAt ? Math.max(1, Math.ceil((Date.now() - joinedAt) / (1000 * 60 * 60 * 24))) : 30;
 
-  const r30 = activeDaysSet30.size / Math.min(30, accountAgeDays);
-  const r90 = activeDaysSet90.size / Math.min(90, accountAgeDays);
+  const r30 = Math.min(1, activeDaysSet30.size / Math.min(30, accountAgeDays));
+  const r90 = Math.min(1, activeDaysSet90.size / Math.min(90, accountAgeDays));
   
   // Apply the firm rule: if r30 is 0, K is 0
   const k = r30 === 0 ? 0 : Math.pow(r30, 0.6) * Math.pow(r90, 0.4);

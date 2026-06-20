@@ -152,7 +152,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 id: data.user.id,
                 username: username.toLowerCase(),
                 display_name: displayName || username,
-                is_public: false, // Private by default
+                is_public: true, // Public by default
               });
 
             if (insertError) {

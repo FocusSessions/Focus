@@ -18,6 +18,7 @@ import { OverviewTab } from "@/components/profile/overview-tab";
 import { ActivityTab } from "@/components/profile/activity-tab";
 import { ProgressTab } from "@/components/profile/progress-tab";
 import { AchievementsTab } from "@/components/profile/achievements-tab";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
 
 type TabId = "overview" | "activity" | "progress" | "achievements";
 
@@ -93,7 +94,7 @@ export function ProfileShell() {
         isStreakSecuredToday={isStreakSecuredToday}
       />
 
-      <div className="mb-4 overflow-x-auto custom-scrollbar pb-1">
+      <div className="mb-4 overflow-x-auto scrollbar-hide pb-1">
         <div className="flex w-max items-center rounded-full border border-border/50 bg-surface/80 backdrop-blur-md p-1 shadow-sm">
           {tabs.map((tab) => (
             <button
@@ -112,34 +113,36 @@ export function ProfileShell() {
       </div>
 
       <main>
-        {activeTab === "overview" && (
-          <OverviewTab
-            stats={stats}
-            weeklyRecap={weeklyRecap}
-            heatmapDays={heatmapDays}
-            allSessions={focusSessions}
-            recentSessions={recentSessions}
-            granularity={granularity}
-            onGranularityChange={setGranularity}
-          />
-        )}
-        {activeTab === "activity" && (
-          <ActivityTab 
-            heatmapDays={heatmapDays}
-            granularity={granularity}
-            onGranularityChange={setGranularity}
-          />
-        )}
-        {activeTab === "progress" && (
-          <ProgressTab 
-            weeklyData={weeklyChartData}
-            monthlyData={monthlyChartData}
-            joinedAt={joinedAt}
-          />
-        )}
-        {activeTab === "achievements" && (
-          <AchievementsTab activities={activities} joinedAt={joinedAt} productivityScore={productivityScore} />
-        )}
+        <ErrorBoundary title="Failed to load tab">
+          {activeTab === "overview" && (
+            <OverviewTab
+              stats={stats}
+              weeklyRecap={weeklyRecap}
+              heatmapDays={heatmapDays}
+              allSessions={focusSessions}
+              recentSessions={recentSessions}
+              granularity={granularity}
+              onGranularityChange={setGranularity}
+            />
+          )}
+          {activeTab === "activity" && (
+            <ActivityTab 
+              heatmapDays={heatmapDays}
+              granularity={granularity}
+              onGranularityChange={setGranularity}
+            />
+          )}
+          {activeTab === "progress" && (
+            <ProgressTab 
+              weeklyData={weeklyChartData}
+              monthlyData={monthlyChartData}
+              joinedAt={joinedAt}
+            />
+          )}
+          {activeTab === "achievements" && (
+            <AchievementsTab activities={activities} joinedAt={joinedAt} productivityScore={productivityScore} />
+          )}
+        </ErrorBoundary>
       </main>
     </div>
   );

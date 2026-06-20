@@ -18,6 +18,35 @@ export default function SettingsPage() {
   const { dailyGoalMinutes, setDailyGoalMinutes, sessionGoalMinutes, setSessionGoalMinutes, showMilliseconds, setShowMilliseconds, timerDirection, setTimerDirection } = useFocus();
   const [draftMinutes, setDraftMinutes] = useState(String(dailyGoalMinutes));
   const [saved, setSaved] = useState(false);
+  const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('light');
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.theme;
+      if (stored === 'dark') {
+        setTheme('dark');
+      } else if (stored === 'system') {
+        setTheme('system');
+      } else {
+        setTheme('light');
+      }
+    }
+  }, []);
+
+  const updateTheme = (newTheme: 'light' | 'dark' | 'system') => {
+    setTheme(newTheme);
+    if (newTheme === 'system') {
+      localStorage.theme = 'system';
+      document.documentElement.classList.remove('dark');
+    } else {
+      localStorage.theme = newTheme;
+      if (newTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    }
+  };
 
   useEffect(() => {
     setDraftMinutes(String(dailyGoalMinutes));
@@ -144,6 +173,39 @@ export default function SettingsPage() {
           </div>
 
 
+
+          <div className="flex items-center justify-between gap-4 border-b border-border/40 pb-4 pt-4">
+            <div>
+              <span className="block text-sm font-medium text-brown">Theme</span>
+              <span className="block text-xs text-brown-muted">Choose your preferred appearance</span>
+            </div>
+            <div className="flex rounded-lg border border-border p-0.5 bg-surface">
+              <button
+                onClick={() => updateTheme('light')}
+                className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+                  theme === 'light' ? 'bg-terracotta text-white' : 'text-brown-muted hover:text-brown'
+                }`}
+              >
+                Light
+              </button>
+              <button
+                onClick={() => updateTheme('dark')}
+                className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+                  theme === 'dark' ? 'bg-terracotta text-white' : 'text-brown-muted hover:text-brown'
+                }`}
+              >
+                Dark
+              </button>
+              <button
+                onClick={() => updateTheme('system')}
+                className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+                  theme === 'system' ? 'bg-terracotta text-white' : 'text-brown-muted hover:text-brown'
+                }`}
+              >
+                System
+              </button>
+            </div>
+          </div>
 
           <div className="flex items-center justify-between gap-4 pt-4">
             <div>

@@ -29,7 +29,7 @@ export function ProfileHeader({ productivityScore, joinedLabel, currentStreak, i
           <div>
             <div className="flex items-center gap-2">
               <h1 className="font-serif text-2xl font-medium text-brown">{displayName}</h1>
-              <div title={`Current Rank: ${currentRank.name}`} className="flex items-center justify-center cursor-help">
+              <div className="flex items-center justify-center cursor-help">
                 <RankBadgeIcon rankId={currentRank.id} className="w-6 h-6 drop-shadow-sm transition-transform hover:scale-110" />
               </div>
             </div>

@@ -55,14 +55,15 @@ export function computeStats(activities: FocusSessionActivity[]): ProfileStats {
   }
 
   let current = 0;
+  const validDays = sortedDays.filter(dk => dk <= today);
   let cursor =
-    sortedDays[0] === today
+    validDays[0] === today
       ? today
-      : sortedDays[0] === yesterday
+      : validDays[0] === yesterday
         ? yesterday
         : null;
   if (cursor) {
-    for (const dk of sortedDays) {
+    for (const dk of validDays) {
       if (dk === cursor) {
         current++;
         cursor = addDays(cursor, -1);

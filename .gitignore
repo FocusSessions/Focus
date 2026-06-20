@@ -33,3 +33,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# IDE / editor
+.cursor/
+.vscode/
+.idea/
+
+# MCP config (contains project references)
+**/mcp.txt
+**/mcp.json
+

@@ -16,11 +16,11 @@ interface ActivityHeatmapProps {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const LEVEL_CLASSES = [
-  "bg-black/[0.09]",
-  "bg-[#CBE0BA]",
-  "bg-[#8BBD74]",
-  "bg-[#4D9535]",
-  "bg-[#1E6B0D]",
+  "bg-black/[0.06] dark:bg-white/[0.06]",
+  "bg-[#CBE0BA] dark:bg-[#1E4D2B]",
+  "bg-[#8BBD74] dark:bg-[#2E7D32]",
+  "bg-[#4D9535] dark:bg-[#4CAF50]",
+  "bg-[#1E6B0D] dark:bg-[#81C784]",
 ] as const;
 
 /** Approximate focus thresholds — used as title attributes on legend swatches. */
@@ -230,7 +230,7 @@ export function ActivityHeatmap({
       {/* ── Grid ── */}
       <div
         ref={scrollRef}
-        className={`relative w-full overflow-x-auto overflow-y-hidden custom-scrollbar ${granularity !== "year" ? "flex justify-center" : ""
+        className={`relative w-full overflow-x-auto overflow-y-hidden scrollbar-hide ${granularity !== "year" ? "flex justify-center" : ""
           }`}
         style={{ minHeight: totalH }}
         onScroll={() => setTooltip(null)}
@@ -300,7 +300,7 @@ export function ActivityHeatmap({
                       <div
                         key={`empty-${weekIdx}-${dayIdx}`}
                         aria-hidden="true"
-                        className="shrink-0 rounded-md bg-border/40"
+                        className="shrink-0 rounded-md bg-black/5 dark:bg-white/5"
                         style={{ width: cellPx, height: cellPx }}
                       />
                     )

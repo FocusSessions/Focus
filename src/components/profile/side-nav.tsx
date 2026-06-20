@@ -27,10 +27,10 @@ export function SideNav() {
 
   return (
     <nav
-      className="fixed left-0 top-0 z-40 flex h-full w-44 flex-col border-r border-border bg-surface/90 px-3 py-8 backdrop-blur-sm"
+      className="fixed z-40 flex bg-surface/90 backdrop-blur-sm border-border bottom-0 left-0 right-0 h-16 w-full flex-row items-center justify-around border-t px-2 py-0 md:bottom-auto md:left-0 md:top-0 md:h-full md:w-44 md:flex-col md:justify-start md:border-r md:border-t-0 md:px-3 md:py-8"
       aria-label="Main navigation"
     >
-      <div className="flex flex-1 flex-col gap-1">
+      <div className="flex w-full md:w-auto flex-row md:flex-col items-center justify-around md:justify-start md:items-stretch gap-1 md:gap-2 md:flex-1">
         {links.map(({ href, label, icon: Icon }) => {
           const isActive = href === "/" ? pathname === "/" : pathname.startsWith(href);
 
@@ -38,22 +38,22 @@ export function SideNav() {
             <Link
               key={href}
               href={href}
-              className={`flex items-center gap-3 rounded-cozy px-3 py-2.5 text-sm font-medium transition-all duration-cozy ${
+              className={`flex flex-col md:flex-row items-center justify-center md:justify-start gap-1 md:gap-3 rounded-cozy p-2 md:px-3 md:py-2.5 text-sm font-medium transition-all duration-cozy ${
                 isActive
-                  ? "bg-cream text-brown shadow-cozy"
-                  : "text-brown-muted hover:bg-cream/60 hover:text-brown"
+                  ? "md:bg-cream/80 text-brown md:shadow-sm border border-transparent md:border-border/50"
+                  : "text-brown-muted hover:bg-cream/40 hover:text-brown"
               }`}
               aria-current={isActive ? "page" : undefined}
             >
-              <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
-              {label}
+              <Icon className="h-5 w-5 md:h-4 md:w-4 shrink-0" aria-hidden="true" />
+              <span className="text-[10px] md:text-sm font-medium md:font-medium">{label}</span>
             </Link>
           );
         })}
       </div>
 
-      {/* Auth section at bottom */}
-      <div className="mt-auto border-t border-border/40 pt-4">
+      {/* Auth section at bottom (hidden on mobile) */}
+      <div className="hidden md:block mt-auto border-t border-border/40 pt-4 w-full">
         {isLoading ? (
           <div className="px-3 py-2">
             <div className="h-4 w-24 animate-pulse rounded bg-border/30" />

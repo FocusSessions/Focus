@@ -27,6 +27,7 @@ export function Timer({ focusMode = false }: TimerProps) {
     activities,
     timerDirection,
     plannedCategory,
+    setPlannedCategory,
     sessionGoalMinutes,
     setSessionGoalMinutes,
   } = useFocus();
@@ -188,28 +189,51 @@ export function Timer({ focusMode = false }: TimerProps) {
       </div>
 
       <div className="flex flex-col items-center justify-center gap-6">
-        {timerDirection === 'down' && (
+        <div className="flex flex-col sm:flex-row items-end gap-6 sm:gap-8 min-h-[52px]">
+          {timerDirection === 'down' && (
+            <div className="flex flex-col items-center animate-in fade-in slide-in-from-top-2">
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-brown-muted mb-2">
+                Session Target
+              </span>
+              <div className="flex gap-2">
+                {[15, 25, 45, 90].map((mins) => (
+                  <button
+                    key={mins}
+                    onClick={() => setSessionGoalMinutes(mins)}
+                    className={`rounded-xl px-3 py-1.5 text-xs font-medium transition-colors ${
+                      sessionGoalMinutes === mins
+                        ? 'bg-sage text-white'
+                        : 'bg-surface text-brown-muted border border-border hover:border-sage hover:text-sage'
+                    }`}
+                  >
+                    {mins}m
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="flex flex-col items-center animate-in fade-in slide-in-from-top-2">
             <span className="text-[10px] font-semibold uppercase tracking-widest text-brown-muted mb-2">
-              Session Target
+              Category
             </span>
-            <div className="flex gap-2">
-              {[15, 25, 45, 90].map((mins) => (
-                <button
-                  key={mins}
-                  onClick={() => setSessionGoalMinutes(mins)}
-                  className={`rounded-xl px-3 py-1.5 text-xs font-medium transition-colors ${
-                    sessionGoalMinutes === mins
-                      ? 'bg-sage text-white'
-                      : 'bg-surface text-brown-muted border border-border hover:border-sage hover:text-sage'
-                  }`}
-                >
-                  {mins}m
-                </button>
-              ))}
-            </div>
+            <input
+              value={plannedCategory}
+              onChange={(e) => setPlannedCategory(e.target.value)}
+              placeholder="e.g. Coding"
+              list="timer-category-suggestions"
+              maxLength={30}
+              className="rounded-xl px-3 py-1.5 w-32 text-xs font-medium transition-colors bg-surface text-brown border border-border hover:border-sage focus:outline-none focus:ring-1 focus:ring-sage"
+            />
+            <datalist id="timer-category-suggestions">
+              <option value="Work" />
+              <option value="Study" />
+              <option value="Coding" />
+              <option value="Reading" />
+              <option value="Writing" />
+            </datalist>
           </div>
-        )}
+        </div>
 
         <motion.button
           whileHover={{ scale: 1.03 }}

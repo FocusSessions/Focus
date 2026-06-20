@@ -78,19 +78,12 @@
     animation-name: fade-in, slide-in-from-top-2;
   }
 
-  .custom-scrollbar::-webkit-scrollbar {
-    height: 6px;
-    width: 6px;
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
   }
-  .custom-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    background-color: rgb(var(--color-border));
-    border-radius: 100px;
-  }
-  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background-color: rgb(var(--color-brown-muted));
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }
 

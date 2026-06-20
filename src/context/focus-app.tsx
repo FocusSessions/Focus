@@ -43,6 +43,7 @@ import {
   updateActivityInCloud,
   loadCloudActivities,
   syncLocalToCloud,
+  persistActivities,
 } from "@/lib/storage";
 import { useAuth } from "@/context/auth-context";
 import { computeElapsedMs, todayActivities, todayTotalMs, historyDays } from "@/lib/time";
@@ -87,6 +88,7 @@ interface FocusActions {
   requestStop: () => void;
   confirmStop: (title: string, category: SessionCategory, visibility: SessionVisibility, description?: string) => Promise<void>;
   cancelStop: () => void;
+  discardSession: () => void;
   keepRecovery: () => void;
   discardRecovery: () => void;
   updateActivity: (id: string, updates: Partial<Pick<FocusSessionActivity, "title" | "category" | "visibility" | "description">>) => Promise<void>;
@@ -196,6 +198,38 @@ export function FocusProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     boot();
   }, [boot]);
+
+  // Sync cloud sessions down to local
+  useEffect(() => {
+    if (!user || isGuest) return;
+    let mounted = true;
+
+    const fetchCloud = async () => {
+      const cloudSessions = await loadCloudActivities(user.id);
+      if (!mounted || cloudSessions.length === 0) return;
+
+      setActivities((prev) => {
+        const map = new Map(prev.map((a) => [a.id, a]));
+        let changed = false;
+        for (const cs of cloudSessions) {
+          if (!map.has(cs.id)) {
+            map.set(cs.id, cs);
+            changed = true;
+          }
+        }
+        if (!changed) return prev;
+        const next = Array.from(map.values()).sort((a, b) => b.createdAt - a.createdAt);
+        // Persist the merged list locally
+        persistActivities(next).catch(() => {});
+        return next;
+      });
+    };
+
+    fetchCloud();
+    return () => {
+      mounted = false;
+    };
+  }, [user, isGuest]);
 
   const elapsedMs = activeTimer
     ? computeElapsedMs(
@@ -317,6 +351,7 @@ export function FocusProvider({ children }: { children: ReactNode }) {
         description: description?.trim() || undefined,
         category,
         visibility,
+        timezoneOffset: new Date().getTimezoneOffset(),
       };
       const next = await saveActivity(activity);
       setActivities(next);
@@ -344,6 +379,12 @@ export function FocusProvider({ children }: { children: ReactNode }) {
     }
     setPendingStop(null);
   }, [pendingStop]);
+
+  const discardSession = useCallback(() => {
+    setPendingStop(null);
+    setActiveTimer(null);
+    saveActiveTimer(null);
+  }, []);
 
   const keepRecovery = useCallback(() => {
     setShowRecovery(false);
@@ -488,6 +529,11 @@ export function FocusProvider({ children }: { children: ReactNode }) {
       await deleteUpload(id);
       setUploads(await loadUploads());
       if (musicSettings.lastTrackId === id) {
+        if (audioRef.current) {
+          audioRef.current.pause();
+          audioRef.current.src = "";
+          setIsPlaying(false);
+        }
         await persistMusic({ ...musicSettings, lastTrackId: null });
       }
     },
@@ -519,6 +565,7 @@ export function FocusProvider({ children }: { children: ReactNode }) {
     requestStop,
     confirmStop,
     cancelStop,
+    discardSession,
     keepRecovery,
     discardRecovery,
     updateActivity,

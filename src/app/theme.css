@@ -1,10 +1,88 @@
 :root {
+  /* Base palette */
   --color-cream: 248 246 242;
   --color-brown: 61 52 45;
   --color-brown-muted: 138 129 124;
   --color-terracotta: 139 115 85;
   --color-terracotta-hover: 117 95 69;
+  --color-terracotta-dark: 168 92 58;
   --color-sage: 141 169 147;
+  --color-sage-hover: 117 140 122;
   --color-surface: 255 255 255;
   --color-border: 232 226 217;
+  --color-sand-dark: 217 207 194;
+  --color-sand-light: 245 240 232;
+
+  /* Feedback colors. Success points at sage via var() so it can't drift
+     out of sync with the accent palette; the rest are new hues tuned to
+     stay legible against the warm/earthy base. */
+  --color-success: var(--color-sage);
+  --color-success-hover: var(--color-sage-hover);
+  --color-warning: 198 152 80;
+  --color-warning-hover: 164 126 66;
+  --color-error: 187 66 66;
+  --color-error-hover: 155 55 55;
+  --color-info: 90 124 153;
+  --color-info-hover: 75 103 127;
+
+  /* Focus ring + modal/sheet scrim */
+  --color-ring: var(--color-terracotta);
+  --color-overlay: 23 20 18;
+
+  /* Shadow opacity stays black in both themes; only the strength changes. */
+  --shadow-opacity-sm: 0.03;
+  --shadow-opacity: 0.04;
+  --shadow-opacity-lg: 0.08;
+}
+
+.dark {
+  /* Subtle warm grey backgrounds for a balanced earthy feel */
+  --color-cream: 13 12 11;
+  --color-surface: 22 21 19;
+  --color-border: 40 38 36;
+  --color-sand-dark: 32 30 28;
+  --color-sand-light: 26 24 22;
+
+  /* High contrast, neutral text */
+  --color-brown: 245 245 248;
+  --color-brown-muted: 153 153 158;
+
+  /* Vibrant, glowing accents that pop against the dark background */
+  --color-terracotta: 224 108 61;
+  --color-terracotta-hover: 235 132 92;
+  --color-terracotta-dark: 179 73 30;
+  
+  --color-sage: 129 199 158;
+  --color-sage-hover: 158 214 182;
+
+  /* Feedback colors with luminescence */
+  --color-success: var(--color-sage);
+  --color-success-hover: var(--color-sage-hover);
+  --color-warning: 242 166 65;
+  --color-warning-hover: 247 186 109;
+  --color-error: 237 94 94;
+  --color-error-hover: 245 125 125;
+  --color-info: 110 177 227;
+  --color-info-hover: 148 199 237;
+
+  --color-ring: var(--color-terracotta);
+  --color-overlay: 0 0 0;
+
+  /* Deeper, more pronounced shadows for depth */
+  --shadow-opacity-sm: 0.35;
+  --shadow-opacity: 0.55;
+  --shadow-opacity-lg: 0.75;
+}
+
+/* Respect users who've asked their OS for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

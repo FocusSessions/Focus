@@ -8,7 +8,7 @@ import { supabase } from "@/lib/supabase";
 import type { FocusSessionActivity } from "@/types";
 import type { Profile, CloudSession } from "@/types/supabase";
 import { formatDurationShort, formatTimeRange, dayLabel, getLogicalDateKey } from "@/lib/time";
-import { Users, Loader2 } from "lucide-react";
+import { Users, Loader2, Plus, Check } from "lucide-react";
 
 interface FeedItem {
   session: FocusSessionActivity;
@@ -37,6 +37,9 @@ export function FeedShell() {
 
   const [feedItems, setFeedItems] = useState<FeedItem[]>([]);
   const [feedLoading, setFeedLoading] = useState(false);
+  const [followingIds, setFollowingIds] = useState<Set<string>>(new Set());
+  const [loadingFollow, setLoadingFollow] = useState<string | null>(null);
+  const [isGlobalFeed, setIsGlobalFeed] = useState(false);
 
   // Local shared sessions (for guest mode)
   const localShared = useMemo(() => {
@@ -64,24 +67,36 @@ export function FeedShell() {
         .select("following_id")
         .eq("follower_id", user.id);
 
-      const followingIds = followData?.map((f) => f.following_id) ?? [];
+      const fIds = followData?.map((f) => f.following_id) ?? [];
 
-      if (followingIds.length === 0) {
-        if (mounted) {
-          setFeedItems([]);
-          setFeedLoading(false);
-        }
-        return;
+      if (mounted) {
+        setFollowingIds(new Set(fIds));
       }
 
-      // Fetch public sessions from followed users
-      const { data: sessionData } = await supabase
-        .from("sessions")
-        .select("*")
-        .in("user_id", followingIds)
-        .eq("visibility", "public")
-        .order("started_at", { ascending: false })
-        .limit(50);
+      let sessionData;
+
+      if (fIds.length === 0) {
+        if (mounted) setIsGlobalFeed(true);
+        // Fallback to Global Discovery Feed
+        const { data } = await supabase
+          .from("sessions")
+          .select("*")
+          .eq("visibility", "public")
+          .order("started_at", { ascending: false })
+          .limit(50);
+        sessionData = data;
+      } else {
+        if (mounted) setIsGlobalFeed(false);
+        // Fetch public and friends sessions from followed users
+        const { data } = await supabase
+          .from("sessions")
+          .select("*")
+          .in("user_id", fIds)
+          .in("visibility", ["public", "friends"])
+          .order("started_at", { ascending: false })
+          .limit(50);
+        sessionData = data;
+      }
 
       if (!sessionData || !mounted) {
         if (mounted) setFeedLoading(false);
@@ -114,6 +129,37 @@ export function FeedShell() {
     return () => { mounted = false; };
   }, [user, isGuest, authLoading]);
 
+  const toggleFollow = async (targetId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!user || loadingFollow) return;
+    setLoadingFollow(targetId);
+
+    const isFollowing = followingIds.has(targetId);
+
+    if (isFollowing) {
+      await supabase
+        .from("follows")
+        .delete()
+        .eq("follower_id", user.id)
+        .eq("following_id", targetId);
+      setFollowingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(targetId);
+        return next;
+      });
+    } else {
+      await supabase.from("follows").insert({
+        follower_id: user.id,
+        following_id: targetId,
+      });
+      setFollowingIds((prev) => new Set(prev).add(targetId));
+    }
+
+    setLoadingFollow(null);
+  };
+
   if (loadState === "loading" || authLoading) {
     return (
       <div className="mx-auto max-w-[720px] px-4 py-16 text-center">
@@ -139,11 +185,15 @@ export function FeedShell() {
   return (
     <div className="mx-auto max-w-[720px] px-4 pb-36 pt-10">
       <header className="mb-8">
-        <h1 className="font-serif text-3xl text-brown">Feed</h1>
+        <h1 className="font-serif text-3xl text-brown">
+          {isGlobalFeed ? "Global Discovery" : "Feed"}
+        </h1>
         <p className="mt-1 text-sm text-brown-muted">
           {isGuest
             ? "Sessions you've shared. Sign in to see friends' activity."
-            : "Sessions from people you follow."}
+            : isGlobalFeed
+              ? "Recent public sessions. Follow users to build your personal feed."
+              : "Sessions from people you follow."}
         </p>
       </header>
 
@@ -185,20 +235,40 @@ export function FeedShell() {
                 <div className="min-w-0 flex-1">
                   {/* User attribution */}
                   {profile && (
-                    <button
-                      onClick={() => router.push(`/user/${profile.username}`)}
-                      className="mb-2 flex items-center gap-2 group"
-                    >
-                      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sage to-[#5a7a5f] text-[10px] font-bold text-white">
-                        {(profile.display_name || profile.username)[0]?.toUpperCase()}
-                      </div>
-                      <span className="text-xs font-medium text-brown group-hover:text-terracotta transition-colors">
-                        {profile.display_name || profile.username}
-                      </span>
-                      <span className="text-[10px] text-brown-muted">
-                        @{profile.username}
-                      </span>
-                    </button>
+                    <div className="mb-2 flex items-center gap-2">
+                      <button
+                        onClick={() => router.push(`/user/${profile.username}`)}
+                        className="flex items-center gap-2 group"
+                      >
+                        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sage to-[#5a7a5f] text-[10px] font-bold text-white">
+                          {(profile.display_name || profile.username)[0]?.toUpperCase()}
+                        </div>
+                        <span className="text-xs font-medium text-brown group-hover:text-terracotta transition-colors">
+                          {profile.display_name || profile.username}
+                        </span>
+                        <span className="text-[10px] text-brown-muted">
+                          @{profile.username}
+                        </span>
+                      </button>
+
+                      {/* Follow Button */}
+                      {user && user.id !== profile.id && (
+                        <button
+                          onClick={(e) => toggleFollow(profile.id, e)}
+                          disabled={loadingFollow === profile.id}
+                          className="group/follow relative flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition-colors duration-300 hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-50"
+                          title={followingIds.has(profile.id) ? "Unfollow" : "Follow"}
+                        >
+                          {loadingFollow === profile.id ? (
+                            <Loader2 className="h-3 w-3 animate-spin text-brown-muted" />
+                          ) : followingIds.has(profile.id) ? (
+                            <Check className="h-3.5 w-3.5 text-sage animate-zoom-in drop-shadow-sm" />
+                          ) : (
+                            <Plus className="h-3.5 w-3.5 text-brown-muted/70 transition-all duration-300 group-hover/follow:scale-110 group-hover/follow:text-terracotta group-active/follow:rotate-90 group-active/follow:scale-75" />
+                          )}
+                        </button>
+                      )}
+                    </div>
                   )}
 
                   <h2 className="truncate font-medium text-brown">

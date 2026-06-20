@@ -26,7 +26,7 @@ export function MusicPlayer() {
   return (
     <>
       <footer
-        className="fixed bottom-0 left-44 right-0 z-30 border-t border-border bg-surface/90 backdrop-blur-md"
+        className="fixed bottom-16 left-0 right-0 md:bottom-0 md:left-44 z-30 border-t border-border bg-surface/90 backdrop-blur-md"
         aria-label="Music player"
       >
         <div className="mx-auto flex max-w-[640px] flex-col gap-2 px-4 py-3">
