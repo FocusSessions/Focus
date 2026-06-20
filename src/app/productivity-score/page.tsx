@@ -5,12 +5,12 @@ import Link from "next/link";
 import React, { useState } from "react";
 
 const RANKS = [
-  { range: "0–99", name: "Novice", color: "#9B9B8C", pct: 10 },
-  { range: "100–249", name: "Builder", color: "#84936C", pct: 25 },
-  { range: "250–449", name: "Craftsman", color: "#A07B52", pct: 45 },
-  { range: "450–699", name: "Deep Worker", color: "#7A5C3A", pct: 70 },
-  { range: "700–899", name: "Master", color: "#5C3D24", pct: 90 },
-  { range: "900–1000", name: "Elite", color: "#2C1810", pct: 100 },
+  { range: "0â€“99", name: "Novice", color: "#9B9B8C", pct: 10 },
+  { range: "100â€“249", name: "Builder", color: "#84936C", pct: 25 },
+  { range: "250â€“449", name: "Craftsman", color: "#A07B52", pct: 45 },
+  { range: "450â€“699", name: "Deep Worker", color: "#7A5C3A", pct: 70 },
+  { range: "700â€“899", name: "Master", color: "#5C3D24", pct: 90 },
+  { range: "900â€“1000", name: "Elite", color: "#2C1810", pct: 100 },
 ];
 
 const V_REF = [
@@ -108,7 +108,7 @@ export default function ProductivityScorePage() {
           How Your Productivity<br />Score Is Calculated
         </h1>
         <p className="mb-10 text-[15px] leading-relaxed text-brown-muted">
-          A raw score between 0 and 1,000. Three components, each capped at a fixed maximum. No single habit carries the whole score.
+          Your score goes up to 1,000. it&apos;s built from three parts, and no single thing (like just working long hours) will max out your score on its own.
         </p>
 
         <div className="flex flex-col gap-5">
@@ -152,7 +152,7 @@ export default function ProductivityScorePage() {
             formula={<span>V = 1 &minus; e<sup className="ml-0.5 text-xs">&minus;H / 400</sup></span>}
           >
             <p className="text-[14px] leading-relaxed text-brown-muted">
-              H is your total lifetime focus hours. The formula maps that to a 0–1 value then multiplies by 500. The curve is steepest right at the start — your first hours produce the highest per-hour point gains of your entire history. Past 400 hours total, the returns slow considerably.
+              This tracks your total lifetime focus hours. You get the most points when you first startâ€”your early hours boost your score fast. After about 400 hours, the points slow down, rewarding long-term dedication.
             </p>
             <div className="mt-3 grid grid-cols-2 gap-2">
               {V_REF.map(r => <RefTile key={r.h} h={r.h} pts={r.pts} pct={r.pct} />)}
@@ -168,7 +168,7 @@ export default function ProductivityScorePage() {
             formula={<span>K = r<sub className="text-[10px]">30</sub><sup className="text-xs">0.6</sup> &times; r<sub className="text-[10px]">90</sub><sup className="text-xs">0.4</sup></span>}
           >
             <p className="text-[14px] leading-relaxed text-brown-muted">
-              r₃₀ is the fraction of the past 30 days where you logged at least one session; r₉₀ is the same for 90 days. Recent habit carries more weight. Multiply K by 400 for up to 400 points.
+              This looks at how often you&apos;ve logged a session in the last 30 and 90 days. Recent days matter more. You can earn up to 400 points here.
             </p>
             <div className="mt-3 flex gap-2">
               <div className="flex-[6] rounded-xl border border-[#7A8B64]/20 bg-[#7A8B64]/5 p-2.5 text-center">
@@ -181,23 +181,23 @@ export default function ProductivityScorePage() {
               </div>
             </div>
             <div className="mt-1">
-              <Callout question="Why not use streaks?">
-                A streak resets to zero the moment you miss a day. Here, a missed day drops r₃₀ by 1/30 once your account is 30 days or older. Log again and it starts recovering. One hard rule: if r₃₀ is zero — no sessions in the past 30 days — K drops to zero regardless of your 90-day history.
+              <Callout question="Why no streaks?">
+                Streaks are punishingâ€”if you miss one day, you go back to zero. We don&apos;t do that here. Missing a day just lowers your 30-day average slightly. Just jump back in and it recovers. (Though if you don&apos;t focus for 30 days straight, this part of your score will reset).
               </Callout>
               <Callout question="What about new accounts?">
-                The denominator scales with account age. At 15 days old, r₃₀ divides by 15, not 30. A perfect record on a 15-day account gives K = 1.0 — identical to a veteran. Days before you signed up don&apos;t count against you.
+                If your account is only 15 days old, we only grade you on those 15 days. You can hit a perfect consistency score just like someone who has been here for years.
               </Callout>
-              <Callout question="What counts as a day?">
-                Days run 4am to 4am rather than midnight to midnight. A session starting at 23:30 belongs entirely to the day it started — late-night work is never split across two dates.
+              <Callout question="When does the day reset?">
+                Days reset at 4am, not midnight. So if you start a session at 11:30 PM, the whole thing counts toward today.
               </Callout>
-              <Callout question="I took a month off. What happened to my K?">
-                K dropped to zero. The formula&apos;s one hard rule is that if r₃₀ hits zero, K becomes zero regardless of prior 90-day history. When you return, account age is still intact so the new-user protection no longer applies. K rebuilds as you log sessions over the following 30 and 90 days.
+              <Callout question="I took a month off. Where did my points go?">
+                If you don&apos;t log anything for a full 30 days, your consistency score drops to zero. But don&apos;t worryâ€”as soon as you start logging sessions again, the points will quickly build back up.
               </Callout>
-              <Callout question="Why did my K drop even though I logged a session yesterday?">
-                K is a rolling window. Sessions that were inside the 30-day window 31 days ago just fell out of r₃₀ today. If a string of active days rolled off the window, the net result can be a small drop even on days you log a session.
+              <Callout question="Why did my score drop if I worked yesterday?">
+                it&apos;s a rolling window. If you had a really good streak exactly 31 days ago, those days are now falling out of your 30-day window, which can cause a small dip.
               </Callout>
               <Callout question="I imported historical data. Why didn't my consistency score go up?">
-                K only looks at the past 30 and 90 calendar days. Old sessions don&apos;t move r₃₀ or r₉₀ regardless of how many there were. They do count toward H (V score) and your average session length for Q. Consistency is a measure of current habit.
+                Consistency only looks at the last 30 and 90 days. Older sessions will boost your Hours and Depth scores, but they won&apos;t change your current consistency.
               </Callout>
             </div>
           </ComponentCard>
@@ -211,27 +211,27 @@ export default function ProductivityScorePage() {
             formula={<span>Q = 1 &minus; e<sup className="ml-0.5 text-xs">&minus;avg / 35</sup></span>}
           >
             <p className="text-[14px] leading-relaxed text-brown-muted">
-              avg is your average session length in minutes: total hours × 60, divided by total sessions. At 35 minutes, Q ≈ 0.63. At 70 minutes, Q ≈ 0.86.
+              This tracks your average session length. For example, averaging 35 minutes per session gets you about 60% of the points, while 70-minute sessions get you closer to 85%.
             </p>
             <div className="mt-3 flex gap-2">
               <div className="flex-1 rounded-xl border border-[#A07B52]/20 bg-[#A07B52]/5 p-2.5 text-center">
                 <div className="text-[12px] font-semibold text-[#A07B52]">Higher Q</div>
-                <div className="mt-0.5 text-[12px] text-brown-muted">5 × 2hr blocks</div>
+                <div className="mt-0.5 text-[12px] text-brown-muted">5 Ã— 2hr blocks</div>
               </div>
               <div className="flex-1 rounded-xl border border-border bg-brown/5 p-2.5 text-center">
                 <div className="text-[12px] font-semibold text-brown-muted">Lower Q</div>
-                <div className="mt-0.5 text-[12px] text-brown-muted">60 × 10min stints</div>
+                <div className="mt-0.5 text-[12px] text-brown-muted">60 Ã— 10min stints</div>
               </div>
             </div>
             <p className="mt-3 text-[13px] italic text-sage">
-              Q is capped at 100 because it&apos;s a quality check, not the primary driver. Work in proper focused blocks and it looks after itself.
+              We cap this at 100 points because it&apos;s just a check to make sure you aren&apos;t spamming 2-minute sessions. As long as you&apos;re working in solid blocks, you&apos;ll naturally max this out.
             </p>
             <div className="mt-1">
               <Callout question="Can I raise Q without logging more total hours?">
-                No. Q depends on avg = (total hours × 60) / total sessions. With fixed total hours, the only way to raise avg is to reduce total sessions. The practical lever is simply working in longer, uninterrupted blocks.
+                Your depth score is just your average session length. The best way to raise it is to work in longer, uninterrupted blocks instead of breaking your work into tiny pieces.
               </Callout>
               <Callout question="Does it matter how many sessions I log, or just total hours?">
-                Both matter for different components. V only cares about total hours. K only cares about whether you logged at least one session per day. Q depends on the ratio between hours and sessions — so the number of sessions directly affects your depth score.
+                Both matter! Your total hours boost your &apos;Hours&apos; score, showing up every day boosts your &apos;Consistency&apos; score, and doing longer sessions boosts your &apos;Depth&apos; score.
               </Callout>
             </div>
           </ComponentCard>
@@ -243,14 +243,14 @@ export default function ProductivityScorePage() {
               P = min(1000, 500V + 400K + 100Q)
             </div>
             <p className="text-[14px] leading-relaxed text-brown-muted">
-              Each component has a ceiling, so no single habit carries the whole score. Getting above 900 means all three are strong — accumulated hours, near-daily attendance, and sessions long enough to count.
+              Since each part has a maximum cap, you can&apos;t just grind hours to reach the top. Hitting 900+ means you&apos;ve put in the time, showed up consistently, and worked in solid blocks.
             </p>
             <div className="mt-4 pt-1 border-t border-border">
               <Callout question="Can my score ever reach exactly 1000?">
-                Not in practice. V and Q are both exponential curves that approach 1 but never reach it with finite hours or session length. K can reach exactly 1.0 with perfect attendance, but that alone only gets you 400 points. Scores in the high 900s are possible after thousands of hours; 1000 itself is an asymptote.
+                Technically, no. The math treats 1000 as a physical limit that you can get infinitely close to, but never quite touch. You can definitely reach the high 900s if you stick with it for years, though!
               </Callout>
               <Callout question="Is there a shortcut to Elite?">
-                No. To score above 900, you need all three components strong simultaneously. V alone maxes at 500. Getting to 900 requires V at roughly 400+ points (around 700+ total hours), K near 1.0 (near-daily sessions over 90 days), and a reasonable Q. That combination takes sustained time to build.
+                Nope. You need roughly 700+ total hours, a near-perfect 90-day streak, and good average session lengths to break 900. it&apos;s meant to take real time and dedication to reach.
               </Callout>
             </div>
           </div>
@@ -270,11 +270,11 @@ export default function ProductivityScorePage() {
               ))}
             </div>
             <p className="mt-5 text-[13px] leading-relaxed text-brown-muted">
-              Most users land between Builder and Deep Worker. Reaching Master takes several months of regular, substantive sessions. Elite is rare by design.
+              Most people naturally settle somewhere around Builder or Deep Worker. Hitting Master takes a few months of real dedication, and Elite is kept intentionally rare.
             </p>
             <div className="mt-4 pt-1 border-t border-border">
               <Callout question="Why does my score feel slow to move at first?">
-                It probably isn&apos;t. V&apos;s curve is steepest right at the start — each hour produces more points in your first hundred hours than it ever will again. What creates the feeling of slow progress is the width of rank bands. Novice spans 100 points. Builder spans 150. The progress is real; the visible feedback is delayed. Once you push into Craftsman and above, each rank change starts to feel more frequent.
+                Your score actually grows fastest when you first start! The illusion of slowness comes from the rank bands themselves. The early ranks (like Novice and Builder) cover huge 100-150 point gaps. you&apos;re making fast progress behind the scenes, and once you hit the higher ranks, they&apos;ll start changing much quicker.
               </Callout>
             </div>
           </div>
@@ -284,3 +284,4 @@ export default function ProductivityScorePage() {
     </div>
   );
 }
+

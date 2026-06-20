@@ -110,7 +110,7 @@ export function ProgressCharts({ weeklyData, monthlyData, joinedAt }: ProgressCh
                   return `${Math.floor(mins / 60)}h ${mins % 60}m`;
                 }}
               />
-              <Tooltip content={<ChartTooltip joinedAt={joinedAt} />} />
+              <Tooltip content={<ChartTooltip joinedAt={joinedAt} />} wrapperStyle={{ outline: 'none' }} cursor={{ stroke: '#e8dfd3', strokeWidth: 1 }} />
               {joinedWeeklyLabel && (
                 <ReferenceLine x={joinedWeeklyLabel} stroke="#6b8f71" strokeDasharray="3 3">
                   <text fill="#6b8f71" fontSize={10} x="50%" dy={-10} textAnchor="middle">Joined Focus</text>
@@ -122,6 +122,7 @@ export function ProgressCharts({ weeklyData, monthlyData, joinedAt }: ProgressCh
                 stroke="#c4704b"
                 strokeWidth={2}
                 fill="url(#gradientTerracotta)"
+                activeDot={{ style: { outline: 'none' } }}
               />
             </AreaChart>
           </ResponsiveContainer>
@@ -162,7 +163,7 @@ export function ProgressCharts({ weeklyData, monthlyData, joinedAt }: ProgressCh
                   return `${Math.floor(mins / 60)}h ${mins % 60}m`;
                 }}
               />
-              <Tooltip content={<ChartTooltip joinedAt={joinedAt} />} />
+              <Tooltip content={<ChartTooltip joinedAt={joinedAt} />} wrapperStyle={{ outline: 'none' }} cursor={{ stroke: '#e8dfd3', strokeWidth: 1 }} />
               {joinedMonthlyLabel && !isMonthlyLocked && (
                 <ReferenceLine x={joinedMonthlyLabel} stroke="#c4704b" strokeDasharray="3 3">
                   <text fill="#c4704b" fontSize={10} x="50%" dy={-10} textAnchor="middle">Joined Focus</text>
@@ -174,6 +175,7 @@ export function ProgressCharts({ weeklyData, monthlyData, joinedAt }: ProgressCh
                 stroke="#6b8f71"
                 strokeWidth={2}
                 fill="url(#gradientSage)"
+                activeDot={{ style: { outline: 'none' } }}
               />
             </AreaChart>
           </ResponsiveContainer>

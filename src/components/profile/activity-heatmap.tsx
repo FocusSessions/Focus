@@ -10,7 +10,7 @@ interface ActivityHeatmapProps {
   granularity?: HeatmapGranularity;
   onGranularityChange?: (g: HeatmapGranularity) => void;
   activeDateKey?: string | null;
-  onDayClick?: (dateKey: string) => void;
+  onDayClick?: (dateKey: string | null) => void;
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -105,8 +105,8 @@ function HeatmapTooltip({ tooltip }: { tooltip: TooltipState }) {
 
   return (
     <div
-      className="pointer-events-none fixed z-50 min-w-[152px] -translate-x-1/2 -translate-y-full rounded-cozy border border-border bg-brown px-3 py-2 text-xs shadow-xl"
-      style={{ left: tooltip.x, top: tooltip.y }}
+      className="pointer-events-none fixed z-50 min-w-[152px] hidden sm:block -translate-x-1/2 -translate-y-full rounded-cozy border border-border bg-brown px-3 py-2 text-xs shadow-xl"
+      style={{ left: Math.max(80, Math.min(typeof window !== 'undefined' ? window.innerWidth - 80 : 1000, tooltip.x)), top: tooltip.y }}
     >
       <p className="mb-1 border-b border-cream/20 pb-1 font-medium text-sand-light">
         {dayLabel(day.dateKey)}
@@ -195,7 +195,7 @@ export function ActivityHeatmap({
   if (days.length === 0) return <HeatmapEmpty />;
 
   return (
-    <section className="card w-full max-w-full p-6">
+    <section className="card w-full p-6 overflow-hidden min-w-0">
       {/* ── Header ── */}
       <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
@@ -289,7 +289,7 @@ export function ActivityHeatmap({
                           ${LEVEL_CLASSES[day.level]}
                           ${activeDateKey === day.dateKey ? "ring-2 ring-terracotta ring-offset-2 ring-offset-cream" : ""}`}
                         style={{ width: cellPx, height: cellPx }}
-                        onClick={() => onDayClick?.(day.dateKey)}
+                        onClick={() => onDayClick?.(activeDateKey === day.dateKey ? null : day.dateKey)}
                         onMouseEnter={(e) => {
                           const rect = e.currentTarget.getBoundingClientRect();
                           setTooltip({ x: rect.left + rect.width / 2, y: rect.top - 8, day });
