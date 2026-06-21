@@ -38,6 +38,15 @@ export function SessionList({ activities, emptyMessage, emptyHint }: SessionList
   );
 }
 
+const categoryColors: Record<string, string> = {
+  work: "bg-info/10 text-info dark:bg-info/20",
+  study: "bg-success/10 text-success dark:bg-success/20",
+  coding: "bg-terracotta/10 text-terracotta dark:bg-terracotta/20",
+  reading: "bg-warning/10 text-warning dark:bg-warning/20",
+  writing: "bg-sage/10 text-sage dark:bg-sage/20",
+  other: "bg-brown-muted/10 text-brown dark:bg-brown-muted/20 dark:text-brown-muted",
+};
+
 function SessionRow({
   activity,
   onUpdate,
@@ -147,7 +156,7 @@ function SessionRow({
                 <p className="truncate font-medium text-brown">
                   {activity.title || "Untitled Session"}
                 </p>
-                <span className="rounded-cozy bg-cream px-1.5 py-0.5 text-xs capitalize text-brown-muted">
+                <span className={`rounded-cozy px-1.5 py-0.5 text-xs capitalize ${categoryColors[(activity.category || "other").toLowerCase()] || categoryColors.other}`}>
                   {activity.category || "other"}
                 </span>
               </div>

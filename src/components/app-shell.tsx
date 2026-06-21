@@ -66,7 +66,7 @@ export function AppShell() {
 
   return (
     <>
-      <div className="mx-auto max-w-[720px] px-4 pb-36 pt-10">
+      <div className="mx-auto max-w-[720px] px-4 pb-28 pt-10">
         <header className="mb-10 text-center">
           <h1 className="font-serif text-3xl text-brown">Focus</h1>
           <p className="mt-1 text-sm text-brown-muted">A quiet place to work</p>

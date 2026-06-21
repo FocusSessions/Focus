@@ -38,7 +38,7 @@ export function StopDialog() {
       aria-modal="true"
       aria-labelledby="stop-dialog-title"
     >
-      <div className="card w-full max-w-sm rounded-cozy p-6 animate-zoom-in">
+      <div className="card w-full max-w-sm rounded-cozy p-6 max-h-[90vh] overflow-y-auto animate-zoom-in">
         <h2 id="stop-dialog-title" className="font-serif text-xl">
           Session Complete
         </h2>

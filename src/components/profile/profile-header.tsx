@@ -44,7 +44,7 @@ export function ProfileHeader({ productivityScore, joinedLabel, currentStreak, i
           {isGuest && (
             <Link
               href="/auth"
-              className="btn-primary text-xs px-4 py-2"
+              className="btn-secondary text-xs px-4 py-2"
             >
               Sign up to save progress
             </Link>

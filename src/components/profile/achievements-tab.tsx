@@ -141,9 +141,9 @@ function CategorySection({ category, items }: { category: string; items: Achieve
       <div className="relative group/scroll">
         <div
           ref={scrollRef}
-          className={`py-8 px-2 -my-8 scrollbar-hide ${isExpanded
-              ? "grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4 justify-items-center"
-              : "flex gap-4 overflow-x-auto snap-x"
+          className={`py-8 pl-2 -my-8 scrollbar-hide ${isExpanded
+              ? "pr-2 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4 justify-items-center"
+              : "pr-8 flex gap-4 overflow-x-auto snap-x"
             }`}
         >
           {items.map((achievement) => (
@@ -199,9 +199,9 @@ function RanksSection({ currentRank, productivityScore, items }: { currentRank: 
       <div className="relative group/scroll">
         <div
           ref={scrollRef}
-          className={`py-8 px-2 -my-8 scrollbar-hide ${isExpanded
-              ? "grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4 justify-items-center"
-              : "flex gap-4 overflow-x-auto snap-x"
+          className={`py-8 pl-2 -my-8 scrollbar-hide ${isExpanded
+              ? "pr-2 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4 justify-items-center"
+              : "pr-8 flex gap-4 overflow-x-auto snap-x"
             }`}
         >
           {items.map((rank) => {

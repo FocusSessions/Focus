@@ -27,7 +27,7 @@ export function SideNav() {
 
   return (
     <nav
-      className="fixed z-40 flex bg-surface/90 backdrop-blur-sm border-border bottom-0 left-0 right-0 h-16 w-full flex-row items-center justify-around border-t px-2 py-0 md:bottom-auto md:left-0 md:top-0 md:h-full md:w-44 md:flex-col md:justify-start md:border-r md:border-t-0 md:px-3 md:py-8"
+      className="fixed z-40 flex bg-surface/90 backdrop-blur-md bottom-2 left-2 right-2 h-[60px] md:h-full md:bottom-auto md:left-0 md:top-0 md:w-44 flex-row items-center justify-around rounded-2xl border border-border/50 px-2 py-0 shadow-sm md:flex-col md:justify-start md:rounded-none md:border-r md:border-t-0 md:px-3 md:py-8 pb-safe"
       aria-label="Main navigation"
     >
       <div className="flex w-full md:w-auto flex-row md:flex-col items-center justify-around md:justify-start md:items-stretch gap-1 md:gap-2 md:flex-1">
@@ -38,15 +38,15 @@ export function SideNav() {
             <Link
               key={href}
               href={href}
-              className={`flex flex-col md:flex-row items-center justify-center md:justify-start gap-1 md:gap-3 rounded-cozy p-2 md:px-3 md:py-2.5 text-sm font-medium transition-all duration-cozy ${
+              className={`flex flex-col md:flex-row items-center justify-center md:justify-start gap-1 md:gap-3 rounded-xl p-2 md:px-3 md:py-2.5 text-sm font-medium transition-all duration-cozy ${
                 isActive
-                  ? "md:bg-cream/80 text-brown md:shadow-sm border border-transparent md:border-border/50"
+                  ? "bg-cream/80 md:bg-cream/80 text-brown shadow-sm md:shadow-sm border border-transparent md:border-border/50"
                   : "text-brown-muted hover:bg-cream/40 hover:text-brown"
               }`}
               aria-current={isActive ? "page" : undefined}
             >
               <Icon className="h-5 w-5 md:h-4 md:w-4 shrink-0" aria-hidden="true" />
-              <span className="text-[10px] md:text-sm font-medium md:font-medium">{label}</span>
+              <span className="hidden md:inline text-[10px] md:text-sm font-medium md:font-medium">{label}</span>
             </Link>
           );
         })}

@@ -91,7 +91,7 @@ export function Timer({ focusMode = false }: TimerProps) {
         {/* Timer display */}
           <div className="flex flex-col items-center justify-center py-8">
             <p
-              className="font-mono tabular-nums tracking-tight text-brown text-7xl sm:text-[100px] leading-none"
+              className="font-mono tabular-nums tracking-tight text-brown text-[15vw] sm:text-[100px] leading-none"
               aria-live="polite"
               aria-atomic="true"
             >
@@ -179,7 +179,7 @@ export function Timer({ focusMode = false }: TimerProps) {
       <div className="relative mb-12 flex items-center justify-center">
         <div className="flex flex-col items-center justify-center py-8">
           <p
-            className="font-mono tabular-nums tracking-tight text-brown text-7xl sm:text-[100px] leading-none"
+            className="font-mono tabular-nums tracking-tight text-brown text-[15vw] sm:text-[100px] leading-none"
             aria-live="polite"
             aria-atomic="true"
           >
@@ -189,7 +189,7 @@ export function Timer({ focusMode = false }: TimerProps) {
       </div>
 
       <div className="flex flex-col items-center justify-center gap-6">
-        <div className="flex flex-col sm:flex-row items-end gap-6 sm:gap-8 min-h-[52px]">
+        <div className="flex flex-col sm:flex-row items-center sm:items-end gap-6 sm:gap-8 min-h-[52px]">
           {timerDirection === 'down' && (
             <div className="flex flex-col items-center animate-in fade-in slide-in-from-top-2">
               <span className="text-[10px] font-semibold uppercase tracking-widest text-brown-muted mb-2">

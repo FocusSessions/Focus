@@ -17,6 +17,7 @@ export function RankBadgeIcon({
 }: RankBadgeIconProps) {
   const [visible, setVisible] = useState(false);
   const [tooltipStyle, setTooltipStyle] = useState<React.CSSProperties>({});
+  const [arrowLeft, setArrowLeft] = useState<string>("50%");
   const badgeRef = useRef<HTMLDivElement>(null);
 
   const rank = RANKS.find((r) => r.id === rankId);
@@ -26,23 +27,41 @@ export function RankBadgeIcon({
   const handleMouseEnter = () => {
     if (badgeRef.current && rank) {
       const rect = badgeRef.current.getBoundingClientRect();
-      const tooltipHeight = 130; // Approx height
+      const tooltipHeight = 130;
       const showAbove = rect.top > tooltipHeight;
+      const leftCenter = rect.left + rect.width / 2;
+      const tooltipHalfWidth = 115;
       
+      let left = leftCenter;
+      let transform = "translateX(-50%)";
+      let aLeft = "50%";
+
+      if (leftCenter < tooltipHalfWidth + 16) {
+        left = 16;
+        transform = "translateX(0)";
+        aLeft = `${leftCenter - 16}px`;
+      } else if (leftCenter > window.innerWidth - tooltipHalfWidth - 16) {
+        left = window.innerWidth - 16;
+        transform = "translateX(-100%)";
+        aLeft = `calc(100% - ${window.innerWidth - leftCenter - 16}px)`;
+      }
+
+      setArrowLeft(aLeft);
+
       if (showAbove) {
         setTooltipStyle({
           position: "fixed",
           bottom: window.innerHeight - rect.top + 8,
-          left: rect.left + rect.width / 2,
-          transform: "translateX(-50%)",
+          left,
+          transform,
           zIndex: 9999,
         });
       } else {
         setTooltipStyle({
           position: "fixed",
           top: rect.bottom + 8,
-          left: rect.left + rect.width / 2,
-          transform: "translateX(-50%)",
+          left,
+          transform,
           zIndex: 9999,
         });
       }
@@ -100,10 +119,11 @@ export function RankBadgeIcon({
 
             {/* Tooltip arrow */}
             <div
-              className={`absolute left-1/2 -translate-x-1/2 w-3 h-3 rotate-45 ${
+              className={`absolute -translate-x-1/2 w-3 h-3 rotate-45 ${
                 tooltipStyle.top ? "-top-[7px]" : "-bottom-[7px]"
               }`}
               style={{
+                left: arrowLeft,
                 background: "#18181b",
                 borderRight: !tooltipStyle.top ? `1px solid ${rank.borderColor}44` : "none",
                 borderBottom: !tooltipStyle.top ? `1px solid ${rank.borderColor}44` : "none",
@@ -137,8 +157,6 @@ function BadgeSvg({
         <path d="M 50 70 Q 50 40 50 35" stroke="#dbe5d2" strokeWidth="3" strokeLinecap="round" />
         <path d="M 50 45 Q 35 40 40 30 Q 45 35 50 45" fill="#dbe5d2" />
         <path d="M 50 45 Q 65 40 60 30 Q 55 35 50 45" fill="#dbe5d2" />
-        <path d="M 35 25 L 37 20 L 39 25 L 34 27 Z" fill="#e8e1d5" opacity="0.6" />
-        <path d="M 65 35 L 67 32 L 69 35 L 64 37 Z" fill="#e8e1d5" opacity="0.6" />
       </svg>
     );
   }
@@ -152,11 +170,9 @@ function BadgeSvg({
         <rect x="40" y="65" width="20" height="10" fill="#d6c6aa" stroke="#5c544d" strokeWidth="1" />
         <rect x="30" y="75" width="20" height="10" fill="#d6c6aa" stroke="#5c544d" strokeWidth="1" />
         <rect x="50" y="75" width="20" height="10" fill="#d6c6aa" stroke="#5c544d" strokeWidth="1" />
-        <path d="M 50 65 Q 50 35 50 30" stroke="#dbe5d2" strokeWidth="3.5" strokeLinecap="round" />
-        <path d="M 50 40 Q 30 35 38 22 Q 45 30 50 40" fill="#e8f0e0" />
-        <path d="M 50 40 Q 70 35 62 22 Q 55 30 50 40" fill="#e8f0e0" />
-        <circle cx="30" cy="40" r="2" fill="#e8e1d5" />
-        <circle cx="70" cy="30" r="2" fill="#e8e1d5" />
+        <path d="M 50 65 V 30" stroke="#dbe5d2" strokeWidth="4" strokeLinecap="round" />
+        <path d="M 50 45 C 30 45 30 25 50 25 Z" fill="#e8f0e0" />
+        <path d="M 50 35 C 70 35 70 15 50 15 Z" fill="#e8f0e0" />
       </svg>
     );
   }
@@ -166,12 +182,11 @@ function BadgeSvg({
       <svg className={className} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="50" cy="50" r="48" fill="#8b6f56" stroke="#d6c6aa" strokeWidth="2" />
         <rect x="30" y="65" width="40" height="15" fill="#5a4634" rx="2" />
-        <path d="M 65 50 L 70 45 L 75 55 L 60 70 L 55 65 Z" fill="#a0a0a0" />
-        <path d="M 70 45 L 75 40 L 80 45 L 75 50 Z" fill="#5a4634" />
         <path d="M 25 75 Q 35 70 30 80 Q 20 85 25 75 Z" fill="#d6c6aa" opacity="0.8" />
-        <path d="M 50 65 Q 50 35 50 25" stroke="#d6c6aa" strokeWidth="4" strokeLinecap="round" />
-        <path d="M 50 35 Q 25 30 35 15 Q 45 25 50 35" fill="#e3d6b8" />
-        <path d="M 50 35 Q 75 30 65 15 Q 55 25 50 35" fill="#e3d6b8" />
+        <path d="M 50 65 L 50 45" stroke="#d6c6aa" strokeWidth="6" strokeLinecap="round" />
+        <path d="M 50 50 C 10 50 20 10 50 10 C 80 10 90 50 50 50 Z" fill="#e3d6b8" />
+        <circle cx="40" cy="25" r="5" fill="#5a4634" opacity="0.3" />
+        <circle cx="65" cy="35" r="4" fill="#5a4634" opacity="0.3" />
       </svg>
     );
   }

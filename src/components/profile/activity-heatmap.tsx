@@ -105,33 +105,47 @@ function HeatmapTooltip({ tooltip }: { tooltip: TooltipState }) {
 
   return (
     <div
-      className="pointer-events-none fixed z-50 min-w-[152px] hidden sm:block -translate-x-1/2 -translate-y-full rounded-cozy border border-border bg-brown px-3 py-2 text-xs shadow-xl"
-      style={{ left: Math.max(80, Math.min(typeof window !== 'undefined' ? window.innerWidth - 80 : 1000, tooltip.x)), top: tooltip.y }}
+      className="pointer-events-none fixed z-50 -translate-x-1/2 -translate-y-full rounded-cozy border border-border bg-brown shadow-xl"
+      style={{ left: Math.max(90, Math.min(typeof window !== 'undefined' ? window.innerWidth - 90 : 1000, tooltip.x)), top: tooltip.y }}
     >
-      <p className="mb-1 border-b border-cream/20 pb-1 font-medium text-sand-light">
-        {dayLabel(day.dateKey)}
-      </p>
+      {/* Mobile view (one line) */}
+      <div className="flex sm:hidden items-center gap-1.5 px-3 py-1.5 text-xs whitespace-nowrap">
+        <span className="font-medium text-sand-light">{dayLabel(day.dateKey)}</span>
+        <span className="text-cream/40">·</span>
+        {day.totalMs > 0 ? (
+          <span className="text-cream">{formatDurationShort(day.totalMs)} focused</span>
+        ) : (
+          <span className="text-cream/80">No sessions</span>
+        )}
+      </div>
 
-      {day.isJoinedDate && (
-        <div className="mb-2 mt-1 rounded bg-cream/10 px-2 py-1 text-center text-[10px] font-semibold uppercase tracking-wider text-sage">
-          Joined Focus
-        </div>
-      )}
+      {/* Desktop view (rich) */}
+      <div className="hidden sm:block min-w-[152px] px-3 py-2 text-xs">
+        <p className="mb-1 border-b border-cream/20 pb-1 font-medium text-sand-light">
+          {dayLabel(day.dateKey)}
+        </p>
 
-      {day.totalMs > 0 ? (
-        <div className="space-y-1.5 pt-0.5">
-          <TooltipRow label="Focused" value={formatDurationShort(day.totalMs)} />
-          <TooltipRow label="Sessions" value={String(day.sessionsCount)} />
-          {day.longestSessionMs > 0 && (
-            <TooltipRow label="Longest" value={formatDurationShort(day.longestSessionMs)} />
-          )}
-          {categoryText && (
-            <TooltipRow label="Category" value={categoryText} capitalize />
-          )}
-        </div>
-      ) : (
-        <p className="pt-1 text-cream/80">No focus sessions</p>
-      )}
+        {day.isJoinedDate && (
+          <div className="mb-2 mt-1 rounded bg-cream/10 px-2 py-1 text-center text-[10px] font-semibold uppercase tracking-wider text-sage">
+            Joined Focus
+          </div>
+        )}
+
+        {day.totalMs > 0 ? (
+          <div className="space-y-1.5 pt-0.5">
+            <TooltipRow label="Focused" value={formatDurationShort(day.totalMs)} />
+            <TooltipRow label="Sessions" value={String(day.sessionsCount)} />
+            {day.longestSessionMs > 0 && (
+              <TooltipRow label="Longest" value={formatDurationShort(day.longestSessionMs)} />
+            )}
+            {categoryText && (
+              <TooltipRow label="Category" value={categoryText} capitalize />
+            )}
+          </div>
+        ) : (
+          <p className="pt-1 text-cream/80">No focus sessions</p>
+        )}
+      </div>
     </div>
   );
 }
@@ -191,6 +205,12 @@ export function ActivityHeatmap({
       scrollRef.current.scrollLeft = scrollRef.current.scrollWidth;
     }
   }, [granularity]);
+
+  useEffect(() => {
+    const handleOutsideClick = () => setTooltip(null);
+    document.addEventListener("click", handleOutsideClick);
+    return () => document.removeEventListener("click", handleOutsideClick);
+  }, []);
 
   if (days.length === 0) return <HeatmapEmpty />;
 
@@ -284,17 +304,35 @@ export function ActivityHeatmap({
                         type="button"
                         aria-label={`${dayLabel(day.dateKey)}: ${formatDurationShort(day.totalMs)}`}
                         aria-pressed={activeDateKey === day.dateKey}
-                        className={`shrink-0 rounded-md transition-transform duration-cozy hover:scale-110
+                        className={`relative shrink-0 rounded-md transition-transform duration-cozy hover:scale-110
                           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terracotta focus-visible:ring-offset-1 focus-visible:ring-offset-cream
                           ${LEVEL_CLASSES[day.level]}
-                          ${activeDateKey === day.dateKey ? "ring-2 ring-terracotta ring-offset-2 ring-offset-cream" : ""}`}
+                          ${activeDateKey === day.dateKey ? "ring-2 ring-terracotta ring-offset-2 ring-offset-cream" : ""}
+                          after:absolute after:-inset-1.5 after:content-['']`}
                         style={{ width: cellPx, height: cellPx }}
-                        onClick={() => onDayClick?.(activeDateKey === day.dateKey ? null : day.dateKey)}
                         onMouseEnter={(e) => {
-                          const rect = e.currentTarget.getBoundingClientRect();
-                          setTooltip({ x: rect.left + rect.width / 2, y: rect.top - 8, day });
+                          if (window.matchMedia("(hover: hover)").matches) {
+                            const rect = e.currentTarget.getBoundingClientRect();
+                            setTooltip({ x: rect.left + rect.width / 2, y: rect.top - 8, day });
+                          }
                         }}
-                        onMouseLeave={() => setTooltip(null)}
+                        onMouseLeave={() => {
+                          if (window.matchMedia("(hover: hover)").matches) {
+                            setTooltip(null);
+                          }
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (window.matchMedia("(hover: none)").matches) {
+                            if (tooltip?.day.dateKey === day.dateKey) {
+                              setTooltip(null);
+                            } else {
+                              const rect = e.currentTarget.getBoundingClientRect();
+                              setTooltip({ x: rect.left + rect.width / 2, y: rect.top - 8, day });
+                            }
+                          }
+                          onDayClick?.(activeDateKey === day.dateKey ? null : day.dateKey);
+                        }}
                       />
                     ) : (
                       <div

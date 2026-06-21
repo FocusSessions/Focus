@@ -183,7 +183,7 @@ export function FeedShell() {
   const showSocialFeed = !isGuest && feedItems.length > 0;
 
   return (
-    <div className="mx-auto max-w-[720px] px-4 pb-36 pt-10">
+    <div className="mx-auto max-w-[720px] px-4 pb-28 pt-10">
       <header className="mb-8">
         <h1 className="font-serif text-3xl text-brown">
           {isGlobalFeed ? "Global Discovery" : "Feed"}
@@ -240,7 +240,7 @@ export function FeedShell() {
                         onClick={() => router.push(`/user/${profile.username}`)}
                         className="flex items-center gap-2 group"
                       >
-                        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sage to-[#5a7a5f] text-[10px] font-bold text-white">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sage to-[#5a7a5f] text-[12px] font-bold text-white">
                           {(profile.display_name || profile.username)[0]?.toUpperCase()}
                         </div>
                         <span className="text-xs font-medium text-brown group-hover:text-terracotta transition-colors">
@@ -256,15 +256,15 @@ export function FeedShell() {
                         <button
                           onClick={(e) => toggleFollow(profile.id, e)}
                           disabled={loadingFollow === profile.id}
-                          className="group/follow relative flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition-colors duration-300 hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-50"
+                          className="group/follow relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors duration-300 hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-50"
                           title={followingIds.has(profile.id) ? "Unfollow" : "Follow"}
                         >
                           {loadingFollow === profile.id ? (
-                            <Loader2 className="h-3 w-3 animate-spin text-brown-muted" />
+                            <Loader2 className="h-4 w-4 animate-spin text-brown-muted" />
                           ) : followingIds.has(profile.id) ? (
-                            <Check className="h-3.5 w-3.5 text-sage animate-zoom-in drop-shadow-sm" />
+                            <Check className="h-4 w-4 text-sage animate-zoom-in drop-shadow-sm" />
                           ) : (
-                            <Plus className="h-3.5 w-3.5 text-brown-muted/70 transition-all duration-300 group-hover/follow:scale-110 group-hover/follow:text-terracotta group-active/follow:rotate-90 group-active/follow:scale-75" />
+                            <Plus className="h-4 w-4 text-brown-muted/70 transition-all duration-300 group-hover/follow:scale-110 group-hover/follow:text-terracotta group-active/follow:rotate-90 group-active/follow:scale-75" />
                           )}
                         </button>
                       )}

@@ -1,8 +1,8 @@
 :root {
   /* Base palette */
-  --color-cream: 248 246 242;
+  --color-cream: 253 252 250;
   --color-brown: 61 52 45;
-  --color-brown-muted: 138 129 124;
+  --color-brown-muted: 110 102 96;
   --color-terracotta: 139 115 85;
   --color-terracotta-hover: 117 95 69;
   --color-terracotta-dark: 168 92 58;
@@ -72,6 +72,24 @@
   --shadow-opacity-sm: 0.35;
   --shadow-opacity: 0.55;
   --shadow-opacity-lg: 0.75;
+}
+
+/* Scrollbar Utilities */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Recharts Fixes */
+.recharts-wrapper,
+.recharts-surface,
+.recharts-cartesian-grid,
+.recharts-cartesian-axis,
+.recharts-layer {
+  outline: none !important;
 }
 
 /* Respect users who've asked their OS for reduced motion */

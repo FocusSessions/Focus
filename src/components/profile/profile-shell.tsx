@@ -26,7 +26,7 @@ export function ProfileShell() {
   const { activities, loadState, loadError, retryLoad, joinedAt } = useFocus();
   
   const [activeTab, setActiveTab] = useState<TabId>("overview");
-  const [granularity, setGranularity] = useState<HeatmapGranularity>("year");
+  const [granularity, setGranularity] = useState<HeatmapGranularity>("month");
 
   const focusSessions = useMemo(() => {
     return activities.filter((a): a is FocusSessionActivity => a.type === 'focus_session');
@@ -94,22 +94,25 @@ export function ProfileShell() {
         isStreakSecuredToday={isStreakSecuredToday}
       />
 
-      <div className="mb-4 overflow-x-auto scrollbar-hide pb-1">
-        <div className="flex w-max items-center rounded-full border border-border/50 bg-surface/80 backdrop-blur-md p-1 shadow-sm">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as TabId)}
-              className={`relative rounded-full px-5 py-2 text-sm font-medium transition-all duration-cozy focus:outline-none ${
-                activeTab === tab.id
-                  ? "bg-terracotta text-white"
-                  : "text-brown-muted hover:bg-cream hover:text-brown"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+      <div className="relative mb-4">
+        <div className="overflow-x-auto scrollbar-hide pb-1">
+          <div className="flex w-max items-center rounded-full border border-border/50 bg-surface/80 backdrop-blur-md p-1 shadow-sm">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as TabId)}
+                className={`relative rounded-full px-5 py-2 text-sm font-medium transition-all duration-cozy focus:outline-none ${
+                  activeTab === tab.id
+                    ? "bg-terracotta text-white"
+                    : "text-brown-muted hover:bg-cream hover:text-brown"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
         </div>
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-cream dark:from-[#0d0c0b] to-transparent z-10" />
       </div>
 
       <main>
