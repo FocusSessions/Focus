@@ -66,10 +66,13 @@ export default function AuthPage() {
 
   const { signUp, signIn, signInWithOAuth } = useAuth();
 
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
       setError(null);
+      setSuccessMsg(null);
       setLoading(true);
 
       try {
@@ -83,7 +86,14 @@ export default function AuthPage() {
           if (err) {
             setError(err);
           } else {
-            router.push("/profile");
+            // Check if we actually got signed in (session exists)
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+              router.push("/profile");
+            } else {
+              // Email confirmation required
+              setSuccessMsg("Account created! Check your email to confirm your account, then sign in.");
+            }
           }
         } else {
           const { error: err } = await signIn(email, password);
@@ -306,6 +316,13 @@ export default function AuthPage() {
           {error && (
             <div className="rounded-cozy border border-terracotta/30 bg-terracotta/5 px-4 py-3 text-sm text-terracotta animate-in fade-in">
               {error}
+            </div>
+          )}
+
+          {/* Success */}
+          {successMsg && (
+            <div className="rounded-cozy border border-sage/30 bg-sage/5 px-4 py-3 text-sm text-sage animate-in fade-in">
+              {successMsg}
             </div>
           )}
 

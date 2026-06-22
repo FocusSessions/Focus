@@ -91,7 +91,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (event === "SIGNED_IN" && session?.user) {
         setUser(session.user);
-        const p = await fetchProfile(session.user.id);
+        let p = await fetchProfile(session.user.id);
+
+        // Auto-create profile if it doesn't exist yet (e.g. email confirmation flow)
+        if (!p && session.user.user_metadata) {
+          const meta = session.user.user_metadata;
+          const username = meta.username || meta.preferred_username || `user_${session.user.id.slice(0, 8)}`;
+          const displayName = meta.display_name || meta.full_name || meta.name || username;
+
+          const { error: insertErr } = await supabase
+            .from("profiles")
+            .insert({
+              id: session.user.id,
+              username: username.toLowerCase().replace(/[^a-z0-9_]/g, "_").slice(0, 20),
+              display_name: displayName,
+              is_public: true,
+            });
+
+          if (!insertErr) {
+            p = await fetchProfile(session.user.id);
+          } else if (insertErr.code !== "23505") {
+            console.error("[auth] Auto-create profile failed:", insertErr.message);
+          }
+        }
+
         if (mounted) setProfile(p);
       } else if (event === "SIGNED_OUT") {
         setUser(null);
@@ -139,41 +162,54 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return { error: friendlyAuthError(error) };
         }
 
-        // Handle race condition: the trigger might fail if username was taken between check and insert
-        if (data.user) {
-          // Wait a moment for the trigger to create the profile
-          await new Promise((r) => setTimeout(r, 500));
-          const p = await fetchProfile(data.user.id);
+        // Supabase with email confirmation enabled returns user but NO session.
+        // Without a session, auth.uid() is null and RLS blocks profile inserts.
+        // Also handle the "fake user" case where identities is empty (user already exists).
+        if (data.user && (!data.user.identities || data.user.identities.length === 0)) {
+          return { error: "An account with this email already exists." };
+        }
+
+        if (data.user && !data.session) {
+          // Email confirmation is required — profile will be created by
+          // the database trigger when they confirm, or on first sign-in.
+          // We store the username intent so we can create the profile later.
+          return { error: null };
+        }
+
+        if (data.user && data.session) {
+          // We have a session — create profile now
+          // Wait a moment for the trigger to run
+          await new Promise((r) => setTimeout(r, 1000));
+          let p = await fetchProfile(data.user.id);
+
           if (!p) {
-            // Trigger likely failed due to unique constraint — create manually with fallback
+            // Trigger didn't create the profile — insert manually
             const { error: insertError } = await supabase
               .from("profiles")
               .insert({
                 id: data.user.id,
                 username: username.toLowerCase(),
                 display_name: displayName || username,
-                is_public: true, // Public by default
+                is_public: true,
               });
 
             if (insertError) {
+              console.error("[signUp] Profile insert failed:", insertError.message, insertError.code, insertError.details);
               if (insertError.code === "23505") {
-                return {
-                  error:
-                    "That username was just taken. Please pick another.",
-                };
+                return { error: "That username was just taken. Please pick another." };
               }
               return { error: "Account created but profile setup failed. Please try signing in." };
             }
 
-            const newProfile = await fetchProfile(data.user.id);
-            setProfile(newProfile);
-          } else {
-            setProfile(p);
+            p = await fetchProfile(data.user.id);
           }
+
+          setProfile(p);
         }
 
         return { error: null };
       } catch (err) {
+        console.error("[signUp] Unexpected error:", err);
         return { error: "Something went wrong. Please try again." };
       }
     },
