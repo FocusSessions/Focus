@@ -100,8 +100,11 @@ export function FeedShell() {
         sessionData = data;
       }
 
-      if (!sessionData || !mounted) {
-        if (mounted) setFeedLoading(false);
+      if (!sessionData || sessionData.length === 0 || !mounted) {
+        if (mounted) {
+          setFeedItems([]);
+          setFeedLoading(false);
+        }
         return;
       }
 
@@ -222,17 +225,34 @@ export function FeedShell() {
 
   return (
     <div className="mx-auto max-w-[720px] px-4 pb-28 pt-10">
-      <header className="mb-8">
-        <h1 className="font-serif text-3xl text-brown">
-          {isGlobalFeed ? "Global Discovery" : "Feed"}
-        </h1>
-        <p className="mt-1 text-sm text-brown-muted">
-          {isGuest
-            ? "Sessions you've shared. Sign in to see friends' activity."
-            : isGlobalFeed
-              ? "Recent public sessions. Follow users to build your personal feed."
-              : "Sessions from people you follow."}
-        </p>
+      <header className="mb-8 flex justify-between items-end">
+        <div>
+          <h1 className="font-serif text-3xl text-brown">
+            {isGlobalFeed ? "Global Discovery" : "Feed"}
+          </h1>
+          <p className="mt-1 text-sm text-brown-muted">
+            {isGuest
+              ? "Sessions you've shared. Sign in to see friends' activity."
+              : isGlobalFeed
+                ? "Recent public sessions. Follow users to build your personal feed."
+                : "Sessions from people you follow."}
+          </p>
+        </div>
+        
+        {/* Toggle between Following and Global if user has following */}
+        {!isGuest && followingIds.size > 0 && (
+          <button 
+            onClick={() => {
+              setIsGlobalFeed(!isGlobalFeed);
+              // Trigger reload
+              setFeedLoading(true);
+              setFeedItems([]);
+            }}
+            className="text-xs font-medium text-terracotta hover:text-terracotta-hover transition-colors"
+          >
+            {isGlobalFeed ? "View Following" : "View Global"}
+          </button>
+        )}
       </header>
 
       {/* Guest sign-in prompt */}
@@ -257,8 +277,6 @@ export function FeedShell() {
           </button>
         </div>
       )}
-
-      {/* Removed old feedLoading spinner since skeleton handles it */}
 
       {showSocialFeed && (
         <div className="columns-1 sm:columns-2 gap-4 space-y-4 sm:space-y-0">
@@ -334,7 +352,9 @@ export function FeedShell() {
         <div className="card flex min-h-[200px] flex-col items-center justify-center rounded-cozy border-dashed p-10 text-center">
           <p className="font-medium text-brown">Your feed is empty</p>
           <p className="mt-2 max-w-sm text-sm text-brown-muted">
-            Follow other users to see their public sessions here.
+            {followingIds.size > 0 
+              ? "The people you follow haven't posted any public sessions yet."
+              : "Follow other users to see their public sessions here."}
           </p>
           <div className="flex gap-3 mt-4">
             <button
