@@ -10,13 +10,14 @@ import { Settings2 } from "lucide-react";
 
 interface ProfileHeaderProps {
   productivityScore: number;
-  joinedLabel: string;
+  joinedLabel: React.ReactNode;
   currentStreak: number;
   isStreakSecuredToday: boolean;
   userProfile?: Profile | null;
+  followAction?: React.ReactNode;
 }
 
-export function ProfileHeader({ productivityScore, joinedLabel, currentStreak, isStreakSecuredToday, userProfile }: ProfileHeaderProps) {
+export function ProfileHeader({ productivityScore, joinedLabel, currentStreak, isStreakSecuredToday, userProfile, followAction }: ProfileHeaderProps) {
   const { current: currentRank } = determineRank(productivityScore);
   const { user, profile: currentUser, isGuest } = useAuth();
 
@@ -39,16 +40,21 @@ export function ProfileHeader({ productivityScore, joinedLabel, currentStreak, i
             {initial}
           </div>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <h1 className="font-serif text-2xl font-medium text-brown">{displayName}</h1>
               <div className="flex items-center justify-center cursor-help">
                 <RankBadgeIcon rankId={currentRank.id} className="w-6 h-6 drop-shadow-sm transition-transform hover:scale-110" />
               </div>
+              {followAction && (
+                <div className="ml-2">
+                  {followAction}
+                </div>
+              )}
             </div>
             {username && (
               <p className="text-sm text-brown-muted">@{username}</p>
             )}
-            <p className="mt-0.5 text-sm text-brown-muted">{joinedLabel}</p>
+            <div className="mt-1 text-sm text-brown-muted">{joinedLabel}</div>
           </div>
         </div>
 

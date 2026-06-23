@@ -38,7 +38,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#faf6f0",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#fdfcfa" },
+    { media: "(prefers-color-scheme: dark)", color: "#0d0c0b" },
+  ],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -60,6 +63,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className={`${lora.variable} ${inter.variable}`}>
+        <a href="#main-content" className="skip-link">Skip to content</a>
         <AuthProvider>
           <FocusProvider>
             <SideNav />

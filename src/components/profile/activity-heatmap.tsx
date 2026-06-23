@@ -126,7 +126,7 @@ function HeatmapTooltip({ tooltip }: { tooltip: TooltipState }) {
         </p>
 
         {day.isJoinedDate && (
-          <div className="mb-2 mt-1 rounded bg-cream/10 px-2 py-1 text-center text-[10px] font-semibold uppercase tracking-wider text-sage">
+          <div className="mb-2 mt-1 rounded bg-cream/10 dark:bg-black/5 px-2 py-1 text-center text-[11px] font-semibold uppercase tracking-wider text-sage dark:text-[#2E7D32]">
             Joined Focus
           </div>
         )}
@@ -268,7 +268,7 @@ export function ActivityHeatmap({
               {monthLabels.map(({ label, colIdx }) => (
                 <span
                   key={`${label}-${colIdx}`}
-                  className="absolute text-[10px] leading-none text-brown-muted"
+                  className="absolute text-[11px] leading-none text-brown-muted"
                   style={{ left: colIdx * (cellPx + gapPx) }}
                 >
                   {label}
@@ -286,7 +286,7 @@ export function ActivityHeatmap({
               {DAY_LABELS.map((label, i) => (
                 <div
                   key={i}
-                  className="flex items-center justify-end pr-1 text-[10px] leading-none text-brown-muted"
+                  className="flex items-center justify-end pr-1 text-[11px] leading-none text-brown-muted"
                   style={{ height: cellPx }}
                 >
                   {label}
@@ -353,7 +353,7 @@ export function ActivityHeatmap({
       </div>
 
       {/* ── Legend ── */}
-      <div className="mt-4 flex items-center justify-end gap-2 border-t border-border/60 pt-4 text-[10px] font-semibold tracking-wider text-brown-muted">
+      <div className="mt-4 flex items-center justify-end gap-2 border-t border-border/60 pt-4 text-[11px] font-semibold tracking-wider text-brown-muted">
         <span>Less</span>
         <div className="mx-1 flex items-center gap-1">
           {LEVEL_CLASSES.map((cls, i) => (

@@ -18,7 +18,7 @@ const GOAL_PRESETS = [
 
 export default function SettingsPage() {
   const { dailyGoalMinutes, setDailyGoalMinutes, sessionGoalMinutes, setSessionGoalMinutes, showMilliseconds, setShowMilliseconds, timerDirection, setTimerDirection } = useFocus();
-  const { user, profile, setupProfile } = useAuth();
+  const { user, profile, setupProfile, updateProfile } = useAuth();
   
   const [draftMinutes, setDraftMinutes] = useState(String(dailyGoalMinutes));
   const [saved, setSaved] = useState(false);
@@ -30,6 +30,7 @@ export default function SettingsPage() {
   const [profileSaved, setProfileSaved] = useState(false);
   const [profileError, setProfileError] = useState("");
   const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [privacyLevel, setPrivacyLevel] = useState<'public' | 'private' | 'followers'>(profile?.privacy_level || 'public');
 
   const hasEditedProfile = user?.user_metadata?.has_setup_profile === true;
 
@@ -85,6 +86,7 @@ export default function SettingsPage() {
     if (profile) {
       setUsernameDraft(profile.username);
       setDisplayNameDraft(profile.display_name || "");
+      if (profile.privacy_level) setPrivacyLevel(profile.privacy_level);
     }
   }, [profile]);
 
@@ -129,7 +131,7 @@ export default function SettingsPage() {
       </header>
 
       <div className="space-y-6">
-        {user && profile && (
+        {user && profile && !hasEditedProfile && (
           <section id="profile-settings" className="card p-6">
             <div className="mb-1 flex items-center justify-between gap-3">
               <h2 className="text-base font-medium text-brown">Profile Details</h2>
@@ -141,7 +143,7 @@ export default function SettingsPage() {
               )}
             </div>
             <p className="mb-5 text-sm text-brown-muted">
-              You can personalize your Google-generated username and display name. <strong className="text-terracotta">This can only be done once.</strong>
+              Choose your username and display name. <strong className="text-terracotta">This can only be done once.</strong>
             </p>
 
             {profileError && (
@@ -165,6 +167,8 @@ export default function SettingsPage() {
                   className="input max-w-sm w-full"
                   placeholder="e.g. johndoe"
                   maxLength={20}
+                  spellCheck={false}
+                  autoComplete="off"
                 />
               </div>
               <div>
@@ -180,6 +184,7 @@ export default function SettingsPage() {
                   className="input max-w-sm w-full"
                   placeholder="e.g. John Doe"
                   maxLength={50}
+                  autoComplete="off"
                 />
               </div>
 
@@ -198,6 +203,36 @@ export default function SettingsPage() {
                   Your profile details have been locked and cannot be changed again.
                 </p>
               )}
+            </div>
+          </section>
+        )}
+
+        {user && profile && (
+          <section id="profile-privacy" className="card p-6">
+            <div className="mb-1 flex items-center justify-between gap-3">
+              <h2 className="text-base font-medium text-brown">Profile Privacy</h2>
+            </div>
+            <p className="mb-5 text-sm text-brown-muted">
+              Control who can see your profile and focus activity.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {(['public', 'private', 'followers'] as const).map((level) => (
+                <button
+                  key={level}
+                  type="button"
+                  onClick={async () => {
+                    setPrivacyLevel(level);
+                    await updateProfile({ privacy_level: level, is_public: level === 'public' });
+                  }}
+                  className={`rounded-2xl border px-4 py-2 text-sm font-medium transition-all duration-cozy capitalize ${
+                    privacyLevel === level
+                      ? "border-sage bg-sage text-white"
+                      : "border-border bg-surface text-brown-muted hover:border-sage/40 hover:text-brown"
+                  }`}
+                >
+                  {level}
+                </button>
+              ))}
             </div>
           </section>
         )}

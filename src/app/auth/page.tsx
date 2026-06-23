@@ -249,6 +249,8 @@ export default function AuthPage() {
                     maxLength={20}
                     className="input pl-10 pr-10"
                     required
+                    autoComplete="username"
+                    spellCheck={false}
                   />
                   <div className="absolute right-3 top-1/2 -translate-y-1/2">
                     {usernameStatus === "checking" && (
@@ -290,6 +292,7 @@ export default function AuthPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 className="input pl-10"
                 required
+                autoComplete="email"
               />
             </div>
           </div>
@@ -310,12 +313,14 @@ export default function AuthPage() {
                 className="input pl-10 pr-10"
                 required
                 minLength={mode === "signup" ? 6 : undefined}
+                autoComplete={mode === "signup" ? "new-password" : "current-password"}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-brown-muted hover:text-brown transition-colors"
                 tabIndex={-1}
+                aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>

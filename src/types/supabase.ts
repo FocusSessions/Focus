@@ -9,6 +9,7 @@ export interface Database {
           bio: string | null;
           avatar_url: string | null;
           is_public: boolean;
+          privacy_level?: 'public' | 'private' | 'followers';
           created_at: string;
           updated_at: string;
         };
@@ -19,6 +20,7 @@ export interface Database {
           bio?: string | null;
           avatar_url?: string | null;
           is_public?: boolean;
+          privacy_level?: 'public' | 'private' | 'followers';
         };
         Update: {
           username?: string;
@@ -26,6 +28,7 @@ export interface Database {
           bio?: string | null;
           avatar_url?: string | null;
           is_public?: boolean;
+          privacy_level?: 'public' | 'private' | 'followers';
           updated_at?: string;
         };
       };

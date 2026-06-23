@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { User, Clock, Home, Settings, Search, LogIn, LogOut } from "lucide-react";
+import { User, Target, Newspaper, Settings, Search, LogIn, LogOut } from "lucide-react";
 import { useFocus } from "@/context/focus-app";
 import { useAuth } from "@/context/auth-context";
 
@@ -14,10 +14,10 @@ export function SideNav() {
   if (isRunning) return null;
 
   const links = [
-    { href: "/", label: "Focus", icon: Clock },
+    { href: "/", label: "Focus", icon: Target },
     { href: "/profile", label: "Profile", icon: User },
     { href: "/search", label: "Search", icon: Search },
-    { href: "/feed", label: "Feed", icon: Home },
+    { href: "/feed", label: "Feed", icon: Newspaper },
     { href: "/settings", label: "Settings", icon: Settings },
   ] as const;
 
@@ -46,7 +46,7 @@ export function SideNav() {
               aria-current={isActive ? "page" : undefined}
             >
               <Icon className="h-5 w-5 md:h-4 md:w-4 shrink-0" aria-hidden="true" />
-              <span className="text-[10px] md:text-sm font-medium md:font-medium">{label}</span>
+              <span className="text-xs md:text-sm font-medium md:font-medium">{label}</span>
             </Link>
           );
         })}
@@ -81,7 +81,7 @@ export function SideNav() {
                   {profile?.display_name || (profile?.username?.startsWith("user_") ? "Focus User" : profile?.username)}
                 </p>
                 {!profile?.username?.startsWith("user_") && (
-                  <p className="truncate text-[10px] text-brown-muted">
+                  <p className="truncate text-xs text-brown-muted">
                     @{profile?.username}
                   </p>
                 )}
@@ -90,7 +90,11 @@ export function SideNav() {
 
             {/* Sign out */}
             <button
-              onClick={() => signOut()}
+              onClick={() => {
+                if (window.confirm("Are you sure you want to sign out?")) {
+                  signOut();
+                }
+              }}
               className="flex w-full items-center gap-3 rounded-cozy px-3 py-2 text-sm font-medium text-brown-muted transition-all duration-cozy hover:bg-cream/60 hover:text-brown"
             >
               <LogOut className="h-4 w-4 shrink-0" />

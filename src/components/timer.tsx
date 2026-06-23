@@ -194,7 +194,7 @@ export function Timer({ focusMode = false }: TimerProps) {
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
             type="button"
-            className="btn-primary min-w-[200px] rounded-2xl px-12 py-6 text-xl shadow-sm"
+            className="btn-primary min-w-[160px] rounded-xl px-8 py-4 text-base shadow-sm"
             onClick={() => {
               startTimer();
               try {
@@ -208,10 +208,10 @@ export function Timer({ focusMode = false }: TimerProps) {
             Start
           </motion.button>
 
-          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-8 min-h-[52px]">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-8">
             {timerDirection === 'down' && (
               <div className="flex flex-col items-center animate-in fade-in slide-in-from-top-2">
-                <span className="text-[10px] font-semibold uppercase tracking-widest text-brown-muted mb-2">
+                <span className="text-xs font-semibold uppercase tracking-widest text-brown-muted mb-2">
                   Session Target
                 </span>
                 <div className="flex gap-2">
@@ -233,23 +233,26 @@ export function Timer({ focusMode = false }: TimerProps) {
             )}
 
             <div className="flex flex-col items-center animate-in fade-in slide-in-from-top-2">
-              <span className="text-[10px] font-semibold uppercase tracking-widest text-brown-muted mb-2">
+              <label htmlFor="session-category" className="text-xs font-semibold uppercase tracking-widest text-brown-muted mb-2">
                 Category
-              </span>
+              </label>
               <input
+                id="session-category"
+                name="category"
+                autoComplete="off"
                 value={plannedCategory}
                 onChange={(e) => setPlannedCategory(e.target.value)}
-                placeholder="e.g. Coding"
+                placeholder="e.g. Coding…"
                 list="timer-category-suggestions"
                 maxLength={30}
-                className="rounded-xl px-3 py-1.5 w-32 text-xs font-medium transition-colors bg-surface text-brown border border-border hover:border-sage focus:outline-none focus:ring-1 focus:ring-sage"
+                className="rounded-xl px-3 py-1.5 w-32 text-xs font-medium transition-colors bg-surface text-brown border border-border hover:border-sage focus:outline-none focus-visible:ring-2 focus-visible:ring-sage"
               />
               <datalist id="timer-category-suggestions">
-                <option value="Work" />
-                <option value="Study" />
-                <option value="Coding" />
-                <option value="Reading" />
-                <option value="Writing" />
+                <option value="work" />
+                <option value="study" />
+                <option value="coding" />
+                <option value="reading" />
+                <option value="writing" />
               </datalist>
             </div>
           </div>
@@ -269,7 +272,7 @@ export function Timer({ focusMode = false }: TimerProps) {
               Current Streak
             </p>
             <p className="mt-1.5 text-xl font-medium text-brown">
-              {stats.currentStreak} {stats.currentStreak === 1 ? "Day" : "Days"}
+              {stats.currentStreak} {stats.currentStreak === 1 ? "day" : "days"}
             </p>
           </div>
           <div>

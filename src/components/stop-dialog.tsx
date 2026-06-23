@@ -33,7 +33,7 @@ export function StopDialog() {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-brown/30 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-brown/30 p-4 overscroll-contain"
       role="dialog"
       aria-modal="true"
       aria-labelledby="stop-dialog-title"
@@ -51,10 +51,12 @@ export function StopDialog() {
         </label>
         <input
           id="session-title"
+          name="title"
+          autoComplete="off"
           className="input mt-1 w-full"
           value={title}
           maxLength={50}
-          placeholder="Operating Systems, LeetCode..."
+          placeholder="Operating Systems, LeetCode…"
           onChange={(e) => setTitle(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSave()}
         />
@@ -64,10 +66,11 @@ export function StopDialog() {
         </label>
         <textarea
           id="session-description"
+          name="description"
           className="input mt-1 min-h-[72px] w-full resize-none"
           value={description}
           maxLength={200}
-          placeholder="Finished chapter 3, solved two problems..."
+          placeholder="Finished chapter 3, solved two problems…"
           onChange={(e) => setDescription(e.target.value)}
         />
 
@@ -77,10 +80,12 @@ export function StopDialog() {
         <div className="mt-1">
           <input
             id="session-category"
+            name="category"
+            autoComplete="off"
             className="input w-full"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            placeholder="e.g. Coding"
+            placeholder="e.g. Coding…"
             list="category-suggestions"
             maxLength={30}
           />

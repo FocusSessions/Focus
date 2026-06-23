@@ -39,7 +39,7 @@ export function EditProfileDialog({ onClose }: EditProfileDialogProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overscroll-contain">
       <div 
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         onClick={onClose}
@@ -50,15 +50,24 @@ export function EditProfileDialog({ onClose }: EditProfileDialogProps) {
           onClick={onClose}
           className="absolute right-4 top-4 rounded-full p-2 text-brown-muted hover:bg-surface hover:text-brown transition-colors"
           disabled={isSubmitting}
+          aria-label="Close"
         >
           <X className="h-5 w-5" />
         </button>
 
         <div className="p-6">
           <h2 className="font-serif text-2xl font-medium text-brown mb-2">Set up your profile</h2>
-          <p className="text-sm text-brown-muted mb-6">
-            Choose your username and display name. <strong className="text-brown">You can only do this once.</strong>
+          <p className="text-sm text-brown-muted mb-4">
+            Choose your username and display name.
           </p>
+          
+          <div className="mb-6 flex items-start gap-3 rounded-xl bg-orange-50 p-4 border border-orange-100 dark:bg-orange-950/30 dark:border-orange-900/50">
+            <AlertCircle className="h-5 w-5 shrink-0 text-orange-600 dark:text-orange-400 mt-0.5" />
+            <div className="text-sm text-orange-800 dark:text-orange-200">
+              <strong className="block font-semibold mb-0.5">Permanent action</strong>
+              Your username and display name can only be set once. Make sure you are happy with them!
+            </div>
+          </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
@@ -74,14 +83,17 @@ export function EditProfileDialog({ onClose }: EditProfileDialogProps) {
               </label>
               <input
                 id="displayName"
+                name="displayName"
                 type="text"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="How should we call you?"
-                className="input-field"
+                placeholder="How should we call you?…"
+                className="input w-full"
                 maxLength={50}
                 required
                 disabled={isSubmitting}
+                autoComplete="off"
+                spellCheck={false}
               />
             </div>
 
@@ -91,32 +103,43 @@ export function EditProfileDialog({ onClose }: EditProfileDialogProps) {
               </label>
               <input
                 id="username"
+                name="username"
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
-                placeholder="Unique username (e.g. john_doe)"
-                className="input-field font-mono"
+                placeholder="e.g. johndoe…"
+                className="input w-full font-mono"
                 maxLength={20}
                 required
                 disabled={isSubmitting}
+                autoComplete="off"
+                spellCheck={false}
               />
               <p className="text-xs text-brown-muted mt-1.5">
                 Only letters, numbers, and underscores are allowed. Max 20 characters.
               </p>
             </div>
 
-            <div className="pt-2">
+            <div className="pt-4 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={isSubmitting}
+                className="px-4 py-2 text-sm font-medium text-brown-muted hover:text-brown transition-colors"
+              >
+                Skip for now
+              </button>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="btn-primary w-full flex items-center justify-center gap-2 py-2.5"
+                className="btn-primary flex items-center justify-center gap-2 py-2 px-6"
               >
                 {isSubmitting ? (
-                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
                 ) : (
                   <>
-                    <Save className="h-5 w-5" />
-                    <span>Save Profile Details</span>
+                    <Save className="h-4 w-4" />
+                    <span>Save Profile</span>
                   </>
                 )}
               </button>

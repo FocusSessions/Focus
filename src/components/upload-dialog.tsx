@@ -28,12 +28,16 @@ export function UploadDialog({ onClose }: UploadDialogProps) {
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-end justify-center bg-brown/30 p-4 sm:items-center"
+      className="fixed inset-0 z-[60] flex items-end justify-center p-4 sm:items-center overscroll-contain"
       role="dialog"
       aria-modal="true"
       aria-labelledby="upload-title"
     >
-      <div className="card max-h-[80vh] w-full max-w-sm overflow-y-auto p-6 animate-zoom-in">
+      <div 
+        className="absolute inset-0 bg-brown/30 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      <div className="card relative z-10 max-h-[80vh] w-full max-w-sm overflow-y-auto p-6 animate-zoom-in">
         <h2 id="upload-title" className="font-serif text-xl">
           Your tracks
         </h2>
@@ -46,6 +50,7 @@ export function UploadDialog({ onClose }: UploadDialogProps) {
           type="file"
           accept="audio/mpeg,audio/ogg,audio/wav,audio/mp3"
           className="sr-only"
+          aria-label="Select audio file to upload"
           onChange={(e) => void handleFile(e.target.files?.[0])}
         />
 
@@ -73,6 +78,9 @@ export function UploadDialog({ onClose }: UploadDialogProps) {
               >
                 {renameId === track.id ? (
                   <input
+                    name="rename-track"
+                    aria-label="Rename track"
+                    autoComplete="off"
                     className="input py-1 text-sm"
                     value={renameDraft}
                     onChange={(e) => setRenameDraft(e.target.value)}
@@ -102,7 +110,11 @@ export function UploadDialog({ onClose }: UploadDialogProps) {
                     type="button"
                     className="btn-ghost p-1.5"
                     aria-label="Delete track"
-                    onClick={() => void deleteUploadedTrack(track.id)}
+                    onClick={() => {
+                      if (window.confirm("Are you sure you want to delete this track?")) {
+                        void deleteUploadedTrack(track.id);
+                      }
+                    }}
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>

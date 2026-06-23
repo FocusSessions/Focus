@@ -7,11 +7,21 @@
 @layer base {
   html {
     @apply scroll-smooth;
+    touch-action: manipulation;
+    color-scheme: light;
+  }
+
+  html.dark {
+    color-scheme: dark;
   }
 
   body {
     @apply bg-cream font-sans text-brown antialiased;
     line-height: 1.6;
+  }
+
+  .skip-link {
+    @apply sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:rounded-cozy focus:bg-terracotta focus:text-white focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:shadow-lg;
   }
 
   h1,

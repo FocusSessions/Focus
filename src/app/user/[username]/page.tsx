@@ -224,68 +224,67 @@ export default function UserProfilePage() {
     s => getLogicalDateKey(s.startedAt) === todayKey
   );
 
+  const followersLabel = (
+    <div className="flex items-center gap-4 mt-1">
+      <button 
+        onClick={() => setModalType("followers")}
+        className="text-sm hover:opacity-80 transition-opacity focus:outline-none"
+      >
+        <span className="font-medium text-brown">{followerCount}</span>
+        <span className="text-brown-muted ml-1">followers</span>
+      </button>
+      <button 
+        onClick={() => setModalType("following")}
+        className="text-sm hover:opacity-80 transition-opacity focus:outline-none"
+      >
+        <span className="font-medium text-brown">{followingCount}</span>
+        <span className="text-brown-muted ml-1">following</span>
+      </button>
+    </div>
+  );
+
+  const followBtn = !isSelf ? (
+    <button
+      onClick={() => {
+        if (!user) {
+          router.push("/auth");
+          return;
+        }
+        toggleFollow();
+      }}
+      disabled={followLoading}
+      className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-cozy ${
+        isFollowing
+          ? "border border-border bg-surface text-brown-muted hover:border-terracotta/40 hover:text-terracotta"
+          : "bg-terracotta text-white hover:bg-terracotta-hover"
+      }`}
+    >
+      {followLoading ? (
+        <Loader2 className="h-3 w-3 animate-spin" />
+      ) : isFollowing ? (
+        <>
+          <UserCheck className="h-3 w-3" />
+          Following
+        </>
+      ) : (
+        <>
+          <UserPlus className="h-3 w-3" />
+          Follow
+        </>
+      )}
+    </button>
+  ) : undefined;
+
   return (
     <div className="mx-auto max-w-[720px] px-4 pb-36 pt-10 relative">
       <ProfileHeader
         productivityScore={productivityScore}
-        joinedLabel={`Joined ${joinedLabel}`}
+        joinedLabel={followersLabel}
         currentStreak={stats.currentStreak}
         isStreakSecuredToday={isStreakSecuredToday}
         userProfile={profile}
+        followAction={followBtn}
       />
-      
-      {/* Custom Follow Button and Followers row embedded inside or below ProfileHeader via positioning or flex, but ProfileHeader is imported. Since ProfileHeader doesn't have follow button natively, we can render an action bar right below it. */}
-      
-      <div className="card p-4 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-6">
-          <button 
-            onClick={() => setModalType("followers")}
-            className="text-sm hover:opacity-80 transition-opacity focus:outline-none"
-          >
-            <span className="font-medium text-brown">{followerCount}</span>
-            <span className="text-brown-muted ml-1">followers</span>
-          </button>
-          <button 
-            onClick={() => setModalType("following")}
-            className="text-sm hover:opacity-80 transition-opacity focus:outline-none"
-          >
-            <span className="font-medium text-brown">{followingCount}</span>
-            <span className="text-brown-muted ml-1">following</span>
-          </button>
-        </div>
-        
-        {!isSelf && (
-          <button
-            onClick={() => {
-              if (!user) {
-                router.push("/auth");
-                return;
-              }
-              toggleFollow();
-            }}
-            disabled={followLoading}
-            className={`flex items-center gap-2 rounded-full px-5 py-2 text-sm font-medium transition-all duration-cozy ${
-              isFollowing
-                ? "border border-border bg-surface text-brown-muted hover:border-terracotta/40 hover:text-terracotta"
-                : "bg-terracotta text-white hover:bg-terracotta-hover"
-            }`}
-          >
-            {followLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : isFollowing ? (
-              <>
-                <UserCheck className="h-4 w-4" />
-                Following
-              </>
-            ) : (
-              <>
-                <UserPlus className="h-4 w-4" />
-                Follow
-              </>
-            )}
-          </button>
-        )}
-      </div>
 
       <div className="relative mb-4">
         <div className="overflow-x-auto scrollbar-hide pb-1">
