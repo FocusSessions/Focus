@@ -80,6 +80,7 @@ export default function SearchPage() {
 
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
+      setSearching(false);
     };
   }, [query]);
 

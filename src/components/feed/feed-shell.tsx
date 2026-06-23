@@ -1,8 +1,7 @@
 "use client";
 
-import { useMemo, useEffect, useState, useReducer } from "react";
+import { useEffect, useState, useReducer } from "react";
 import { useRouter } from "next/navigation";
-import { useFocus } from "@/context/focus-app";
 import { useAuth } from "@/context/auth-context";
 import { supabase } from "@/lib/supabase";
 import type { FocusSessionActivity } from "@/types";
@@ -33,32 +32,19 @@ function cloudToLocal(s: CloudSession): FocusSessionActivity {
 }
 
 export function FeedShell() {
-  const { activities, loadState, loadError, retryLoad } = useFocus();
   const { user, isGuest, isLoading: authLoading } = useAuth();
   const router = useRouter();
 
   const [feedItems, setFeedItems] = useState<FeedItem[]>([]);
-  const [feedLoading, setFeedLoading] = useState(true); // BUG 4: always start loading
+  const [feedLoading, setFeedLoading] = useState(true);
   const [followingIds, setFollowingIds] = useState<Set<string>>(new Set());
   const [loadingFollow, setLoadingFollow] = useState<string | null>(null);
   const [userForcedGlobal, setUserForcedGlobal] = useState(false);
   const [isRecommendingGlobal, setIsRecommendingGlobal] = useState(false);
-  const [feedRefetch, triggerFeedRefetch] = useReducer((n: number) => n + 1, 0); // BUG 3: refetch trigger
+  const [feedRefetch, triggerFeedRefetch] = useReducer((n: number) => n + 1, 0);
 
-  // BUG 2: derive isGlobalFeed inline instead of desynced state
   const isGlobalFeed = isGuest || followingIds.size === 0 || userForcedGlobal || isRecommendingGlobal;
-  const [feedError, setFeedError] = useState<string | null>(null); // BUG 15: track feed errors
-
-  // Local shared sessions (for guest mode)
-  const localShared = useMemo(() => {
-    return activities
-      .filter(
-        (a): a is FocusSessionActivity =>
-          a.type === "focus_session" &&
-          (a.visibility === "public" || a.visibility === "friends")
-      )
-      .sort((a, b) => b.startedAt - a.startedAt);
-  }, [activities]);
+  const [feedError, setFeedError] = useState<string | null>(null);
 
   // Load social feed (global for guests, personal for signed-in users)
   useEffect(() => {
@@ -94,7 +80,7 @@ export function FeedShell() {
         let sessionData;
         let didFallbackToGlobal = false;
 
-        // BUG 18: Only fetch 'public' sessions to prevent friends-only leaks
+        // Only fetch 'public' sessions to prevent friends-only leaks
         const useGlobal = fIds.length === 0 || userForcedGlobal;
 
         if (useGlobal) {
@@ -182,7 +168,7 @@ export function FeedShell() {
 
     loadFeed();
     return () => { mounted = false; };
-  }, [user, isGuest, authLoading, userForcedGlobal, feedRefetch]); // BUG 3: refetch on follow changes
+  }, [user, isGuest, authLoading, userForcedGlobal, feedRefetch]);
 
   const toggleFollow = async (targetId: string, e: React.MouseEvent) => {
     e.preventDefault();
@@ -209,7 +195,7 @@ export function FeedShell() {
           next.delete(targetId);
           return next;
         });
-        // BUG 3: trigger feed refetch after follow change
+        // Trigger feed refetch after follow change
         triggerFeedRefetch();
       }
     } else {
@@ -227,7 +213,7 @@ export function FeedShell() {
         }
       } else {
         setFollowingIds((prev) => new Set(prev).add(targetId));
-        // BUG 3: trigger feed refetch after follow change
+        // Trigger feed refetch after follow change
         triggerFeedRefetch();
       }
     }
@@ -235,7 +221,7 @@ export function FeedShell() {
     setLoadingFollow(null);
   };
 
-  if (loadState === "loading" || authLoading || (feedLoading && feedItems.length === 0)) {
+  if (authLoading || (feedLoading && feedItems.length === 0)) {
     return (
       <div className="mx-auto max-w-[720px] px-4 pb-28 pt-10">
         <header className="mb-8">
@@ -263,23 +249,11 @@ export function FeedShell() {
     );
   }
 
-  // BUG 15: Show feed-level errors
   if (feedError && feedItems.length === 0) {
     return (
       <div className="mx-auto max-w-[720px] px-4 py-16 text-center">
         <p className="text-brown">{feedError}</p>
         <button type="button" className="btn-primary mt-4" onClick={() => triggerFeedRefetch()}>
-          Try again
-        </button>
-      </div>
-    );
-  }
-
-  if (loadState === "error") {
-    return (
-      <div className="mx-auto max-w-[720px] px-4 py-16 text-center">
-        <p className="text-brown">{loadError}</p>
-        <button type="button" className="btn-primary mt-4" onClick={retryLoad}>
           Try again
         </button>
       </div>
@@ -369,7 +343,7 @@ export function FeedShell() {
                         </span>
                       </button>
 
-                      {/* Follow Button — BUG 9: larger hit area + text label */}
+                      {/* Follow Button — larger hit area + text label */}
                       {user && user.id !== profile.id && (
                         <button
                           onClick={(e) => toggleFollow(profile.id, e)}
@@ -417,14 +391,18 @@ export function FeedShell() {
         </div>
       )}
 
-      {/* Empty states */}
-      {!isGuest && !feedLoading && feedItems.length === 0 && (
+      {/* Empty state — no sessions found at all */}
+      {!feedLoading && feedItems.length === 0 && (
         <div className="card flex min-h-[200px] flex-col items-center justify-center rounded-cozy border-dashed p-10 text-center">
-          <p className="font-medium text-brown">Your feed is empty</p>
+          <p className="font-medium text-brown">
+            {isGuest ? "Nothing to show yet" : "Your feed is empty"}
+          </p>
           <p className="mt-2 max-w-sm text-sm text-brown-muted">
-            {followingIds.size > 0 
-              ? "The people you follow haven't posted any public sessions yet."
-              : "Follow other users to see their public sessions here."}
+            {isGuest
+              ? "No public sessions have been shared yet. Sign in and start a session to be the first!"
+              : followingIds.size > 0 
+                ? "The people you follow haven't posted any public sessions yet."
+                : "No public sessions found. Follow other users or start sharing your own sessions!"}
           </p>
           <div className="flex gap-3 mt-4">
             <button
@@ -433,66 +411,24 @@ export function FeedShell() {
             >
               Start Session
             </button>
-            <button
-              onClick={() => router.push("/search")}
-              className="btn-secondary text-xs"
-            >
-              Find People
-            </button>
+            {!isGuest && (
+              <button
+                onClick={() => router.push("/search")}
+                className="btn-secondary text-xs"
+              >
+                Find People
+              </button>
+            )}
+            {isGuest && (
+              <button
+                onClick={() => router.push("/auth")}
+                className="btn-secondary text-xs"
+              >
+                Sign In
+              </button>
+            )}
           </div>
         </div>
-      )}
-
-      {/* Guest mode: show own shared sessions */}
-      {isGuest && (
-        <>
-          {localShared.length === 0 ? (
-            <div className="card flex min-h-[200px] flex-col items-center justify-center rounded-cozy border-dashed p-10 text-center">
-              <p className="font-medium text-brown">Nothing to show yet.</p>
-              <p className="mt-2 max-w-sm text-sm text-brown-muted">
-                Save a session with Friends or Public visibility and it will
-                appear here.
-              </p>
-              <div className="flex gap-3 mt-4">
-                <button
-                  onClick={() => router.push("/")}
-                  className="btn-primary text-xs"
-                >
-                  Start Session
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="columns-1 sm:columns-2 gap-4 space-y-4 sm:space-y-0">
-              {localShared.map((session) => (
-                <article key={session.id} className="card rounded-cozy p-5 break-inside-avoid mb-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="min-w-0 flex-1">
-                      <h2 className="truncate font-medium text-brown">
-                        {session.title || "Untitled Session"}
-                      </h2>
-                      <p className="mt-1 text-xs text-brown-muted capitalize">
-                        {session.category || "other"} •{" "}
-                        {dayLabel(getLogicalDateKey(session.startedAt))}
-                      </p>
-                      <p className="mt-0.5 text-xs text-brown-muted">
-                        {formatTimeRange(session.startedAt, session.endedAt)}
-                      </p>
-                    </div>
-                    <div className="flex shrink-0 flex-col items-end gap-1">
-                      <span className="text-sm font-medium text-sage">
-                        {formatDurationShort(session.durationMs)}
-                      </span>
-                      <span className="rounded-md border border-border bg-cream px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-brown-muted">
-                        {session.visibility}
-                      </span>
-                    </div>
-                  </div>
-                </article>
-              ))}
-            </div>
-          )}
-        </>
       )}
     </div>
   );
