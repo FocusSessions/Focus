@@ -313,18 +313,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async (username: string, displayName: string): Promise<{ error: string | null }> => {
       if (!user) return { error: "Not signed in." };
 
-      if (user.user_metadata?.has_setup_profile) {
+      const currentProfile = await fetchProfile(user.id);
+      
+      // If they somehow got marked as setup but are still in a broken state, let them fix it
+      const isBroken = !currentProfile || currentProfile.username.startsWith("user_");
+
+      if (user.user_metadata?.has_setup_profile && !isBroken) {
         return { error: "Profile has already been set up." };
       }
 
       const { error: profileError } = await supabase
         .from("profiles")
-        .update({ 
+        .upsert({ 
+          id: user.id,
           username: username.toLowerCase().replace(/[^a-z0-9_]/g, "_").slice(0, 20), 
           display_name: displayName || username,
-          updated_at: new Date().toISOString() 
-        })
-        .eq("id", user.id);
+          updated_at: new Date().toISOString(),
+          is_public: true
+        });
 
       if (profileError) {
         if (profileError.code === "23505") {

@@ -60,13 +60,13 @@ export function ProfileHeader({ productivityScore, joinedLabel, currentStreak, i
         </div>
 
         <div className="flex items-center gap-6">
-          {!isGuest && isOwnProfile && !hasSetupProfile && (
+          {!isGuest && isOwnProfile && (!hasSetupProfile || !activeProfile || activeProfile.username?.startsWith("user_")) && (
             <button
               onClick={() => setIsEditDialogOpen(true)}
               className="btn-secondary text-xs px-4 py-2 flex items-center gap-2"
             >
               <Settings2 className="w-3.5 h-3.5" />
-              Complete Profile Setup
+              {hasSetupProfile ? "Fix Profile" : "Complete Profile Setup"}
             </button>
           )}
           {isGuest && isOwnProfile && (
