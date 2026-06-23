@@ -60,15 +60,21 @@ export default function SearchPage() {
         return;
       }
 
-      const { data } = await supabase
-        .from("profiles")
-        .select("*")
-        .or(`username.ilike.%${sanitizedQuery}%,display_name.ilike.%${sanitizedQuery}%`)
-        .eq("is_public", true)
-        .limit(20);
+      try {
+        const { data } = await supabase
+          .from("profiles")
+          .select("*")
+          .or(`username.ilike.%${sanitizedQuery}%,display_name.ilike.%${sanitizedQuery}%`)
+          .eq("is_public", true)
+          .limit(20);
 
-      setResults((data as Profile[]) ?? []);
-      setSearching(false);
+        setResults((data as Profile[]) ?? []);
+      } catch (err) {
+        console.error("Search query failed:", err);
+        setResults([]);
+      } finally {
+        setSearching(false);
+      }
     }, 300);
 
     return () => {

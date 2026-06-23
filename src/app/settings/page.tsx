@@ -84,11 +84,12 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (profile) {
-      setUsernameDraft(profile.username);
-      setDisplayNameDraft(profile.display_name || "");
+      const meta = user?.user_metadata;
+      setUsernameDraft(profile.username || meta?.username || "");
+      setDisplayNameDraft(profile.display_name || meta?.display_name || meta?.full_name || meta?.name || "");
       if (profile.privacy_level) setPrivacyLevel(profile.privacy_level);
     }
-  }, [profile]);
+  }, [profile, user]);
 
   const handleSaveProfile = async () => {
     if (!user || hasEditedProfile) return;

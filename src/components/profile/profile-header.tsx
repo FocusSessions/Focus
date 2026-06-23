@@ -27,9 +27,10 @@ export function ProfileHeader({ productivityScore, joinedLabel, currentStreak, i
 
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
-  const displayName = activeProfile?.display_name || activeProfile?.username || "You";
+  const meta = user?.user_metadata;
+  const displayName = activeProfile?.display_name || activeProfile?.username || meta?.display_name || meta?.full_name || meta?.name || meta?.username || "You";
   const initial = displayName[0]?.toUpperCase() || "Y";
-  const username = activeProfile?.username;
+  const username = activeProfile?.username || meta?.username;
   
   const hasSetupProfile = user?.user_metadata?.has_setup_profile === true;
 

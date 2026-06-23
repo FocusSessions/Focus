@@ -45,56 +45,78 @@ type AuthContextValue = AuthState & AuthActions;
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 async function fetchProfile(userId: string): Promise<Profile | null> {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", userId)
-    .single();
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", userId)
+      .single();
 
-  if (error || !data) return null;
-  return data as Profile;
+    if (error || !data) return null;
+    return data as Profile;
+  } catch (err) {
+    console.error("[auth] Unexpected error fetching profile:", err);
+    return null;
+  }
 }
 
 async function ensureProfileExists(user: User): Promise<Profile | null> {
-  const existing = await fetchProfile(user.id);
-  if (existing) return existing;
+  try {
+    const existing = await fetchProfile(user.id);
+    if (existing) return existing;
 
-  if (!user.user_metadata) return null;
+    if (!user.user_metadata) return null;
 
-  const meta = user.user_metadata;
-  const base = (meta.username || meta.preferred_username || `user_${user.id.slice(0, 8)}`)
-    .toLowerCase()
-    .replace(/[^a-z0-9_]/g, "_")
-    .slice(0, 15);
-  const displayName = meta.display_name || meta.full_name || meta.name || base;
+    const meta = user.user_metadata;
+    const base = (meta.username || meta.preferred_username || `user_${user.id.slice(0, 8)}`)
+      .toLowerCase()
+      .replace(/[^a-z0-9_]/g, "_")
+      .slice(0, 15);
+    const displayName = meta.display_name || meta.full_name || meta.name || base;
 
-  for (let attempt = 0; attempt < 5; attempt++) {
-    const username = attempt === 0
-      ? base
-      : `${base}_${Math.floor(Math.random() * 10000)}`;
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const username = attempt === 0
+        ? base
+        : `${base}_${Math.floor(Math.random() * 10000)}`;
 
-    const { error } = await supabase.from("profiles").insert({
-      id: user.id,
-      username,
-      display_name: displayName,
-      is_public: true,
-    });
+      const { error } = await supabase.from("profiles").insert({
+        id: user.id,
+        username,
+        display_name: displayName,
+        is_public: true,
+      });
 
-    if (!error) return fetchProfile(user.id);
+      if (!error) return fetchProfile(user.id);
 
-    if (error.code === "23505") {
-      // Could be trigger already created the row (ID conflict)
-      const check = await fetchProfile(user.id);
-      if (check) return check;
-      // Otherwise it's a username collision — retry with suffix
-      continue;
+      if (error.code === "23505") {
+        const check = await fetchProfile(user.id);
+        if (check) return check;
+        continue;
+      }
+
+      console.error("[auth] Profile creation failed:", error.message);
+      break;
     }
 
-    console.error("[auth] Profile creation failed:", error.message);
-    break;
-  }
+    // If we exhausted attempts or fetch still failed, provide a fallback
+    // so the UI doesn't break if RLS hides their own profile (e.g., privacy_level = private)
+    const finalCheck = await fetchProfile(user.id);
+    if (finalCheck) return finalCheck;
 
-  return fetchProfile(user.id);
+    return {
+      id: user.id,
+      username: meta.username || base,
+      display_name: displayName,
+      is_public: false, // fallback assumes it might be hidden
+      privacy_level: 'private',
+      bio: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    } as Profile;
+  } catch (err) {
+    console.error("[auth] Unexpected error ensuring profile exists:", err);
+    return null;
+  }
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -108,34 +130,54 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let mounted = true;
 
+    const initSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!mounted) return;
+        
+        if (session?.user) {
+          setUser(session.user);
+          const p = await ensureProfileExists(session.user);
+          if (mounted) setProfile(p);
+        }
+      } catch (err) {
+        console.error("[auth] Session initialization failed:", err);
+      } finally {
+        if (mounted) setIsLoading(false);
+      }
+    };
+
+    initSession();
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return;
 
-      if (session?.user) {
-        setUser(session.user);
+      try {
+        if (session?.user) {
+          setUser(session.user);
 
-        if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
-          // Full profile ensure (create if missing) only on actual sign-in
-          const p = await ensureProfileExists(session.user);
-          if (mounted) setProfile(p);
-        } else if (event === "TOKEN_REFRESHED" || event === "USER_UPDATED") {
-          // Lightweight refresh — profile already exists
-          const p = await fetchProfile(session.user.id);
-          if (mounted) setProfile(p);
-        }
-      } else if (event === "SIGNED_OUT") {
-        setUser(null);
-        setProfile(null);
-        // Redirect away from authenticated pages
-        if (typeof window !== "undefined") {
-          const path = window.location.pathname;
-          if (path !== "/" && path !== "/auth") {
-            window.location.href = "/";
+          if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
+            const p = await ensureProfileExists(session.user);
+            if (mounted) setProfile(p);
+          } else if (event === "TOKEN_REFRESHED" || event === "USER_UPDATED") {
+            const p = await ensureProfileExists(session.user);
+            if (mounted) setProfile(p);
+          }
+        } else if (event === "SIGNED_OUT") {
+          setUser(null);
+          setProfile(null);
+          if (typeof window !== "undefined") {
+            const path = window.location.pathname;
+            if (path !== "/" && path !== "/auth") {
+              window.location.href = "/";
+            }
           }
         }
+      } catch (err) {
+        console.error("[auth] Auth state change handler failed:", err);
+      } finally {
+        if (mounted) setIsLoading(false);
       }
-
-      if (mounted) setIsLoading(false);
     });
 
     return () => {
@@ -192,34 +234,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return { error: null };
         }
 
-        if (data.user && data.session) {
-          // We have a session — create profile now
-          let p = await fetchProfile(data.user.id);
+          if (data.user && data.session) {
+            // We have a session — create profile now
+            let p = await ensureProfileExists(data.user);
+            
+            if (!p || p.username !== username.toLowerCase()) {
+              // Trigger didn't create the profile or fallback returned wrong username — try insert manually
+              const { error: insertError } = await supabase
+                .from("profiles")
+                .insert({
+                  id: data.user.id,
+                  username: username.toLowerCase(),
+                  display_name: displayName || username,
+                  is_public: true,
+                });
 
-          if (!p) {
-            // Trigger didn't create the profile — insert manually
-            const { error: insertError } = await supabase
-              .from("profiles")
-              .insert({
-                id: data.user.id,
-                username: username.toLowerCase(),
-                display_name: displayName || username,
-                is_public: true,
-              });
-
-            if (insertError) {
-              console.error("[signUp] Profile insert failed:", insertError.message, insertError.code, insertError.details);
-              if (insertError.code === "23505") {
-                return { error: "That username was just taken. Please pick another." };
+              if (insertError) {
+                console.error("[signUp] Profile insert failed:", insertError.message, insertError.code, insertError.details);
+                if (insertError.code === "23505") {
+                  return { error: "That username was just taken. Please pick another." };
+                }
+                return { error: "Account created but profile setup failed. Please try signing in." };
               }
-              return { error: "Account created but profile setup failed. Please try signing in." };
+
+              p = await ensureProfileExists(data.user);
             }
 
-            p = await fetchProfile(data.user.id);
+            setProfile(p);
           }
-
-          setProfile(p);
-        }
 
         return { error: null };
       } catch (err) {
@@ -265,7 +307,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const signOut = useCallback(async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.error("[auth] Failed to sign out:", err);
+    }
   }, []);
 
   const updateProfile = useCallback(
@@ -284,7 +330,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { error: "Failed to update profile." };
       }
 
-      const p = await fetchProfile(user.id);
+      const p = await ensureProfileExists(user);
       setProfile(p);
       return { error: null };
     },
@@ -322,7 +368,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (userError) return { error: "Failed to save profile setup state." };
 
       setUser(data.user);
-      const p = await fetchProfile(user.id);
+      const p = await ensureProfileExists(data.user);
       setProfile(p);
       return { error: null };
     },
@@ -332,7 +378,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshProfile = useCallback(async () => {
     if (!user) return;
     try {
-      const p = await fetchProfile(user.id);
+      const p = await ensureProfileExists(user);
       setProfile(p);
     } catch (error) {
       console.error("[auth] Failed to refresh profile:", error);
