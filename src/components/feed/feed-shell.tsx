@@ -42,10 +42,11 @@ export function FeedShell() {
   const [followingIds, setFollowingIds] = useState<Set<string>>(new Set());
   const [loadingFollow, setLoadingFollow] = useState<string | null>(null);
   const [userForcedGlobal, setUserForcedGlobal] = useState(false);
+  const [isRecommendingGlobal, setIsRecommendingGlobal] = useState(false);
   const [feedRefetch, triggerFeedRefetch] = useReducer((n: number) => n + 1, 0); // BUG 3: refetch trigger
 
   // BUG 2: derive isGlobalFeed inline instead of desynced state
-  const isGlobalFeed = isGuest || followingIds.size === 0 || userForcedGlobal;
+  const isGlobalFeed = isGuest || followingIds.size === 0 || userForcedGlobal || isRecommendingGlobal;
   const [feedError, setFeedError] = useState<string | null>(null); // BUG 15: track feed errors
 
   // Local shared sessions (for guest mode)
@@ -91,6 +92,7 @@ export function FeedShell() {
         }
 
         let sessionData;
+        let didFallbackToGlobal = false;
 
         // BUG 18: Only fetch 'public' sessions to prevent friends-only leaks
         const useGlobal = fIds.length === 0 || userForcedGlobal;
@@ -120,6 +122,25 @@ export function FeedShell() {
             if (mounted) setFeedError("Failed to load feed. Try again.");
           }
           sessionData = data;
+          
+          // Fallback to global if following feed is empty
+          if (!sessionData || sessionData.length === 0) {
+            const { data: globalData, error: globalError } = await supabase
+              .from("sessions")
+              .select("*")
+              .eq("visibility", "public")
+              .order("started_at", { ascending: false })
+              .limit(50);
+              
+            if (!globalError && globalData && globalData.length > 0) {
+              sessionData = globalData;
+              didFallbackToGlobal = true;
+            }
+          }
+        }
+
+        if (mounted) {
+          setIsRecommendingGlobal(didFallbackToGlobal);
         }
 
         if (!sessionData || sessionData.length === 0 || !mounted) {
@@ -273,14 +294,16 @@ export function FeedShell() {
       <header className="mb-8 flex justify-between items-end">
         <div>
           <h1 className="font-serif text-3xl text-brown">
-            {isGlobalFeed ? "Global Discovery" : "Feed"}
+            {isGuest ? "Global Discovery" : isRecommendingGlobal ? "Recommended Content" : isGlobalFeed ? "Global Discovery" : "Feed"}
           </h1>
           <p className="mt-1 text-sm text-brown-muted">
             {isGuest
               ? "Explore what others are working on. Sign in to follow users and build your feed."
-              : isGlobalFeed
-                ? "Recent public sessions. Follow users to build your personal feed."
-                : "Sessions from people you follow."}
+              : isRecommendingGlobal
+                ? "The people you follow haven't posted recently. Here are some recent public sessions to discover."
+                : isGlobalFeed
+                  ? "Recent public sessions. Follow users to build your personal feed."
+                  : "Sessions from people you follow."}
           </p>
         </div>
         
