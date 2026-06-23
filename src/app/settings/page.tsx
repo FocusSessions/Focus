@@ -162,7 +162,7 @@ export default function SettingsPage() {
                   id="username"
                   type="text"
                   value={usernameDraft}
-                  onChange={(e) => setUsernameDraft(e.target.value.replace(/[^a-zA-Z0-9_]/g, ""))}
+                  onChange={(e) => setUsernameDraft(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
                   disabled={hasEditedProfile || isSavingProfile}
                   className="input max-w-sm w-full"
                   placeholder="e.g. johndoe"
@@ -222,7 +222,9 @@ export default function SettingsPage() {
                   type="button"
                   onClick={async () => {
                     setPrivacyLevel(level);
-                    await updateProfile({ privacy_level: level, is_public: level === 'public' });
+                    // BUG 10: Derive is_public from privacy_level consistently
+                    const isPublic = level === 'public';
+                    await updateProfile({ privacy_level: level, is_public: isPublic });
                   }}
                   className={`rounded-2xl border px-4 py-2 text-sm font-medium transition-all duration-cozy capitalize ${
                     privacyLevel === level
@@ -234,6 +236,11 @@ export default function SettingsPage() {
                 </button>
               ))}
             </div>
+            {privacyLevel !== 'public' && (
+              <p className="mt-3 text-xs text-brown-muted">
+                Your profile won&apos;t appear in search results when set to {privacyLevel}.
+              </p>
+            )}
           </section>
         )}
         <section id="daily-goal" className="card p-6">

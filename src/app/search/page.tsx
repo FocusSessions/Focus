@@ -47,8 +47,18 @@ export default function SearchPage() {
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
     debounceRef.current = setTimeout(async () => {
-      // Sanitize query to prevent PostgREST injection
-      const sanitizedQuery = query.replace(/[,.()"]/g, "");
+      // Sanitize query: remove PostgREST control chars, then escape ILIKE wildcards
+      const cleaned = query.replace(/[,.()\"']/g, "");
+      const sanitizedQuery = cleaned
+        .replace(/\\/g, "\\\\")  // escape backslash first
+        .replace(/%/g, "\\%")   // escape % wildcard
+        .replace(/_/g, "\\_");  // escape _ wildcard
+
+      if (!sanitizedQuery.trim()) {
+        setResults([]);
+        setSearching(false);
+        return;
+      }
 
       const { data } = await supabase
         .from("profiles")

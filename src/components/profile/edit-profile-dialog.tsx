@@ -64,8 +64,8 @@ export function EditProfileDialog({ onClose }: EditProfileDialogProps) {
           <div className="mb-6 flex items-start gap-3 rounded-xl bg-orange-50 p-4 border border-orange-100 dark:bg-orange-950/30 dark:border-orange-900/50">
             <AlertCircle className="h-5 w-5 shrink-0 text-orange-600 dark:text-orange-400 mt-0.5" />
             <div className="text-sm text-orange-800 dark:text-orange-200">
-              <strong className="block font-semibold mb-0.5">Permanent action</strong>
-              Your username and display name can only be set once. Make sure you are happy with them!
+              <strong className="block font-semibold mb-0.5">One-time setup</strong>
+              Your username cannot be changed once saved. You can skip this for now and come back later.
             </div>
           </div>
 

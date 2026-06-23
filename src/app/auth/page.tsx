@@ -272,8 +272,29 @@ export default function AuthPage() {
                   {usernameStatus === "checking" && "Checking…"}
                 </p>
               </div>
-
-              {/* Display Name removed to reduce cognitive load */}
+              {/* Display Name */}
+              <div>
+                <label htmlFor="displayName" className="mb-1.5 block text-sm font-medium text-brown">
+                  Display Name
+                </label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-brown-muted" />
+                  <input
+                    id="displayName"
+                    type="text"
+                    placeholder="How should we call you?"
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    maxLength={50}
+                    className="input pl-10"
+                    autoComplete="name"
+                    spellCheck={false}
+                  />
+                </div>
+                <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+                  Optional — defaults to your username.
+                </p>
+              </div>
             </>
           )}
 

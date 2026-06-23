@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useEffect, useState } from "react";
+import { useMemo, useEffect, useState, useReducer } from "react";
 import { useRouter } from "next/navigation";
 import { useFocus } from "@/context/focus-app";
 import { useAuth } from "@/context/auth-context";
@@ -38,11 +38,15 @@ export function FeedShell() {
   const router = useRouter();
 
   const [feedItems, setFeedItems] = useState<FeedItem[]>([]);
-  const [feedLoading, setFeedLoading] = useState(!isGuest && !!user);
+  const [feedLoading, setFeedLoading] = useState(true); // BUG 4: always start loading
   const [followingIds, setFollowingIds] = useState<Set<string>>(new Set());
   const [loadingFollow, setLoadingFollow] = useState<string | null>(null);
   const [userForcedGlobal, setUserForcedGlobal] = useState(false);
-  const [isGlobalFeed, setIsGlobalFeed] = useState(false);
+  const [feedRefetch, triggerFeedRefetch] = useReducer((n: number) => n + 1, 0); // BUG 3: refetch trigger
+
+  // BUG 2: derive isGlobalFeed inline instead of desynced state
+  const isGlobalFeed = isGuest || followingIds.size === 0 || userForcedGlobal;
+  const [feedError, setFeedError] = useState<string | null>(null); // BUG 15: track feed errors
 
   // Local shared sessions (for guest mode)
   const localShared = useMemo(() => {
@@ -63,82 +67,101 @@ export function FeedShell() {
 
     const loadFeed = async () => {
       setFeedLoading(true);
+      setFeedError(null);
 
-      let fIds: string[] = [];
+      try {
+        let fIds: string[] = [];
 
-      if (!isGuest && user) {
-        // Get IDs of users we follow
-        const { data: followData } = await supabase
-          .from("follows")
-          .select("following_id")
-          .eq("follower_id", user.id);
+        if (!isGuest && user) {
+          // Get IDs of users we follow
+          const { data: followData, error: followError } = await supabase
+            .from("follows")
+            .select("following_id")
+            .eq("follower_id", user.id);
 
-        fIds = followData?.map((f) => f.following_id) ?? [];
+          if (followError) {
+            console.error("[feed] Failed to load follows:", followError.message);
+          }
 
-        if (mounted) {
-          setFollowingIds(new Set(fIds));
+          fIds = followData?.map((f) => f.following_id) ?? [];
+
+          if (mounted) {
+            setFollowingIds(new Set(fIds));
+          }
         }
-      }
 
-      let sessionData;
+        let sessionData;
 
-      const useGlobal = fIds.length === 0 || userForcedGlobal;
-      if (mounted) setIsGlobalFeed(useGlobal);
+        // BUG 18: Only fetch 'public' sessions to prevent friends-only leaks
+        const useGlobal = fIds.length === 0 || userForcedGlobal;
 
-      if (useGlobal) {
-        const { data, error } = await supabase
-          .from("sessions")
+        if (useGlobal) {
+          const { data, error } = await supabase
+            .from("sessions")
+            .select("*")
+            .eq("visibility", "public")
+            .order("started_at", { ascending: false })
+            .limit(50);
+          if (error) {
+            console.error("[feed] Global fetch failed:", error.message);
+            if (mounted) setFeedError("Failed to load feed. Try again.");
+          }
+          sessionData = data;
+        } else {
+          const { data, error } = await supabase
+            .from("sessions")
+            .select("*")
+            .in("user_id", fIds)
+            .eq("visibility", "public")
+            .order("started_at", { ascending: false })
+            .limit(50);
+          if (error) {
+            console.error("[feed] Following fetch failed:", error.message);
+            if (mounted) setFeedError("Failed to load feed. Try again.");
+          }
+          sessionData = data;
+        }
+
+        if (!sessionData || sessionData.length === 0 || !mounted) {
+          if (mounted) {
+            setFeedItems([]);
+            setFeedLoading(false);
+          }
+          return;
+        }
+
+        // Fetch profiles for those users
+        const userIds = Array.from(new Set(sessionData.map((s: CloudSession) => s.user_id)));
+        const { data: profileData } = await supabase
+          .from("profiles")
           .select("*")
-          .eq("visibility", "public")
-          .order("started_at", { ascending: false })
-          .limit(50);
-        if (error) console.error("[feed] Global fetch failed:", error.message);
-        sessionData = data;
-      } else {
-        const { data, error } = await supabase
-          .from("sessions")
-          .select("*")
-          .in("user_id", fIds)
-          .in("visibility", ["public", "friends"])
-          .order("started_at", { ascending: false })
-          .limit(50);
-        if (error) console.error("[feed] Following fetch failed:", error.message);
-        sessionData = data;
-      }
+          .in("id", userIds);
 
-      if (!sessionData || sessionData.length === 0 || !mounted) {
+        const profileMap = new Map(
+          (profileData as Profile[] | null)?.map((p) => [p.id, p]) ?? []
+        );
+
         if (mounted) {
-          setFeedItems([]);
+          setFeedItems(
+            sessionData.map((s) => ({
+              session: cloudToLocal(s as CloudSession),
+              profile: profileMap.get(s.user_id),
+            }))
+          );
           setFeedLoading(false);
         }
-        return;
-      }
-
-      // Fetch profiles for those users
-      const userIds = Array.from(new Set(sessionData.map((s: CloudSession) => s.user_id)));
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("*")
-        .in("id", userIds);
-
-      const profileMap = new Map(
-        (profileData as Profile[] | null)?.map((p) => [p.id, p]) ?? []
-      );
-
-      if (mounted) {
-        setFeedItems(
-          sessionData.map((s) => ({
-            session: cloudToLocal(s as CloudSession),
-            profile: profileMap.get(s.user_id),
-          }))
-        );
-        setFeedLoading(false);
+      } catch (err) {
+        console.error("[feed] Unexpected error:", err);
+        if (mounted) {
+          setFeedError("Something went wrong loading the feed.");
+          setFeedLoading(false);
+        }
       }
     };
 
     loadFeed();
     return () => { mounted = false; };
-  }, [user, isGuest, authLoading, userForcedGlobal]);
+  }, [user, isGuest, authLoading, userForcedGlobal, feedRefetch]); // BUG 3: refetch on follow changes
 
   const toggleFollow = async (targetId: string, e: React.MouseEvent) => {
     e.preventDefault();
@@ -165,6 +188,8 @@ export function FeedShell() {
           next.delete(targetId);
           return next;
         });
+        // BUG 3: trigger feed refetch after follow change
+        triggerFeedRefetch();
       }
     } else {
       const { error } = await supabase.from("follows").insert({
@@ -181,6 +206,8 @@ export function FeedShell() {
         }
       } else {
         setFollowingIds((prev) => new Set(prev).add(targetId));
+        // BUG 3: trigger feed refetch after follow change
+        triggerFeedRefetch();
       }
     }
 
@@ -211,6 +238,18 @@ export function FeedShell() {
             </div>
           ))}
         </div>
+      </div>
+    );
+  }
+
+  // BUG 15: Show feed-level errors
+  if (feedError && feedItems.length === 0) {
+    return (
+      <div className="mx-auto max-w-[720px] px-4 py-16 text-center">
+        <p className="text-brown">{feedError}</p>
+        <button type="button" className="btn-primary mt-4" onClick={() => triggerFeedRefetch()}>
+          Try again
+        </button>
       </div>
     );
   }
@@ -251,6 +290,7 @@ export function FeedShell() {
             onClick={() => {
               setUserForcedGlobal(prev => !prev);
               setFeedItems([]);
+              setFeedLoading(true);
             }}
             className="text-xs font-medium text-terracotta hover:text-terracotta-hover transition-colors"
           >
@@ -306,20 +346,23 @@ export function FeedShell() {
                         </span>
                       </button>
 
-                      {/* Follow Button */}
+                      {/* Follow Button — BUG 9: larger hit area + text label */}
                       {user && user.id !== profile.id && (
                         <button
                           onClick={(e) => toggleFollow(profile.id, e)}
                           disabled={loadingFollow === profile.id}
-                          className="group/follow relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors duration-300 hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-50"
-                          title={followingIds.has(profile.id) ? "Unfollow" : "Follow"}
+                          className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium transition-all duration-300 disabled:opacity-50 ${
+                            followingIds.has(profile.id)
+                              ? "border border-border bg-surface text-brown-muted hover:border-terracotta/40 hover:text-terracotta"
+                              : "bg-terracotta/10 text-terracotta hover:bg-terracotta hover:text-white"
+                          }`}
                         >
                           {loadingFollow === profile.id ? (
-                            <Loader2 className="h-4 w-4 animate-spin text-brown-muted" />
+                            <Loader2 className="h-3 w-3 animate-spin" />
                           ) : followingIds.has(profile.id) ? (
-                            <Check className="h-4 w-4 text-sage animate-zoom-in drop-shadow-sm" />
+                            <><Check className="h-3 w-3" />Following</>
                           ) : (
-                            <Plus className="h-4 w-4 text-brown-muted/70 transition-all duration-300 group-hover/follow:scale-110 group-hover/follow:text-terracotta group-active/follow:rotate-90 group-active/follow:scale-75" />
+                            <><Plus className="h-3 w-3" />Follow</>
                           )}
                         </button>
                       )}

@@ -1,12 +1,17 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/context/auth-context";
 
 export default function AuthCallbackPage() {
   const router = useRouter();
+  const { profile, isLoading } = useAuth();
+  const [sessionReady, setSessionReady] = useState(false);
+  const [callbackError, setCallbackError] = useState<string | null>(null);
 
+  // Step 1: Exchange code for session
   useEffect(() => {
     const handleCallback = async () => {
       // Check for code in URL params (PKCE flow)
@@ -26,19 +31,41 @@ export default function AuthCallbackPage() {
 
       if (sessionError) {
         console.error("Auth callback error:", sessionError);
+        setCallbackError("Sign-in failed. Please try again.");
+      } else {
+        setSessionReady(true);
       }
-      // After OAuth, redirect to profile to complete setup if needed
-      router.replace("/profile");
     };
 
     handleCallback();
-  }, [router]);
+  }, []);
+
+  // Step 2: Wait for auth context to finish loading profile, then redirect
+  useEffect(() => {
+    if (!sessionReady || isLoading) return;
+    // Profile is loaded (or null if creation failed) — safe to redirect
+    router.replace("/profile");
+  }, [sessionReady, isLoading, router]);
 
   return (
     <div className="flex min-h-screen items-center justify-center">
       <div className="text-center">
-        <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-border border-t-terracotta" />
-        <p className="text-sm text-brown-muted">Signing you in…</p>
+        {callbackError ? (
+          <>
+            <p className="text-sm text-terracotta mb-4">{callbackError}</p>
+            <button
+              onClick={() => router.replace("/auth")}
+              className="btn-primary text-sm"
+            >
+              Back to Sign In
+            </button>
+          </>
+        ) : (
+          <>
+            <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-border border-t-terracotta" />
+            <p className="text-sm text-brown-muted">Signing you in…</p>
+          </>
+        )}
       </div>
     </div>
   );

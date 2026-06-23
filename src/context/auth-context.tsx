@@ -111,13 +111,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return;
 
-      if (session?.user && (event === "SIGNED_IN" || event === "INITIAL_SESSION" || event === "TOKEN_REFRESHED" || event === "USER_UPDATED")) {
+      if (session?.user) {
         setUser(session.user);
-        const p = await ensureProfileExists(session.user);
-        if (mounted) setProfile(p);
+
+        if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
+          // Full profile ensure (create if missing) only on actual sign-in
+          const p = await ensureProfileExists(session.user);
+          if (mounted) setProfile(p);
+        } else if (event === "TOKEN_REFRESHED" || event === "USER_UPDATED") {
+          // Lightweight refresh — profile already exists
+          const p = await fetchProfile(session.user.id);
+          if (mounted) setProfile(p);
+        }
       } else if (event === "SIGNED_OUT") {
         setUser(null);
         setProfile(null);
+        // Redirect away from authenticated pages
+        if (typeof window !== "undefined") {
+          const path = window.location.pathname;
+          if (path !== "/" && path !== "/auth") {
+            window.location.href = "/";
+          }
+        }
       }
 
       if (mounted) setIsLoading(false);

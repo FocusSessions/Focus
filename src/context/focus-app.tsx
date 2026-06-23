@@ -202,33 +202,43 @@ export function FocusProvider({ children }: { children: ReactNode }) {
     boot();
   }, [boot]);
 
-  // Sync cloud sessions down to local
+  // Sync cloud sessions down to local, and local up to cloud
   useEffect(() => {
     if (!user || isGuest) return;
     let mounted = true;
 
-    const fetchCloud = async () => {
+    const syncSessions = async () => {
+      // 1. Download cloud sessions and merge into local
       const cloudSessions = await loadCloudActivities(user.id);
-      if (!mounted || cloudSessions.length === 0) return;
 
-      setActivities((prev) => {
-        const map = new Map(prev.map((a) => [a.id, a]));
-        let changed = false;
-        for (const cs of cloudSessions) {
-          if (!map.has(cs.id)) {
-            map.set(cs.id, cs);
-            changed = true;
+      if (mounted && cloudSessions.length > 0) {
+        setActivities((prev) => {
+          const map = new Map(prev.map((a) => [a.id, a]));
+          let changed = false;
+          for (const cs of cloudSessions) {
+            if (!map.has(cs.id)) {
+              map.set(cs.id, cs);
+              changed = true;
+            }
           }
-        }
-        if (!changed) return prev;
-        const next = Array.from(map.values()).sort((a, b) => b.createdAt - a.createdAt);
-        // Persist the merged list locally
-        persistActivities(next).catch(() => {});
-        return next;
-      });
+          if (!changed) return prev;
+          const next = Array.from(map.values()).sort((a, b) => b.createdAt - a.createdAt);
+          // Persist the merged list locally
+          persistActivities(next).catch(() => {});
+          return next;
+        });
+      }
+
+      // 2. Upload local sessions to cloud (idempotent via upsert)
+      // This ensures guest-mode sessions get persisted when user signs in
+      try {
+        await syncLocalToCloud(user.id);
+      } catch (err) {
+        console.error("[CloudSync] Failed to sync local sessions to cloud:", err);
+      }
     };
 
-    fetchCloud();
+    syncSessions();
     return () => {
       mounted = false;
     };

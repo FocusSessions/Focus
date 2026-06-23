@@ -17,28 +17,38 @@ interface FollowListModalProps {
 export function FollowListModal({ userId, type, onClose }: FollowListModalProps) {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
     const fetchUsers = async () => {
       setLoading(true);
+      setError(null);
       
-      let ids: string[] = [];
-      if (type === "followers") {
-        const { data } = await supabase.from("follows").select("follower_id").eq("following_id", userId);
-        ids = data?.map(d => d.follower_id) || [];
-      } else {
-        const { data } = await supabase.from("follows").select("following_id").eq("follower_id", userId);
-        ids = data?.map(d => d.following_id) || [];
-      }
-
-      if (ids.length > 0) {
-        const { data: profileData } = await supabase.from("profiles").select("*").in("id", ids);
-        if (mounted && profileData) {
-          setProfiles(profileData);
+      try {
+        let ids: string[] = [];
+        if (type === "followers") {
+          const { data, error: fetchErr } = await supabase.from("follows").select("follower_id").eq("following_id", userId);
+          if (fetchErr) throw fetchErr;
+          ids = data?.map(d => d.follower_id) || [];
+        } else {
+          const { data, error: fetchErr } = await supabase.from("follows").select("following_id").eq("follower_id", userId);
+          if (fetchErr) throw fetchErr;
+          ids = data?.map(d => d.following_id) || [];
         }
-      } else if (mounted) {
-        setProfiles([]);
+
+        if (ids.length > 0) {
+          const { data: profileData, error: profileErr } = await supabase.from("profiles").select("*").in("id", ids);
+          if (profileErr) throw profileErr;
+          if (mounted && profileData) {
+            setProfiles(profileData);
+          }
+        } else if (mounted) {
+          setProfiles([]);
+        }
+      } catch (err) {
+        console.error("[FollowListModal] Failed to load:", err);
+        if (mounted) setError("Failed to load list. Please try again.");
       }
       
       if (mounted) setLoading(false);
@@ -70,6 +80,16 @@ export function FollowListModal({ userId, type, onClose }: FollowListModalProps)
           {loading ? (
             <div className="flex justify-center py-8">
               <Loader2 className="h-6 w-6 animate-spin text-brown-muted" />
+            </div>
+          ) : error ? (
+            <div className="text-center py-8">
+              <p className="text-sm text-terracotta">{error}</p>
+              <button
+                onClick={() => { setError(null); setLoading(true); }}
+                className="mt-2 text-xs text-brown-muted hover:text-brown underline"
+              >
+                Try again
+              </button>
             </div>
           ) : profiles.length === 0 ? (
             <div className="text-center py-8 text-sm text-brown-muted">
