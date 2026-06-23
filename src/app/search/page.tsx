@@ -66,7 +66,6 @@ export default function SearchPage() {
           .from("profiles")
           .select("*")
           .or(`username.ilike."%${sanitizedQuery}%",display_name.ilike."%${sanitizedQuery}%"`)
-          .eq("is_public", true)
           .limit(20);
 
         if (error) {
