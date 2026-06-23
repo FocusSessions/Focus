@@ -33,6 +33,8 @@ export function ProfileHeader({ productivityScore, joinedLabel, currentStreak, i
   
   const hasSetupProfile = user?.user_metadata?.has_setup_profile === true;
 
+  const needsSetup = !user?.user_metadata?.has_setup_profile || !activeProfile?.username?.length;
+
   return (
     <header className="mb-6 space-y-3">
       <div className="card p-6 flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -60,13 +62,13 @@ export function ProfileHeader({ productivityScore, joinedLabel, currentStreak, i
         </div>
 
         <div className="flex items-center gap-6">
-          {!isGuest && isOwnProfile && (!hasSetupProfile || !activeProfile || activeProfile.username?.startsWith("user_")) && (
+          {!isGuest && isOwnProfile && needsSetup && (
             <button
               onClick={() => setIsEditDialogOpen(true)}
               className="btn-secondary text-xs px-4 py-2 flex items-center gap-2"
             >
               <Settings2 className="w-3.5 h-3.5" />
-              {hasSetupProfile ? "Fix Profile" : "Complete Profile Setup"}
+              Complete Profile Setup
             </button>
           )}
           {isGuest && isOwnProfile && (

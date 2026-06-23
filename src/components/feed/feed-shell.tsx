@@ -41,6 +41,7 @@ export function FeedShell() {
   const [feedLoading, setFeedLoading] = useState(!isGuest && !!user);
   const [followingIds, setFollowingIds] = useState<Set<string>>(new Set());
   const [loadingFollow, setLoadingFollow] = useState<string | null>(null);
+  const [userForcedGlobal, setUserForcedGlobal] = useState(false);
   const [isGlobalFeed, setIsGlobalFeed] = useState(false);
 
   // Local shared sessions (for guest mode)
@@ -81,26 +82,27 @@ export function FeedShell() {
 
       let sessionData;
 
-      if (fIds.length === 0) {
-        if (mounted) setIsGlobalFeed(true);
-        // Fallback to Global Discovery Feed
-        const { data } = await supabase
+      const useGlobal = fIds.length === 0 || userForcedGlobal;
+      if (mounted) setIsGlobalFeed(useGlobal);
+
+      if (useGlobal) {
+        const { data, error } = await supabase
           .from("sessions")
           .select("*")
           .eq("visibility", "public")
           .order("started_at", { ascending: false })
           .limit(50);
+        if (error) console.error("[feed] Global fetch failed:", error.message);
         sessionData = data;
       } else {
-        if (mounted) setIsGlobalFeed(false);
-        // Fetch public and friends sessions from followed users
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from("sessions")
           .select("*")
           .in("user_id", fIds)
           .in("visibility", ["public", "friends"])
           .order("started_at", { ascending: false })
           .limit(50);
+        if (error) console.error("[feed] Following fetch failed:", error.message);
         sessionData = data;
       }
 
@@ -113,7 +115,7 @@ export function FeedShell() {
       }
 
       // Fetch profiles for those users
-      const userIds = Array.from(new Set(sessionData.map((s: any) => s.user_id)));
+      const userIds = Array.from(new Set(sessionData.map((s: CloudSession) => s.user_id)));
       const { data: profileData } = await supabase
         .from("profiles")
         .select("*")
@@ -136,7 +138,7 @@ export function FeedShell() {
 
     loadFeed();
     return () => { mounted = false; };
-  }, [user, isGuest, authLoading]);
+  }, [user, isGuest, authLoading, userForcedGlobal]);
 
   const toggleFollow = async (targetId: string, e: React.MouseEvent) => {
     e.preventDefault();
@@ -236,7 +238,7 @@ export function FeedShell() {
           </h1>
           <p className="mt-1 text-sm text-brown-muted">
             {isGuest
-              ? "Sessions you've shared. Sign in to see friends' activity."
+              ? "Explore what others are working on. Sign in to follow users and build your feed."
               : isGlobalFeed
                 ? "Recent public sessions. Follow users to build your personal feed."
                 : "Sessions from people you follow."}
@@ -245,16 +247,14 @@ export function FeedShell() {
         
         {/* Toggle between Following and Global if user has following */}
         {!isGuest && followingIds.size > 0 && (
-          <button 
+          <button
             onClick={() => {
-              setIsGlobalFeed(!isGlobalFeed);
-              // Trigger reload
-              setFeedLoading(true);
+              setUserForcedGlobal(prev => !prev);
               setFeedItems([]);
             }}
             className="text-xs font-medium text-terracotta hover:text-terracotta-hover transition-colors"
           >
-            {isGlobalFeed ? "View Following" : "View Global"}
+            {userForcedGlobal ? "View Following" : "View Global"}
           </button>
         )}
       </header>

@@ -55,51 +55,45 @@ async function fetchProfile(userId: string): Promise<Profile | null> {
 }
 
 async function ensureProfileExists(user: User): Promise<Profile | null> {
-  let p = await fetchProfile(user.id);
-  
-  if (!p && user.user_metadata) {
-    const meta = user.user_metadata;
-    const baseUsername = meta.username || meta.preferred_username || `user_${user.id.slice(0, 8)}`;
-    const displayName = meta.display_name || meta.full_name || meta.name || baseUsername;
+  const existing = await fetchProfile(user.id);
+  if (existing) return existing;
 
-    let attempt = 0;
-    let currentUsername = baseUsername.toLowerCase().replace(/[^a-z0-9_]/g, "_").slice(0, 20);
+  if (!user.user_metadata) return null;
 
-    while (attempt < 3) {
-      const { error: insertErr } = await supabase
-        .from("profiles")
-        .insert({
-          id: user.id,
-          username: currentUsername,
-          display_name: displayName,
-          is_public: true,
-        });
+  const meta = user.user_metadata;
+  const base = (meta.username || meta.preferred_username || `user_${user.id.slice(0, 8)}`)
+    .toLowerCase()
+    .replace(/[^a-z0-9_]/g, "_")
+    .slice(0, 15);
+  const displayName = meta.display_name || meta.full_name || meta.name || base;
 
-      if (!insertErr) {
-        break;
-      }
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const username = attempt === 0
+      ? base
+      : `${base}_${Math.floor(Math.random() * 10000)}`;
 
-      if (insertErr.code === "23505") {
-        // If it's a unique constraint violation, it could be the ID (profile already exists via trigger)
-        // or the username (username taken). Let's check if the ID exists.
-        const check = await fetchProfile(user.id);
-        if (check) {
-          return check; // The trigger made it, we are good.
-        }
-        
-        // It was a username collision! We must randomize and retry.
-        const randomSuffix = Math.floor(Math.random() * 10000).toString();
-        currentUsername = `${currentUsername.slice(0, 15)}_${randomSuffix}`;
-        attempt++;
-      } else {
-        console.error("[auth] Auto-create profile failed:", insertErr.message);
-        break;
-      }
+    const { error } = await supabase.from("profiles").insert({
+      id: user.id,
+      username,
+      display_name: displayName,
+      is_public: true,
+    });
+
+    if (!error) return fetchProfile(user.id);
+
+    if (error.code === "23505") {
+      // Could be trigger already created the row (ID conflict)
+      const check = await fetchProfile(user.id);
+      if (check) return check;
+      // Otherwise it's a username collision — retry with suffix
+      continue;
     }
 
-    p = await fetchProfile(user.id);
+    console.error("[auth] Profile creation failed:", error.message);
+    break;
   }
-  return p;
+
+  return fetchProfile(user.id);
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -113,43 +107,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let mounted = true;
 
-    const init = async () => {
-      try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        if (session?.user && mounted) {
-          setUser(session.user);
-          const p = await ensureProfileExists(session.user);
-          if (mounted) setProfile(p);
-        }
-      } catch {
-        // No session — guest mode
-      } finally {
-        if (mounted) setIsLoading(false);
-      }
-    };
-
-    init();
-
-    // Listen for auth state changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return;
 
-      if ((event === "SIGNED_IN" || event === "INITIAL_SESSION" || event === "TOKEN_REFRESHED") && session?.user) {
+      if (session?.user) {
         setUser(session.user);
         const p = await ensureProfileExists(session.user);
         if (mounted) setProfile(p);
-        if (mounted) setIsLoading(false);
-      } else if (event === "SIGNED_OUT") {
+      } else {
         setUser(null);
         setProfile(null);
-        if (mounted) setIsLoading(false);
-      } else if (event === "INITIAL_SESSION" && !session?.user) {
-        if (mounted) setIsLoading(false);
       }
+
+      if (mounted) setIsLoading(false);
     });
 
     return () => {
@@ -208,8 +178,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (data.user && data.session) {
           // We have a session — create profile now
-          // Wait a moment for the trigger to run
-          await new Promise((r) => setTimeout(r, 1000));
           let p = await fetchProfile(data.user.id);
 
           if (!p) {
@@ -251,13 +219,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email: string,
       password: string
     ): Promise<{ error: string | null }> => {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) return { error: friendlyAuthError(error) };
-      return { error: null };
+      try {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) return { error: friendlyAuthError(error) };
+        return { error: null };
+      } catch {
+        return { error: "Something went wrong. Please try again." };
+      }
     },
     []
   );
@@ -282,8 +250,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();
-    setUser(null);
-    setProfile(null);
   }, []);
 
   const updateProfile = useCallback(
@@ -313,39 +279,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async (username: string, displayName: string): Promise<{ error: string | null }> => {
       if (!user) return { error: "Not signed in." };
 
-      const currentProfile = await fetchProfile(user.id);
-      
-      // If they somehow got marked as setup but are still in a broken state, let them fix it
-      const isBroken = !currentProfile || currentProfile.username.startsWith("user_");
+      const cleanUsername = username.toLowerCase().replace(/[^a-z0-9_]/g, "_").slice(0, 20);
 
-      if (user.user_metadata?.has_setup_profile && !isBroken) {
-        return { error: "Profile has already been set up." };
-      }
-
+      // Use upsert so missing profile rows are created, not silently skipped
       const { error: profileError } = await supabase
         .from("profiles")
-        .upsert({ 
-          id: user.id,
-          username: username.toLowerCase().replace(/[^a-z0-9_]/g, "_").slice(0, 20), 
-          display_name: displayName || username,
-          updated_at: new Date().toISOString(),
-          is_public: true
-        });
+        .upsert(
+          {
+            id: user.id,
+            username: cleanUsername,
+            display_name: displayName || username,
+            is_public: true,
+          },
+          { onConflict: "id" }
+        );
 
       if (profileError) {
-        if (profileError.code === "23505") {
-          return { error: "That username is already taken. Try another." };
-        }
+        if (profileError.code === "23505") return { error: "That username is already taken. Try another." };
         return { error: "Failed to update profile." };
       }
 
       const { data, error: userError } = await supabase.auth.updateUser({
-        data: { has_setup_profile: true }
+        data: { has_setup_profile: true },
       });
 
-      if (userError) {
-        return { error: "Failed to save profile setup state." };
-      }
+      if (userError) return { error: "Failed to save profile setup state." };
 
       setUser(data.user);
       const p = await fetchProfile(user.id);

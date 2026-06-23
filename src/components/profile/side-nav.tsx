@@ -70,6 +70,18 @@ export function SideNav() {
             </Link>
           );
         })}
+        {!isGuest && (
+          <button
+            onClick={() => {
+              if (window.confirm("Sign out?")) signOut();
+            }}
+            className="flex md:hidden flex-col items-center justify-center gap-1 rounded-xl p-2 text-sm font-medium text-brown-muted hover:bg-cream/40 hover:text-brown transition-all duration-cozy"
+            aria-label="Sign out"
+          >
+            <LogOut className="h-5 w-5 shrink-0" aria-hidden="true" />
+            <span className="text-xs font-medium">Sign Out</span>
+          </button>
+        )}
       </div>
 
       {/* Auth section at bottom (hidden on mobile) */}
