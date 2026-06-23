@@ -62,7 +62,7 @@ export function SideNav() {
                 isActive
                   ? "bg-cream/80 md:bg-cream/80 text-brown shadow-sm md:shadow-sm border border-transparent md:border-border/50"
                   : "text-brown-muted hover:bg-cream/40 hover:text-brown"
-              } ${href === "/profile" && !isGuest ? "md:hidden" : ""}`}
+              }`}
               aria-current={isActive ? "page" : undefined}
             >
               <Icon className="h-5 w-5 md:h-4 md:w-4 shrink-0" aria-hidden="true" />
