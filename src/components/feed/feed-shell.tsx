@@ -9,6 +9,8 @@ import type { FocusSessionActivity } from "@/types";
 import type { Profile, CloudSession } from "@/types/supabase";
 import { formatDurationShort, formatTimeRange, dayLabel, getLogicalDateKey } from "@/lib/time";
 import { Users, Loader2, Plus, Check } from "lucide-react";
+import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface FeedItem {
   session: FocusSessionActivity;
@@ -147,7 +149,7 @@ export function FeedShell() {
         
       if (error) {
         console.error("Failed to unfollow:", error);
-        alert("Failed to unfollow user.");
+        toast.error("Failed to unfollow user.");
       } else {
         setFollowingIds((prev) => {
           const next = new Set(prev);
@@ -163,7 +165,7 @@ export function FeedShell() {
       
       if (error) {
         console.error("Failed to follow:", error);
-        alert("Failed to follow user.");
+        toast.error("Failed to follow user.");
       } else {
         setFollowingIds((prev) => new Set(prev).add(targetId));
       }
@@ -172,10 +174,30 @@ export function FeedShell() {
     setLoadingFollow(null);
   };
 
-  if (loadState === "loading" || authLoading) {
+  if (loadState === "loading" || authLoading || (feedLoading && feedItems.length === 0)) {
     return (
-      <div className="mx-auto max-w-[720px] px-4 py-16 text-center">
-        <p className="text-brown-muted">Loading feed…</p>
+      <div className="mx-auto max-w-[720px] px-4 pb-28 pt-10">
+        <header className="mb-8">
+          <Skeleton className="h-10 w-48 mb-2" />
+          <Skeleton className="h-4 w-72" />
+        </header>
+        <div className="columns-1 sm:columns-2 gap-4 space-y-4 sm:space-y-0">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="card rounded-cozy p-5 break-inside-avoid mb-4">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Skeleton className="h-8 w-8 rounded-full" />
+                    <Skeleton className="h-4 w-24" />
+                  </div>
+                  <Skeleton className="h-5 w-40 mb-2" />
+                  <Skeleton className="h-3 w-32" />
+                </div>
+                <Skeleton className="h-6 w-16" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -232,17 +254,12 @@ export function FeedShell() {
         </div>
       )}
 
-      {/* Social feed (signed in) */}
-      {!isGuest && feedLoading && (
-        <div className="flex items-center justify-center py-16">
-          <Loader2 className="h-6 w-6 animate-spin text-brown-muted" />
-        </div>
-      )}
+      {/* Removed old feedLoading spinner since skeleton handles it */}
 
       {showSocialFeed && (
-        <div className="space-y-4">
+        <div className="columns-1 sm:columns-2 gap-4 space-y-4 sm:space-y-0">
           {feedItems.map(({ session, profile }) => (
-            <article key={session.id} className="card rounded-cozy p-5">
+            <article key={session.id} className="card rounded-cozy p-5 break-inside-avoid mb-4">
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0 flex-1">
                   {/* User attribution */}
@@ -315,12 +332,20 @@ export function FeedShell() {
           <p className="mt-2 max-w-sm text-sm text-brown-muted">
             Follow other users to see their public sessions here.
           </p>
-          <button
-            onClick={() => router.push("/search")}
-            className="btn-primary mt-4 text-xs"
-          >
-            Find People
-          </button>
+          <div className="flex gap-3 mt-4">
+            <button
+              onClick={() => router.push("/")}
+              className="btn-primary text-xs"
+            >
+              Start Session
+            </button>
+            <button
+              onClick={() => router.push("/search")}
+              className="btn-secondary text-xs"
+            >
+              Find People
+            </button>
+          </div>
         </div>
       )}
 
@@ -334,11 +359,19 @@ export function FeedShell() {
                 Save a session with Friends or Public visibility and it will
                 appear here.
               </p>
+              <div className="flex gap-3 mt-4">
+                <button
+                  onClick={() => router.push("/")}
+                  className="btn-primary text-xs"
+                >
+                  Start Session
+                </button>
+              </div>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="columns-1 sm:columns-2 gap-4 space-y-4 sm:space-y-0">
               {localShared.map((session) => (
-                <article key={session.id} className="card rounded-cozy p-5">
+                <article key={session.id} className="card rounded-cozy p-5 break-inside-avoid mb-4">
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0 flex-1">
                       <h2 className="truncate font-medium text-brown">

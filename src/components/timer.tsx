@@ -245,7 +245,7 @@ export function Timer({ focusMode = false }: TimerProps) {
                 placeholder="e.g. Coding…"
                 list="timer-category-suggestions"
                 maxLength={30}
-                className="rounded-xl px-3 py-1.5 w-32 text-xs font-medium transition-colors bg-surface text-brown border border-border hover:border-sage focus:outline-none focus-visible:ring-2 focus-visible:ring-sage"
+                className="rounded-xl px-3 py-1.5 w-32 text-xs font-medium transition-colors bg-surface text-brown border border-border hover:border-sage focus:outline-none focus:border-sage focus:ring-1 focus:ring-sage"
               />
               <datalist id="timer-category-suggestions">
                 <option value="work" />

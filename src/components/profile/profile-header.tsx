@@ -7,6 +7,7 @@ import type { Profile } from "@/types/supabase";
 import { useState } from "react";
 import { EditProfileDialog } from "@/components/profile/edit-profile-dialog";
 import { Settings2 } from "lucide-react";
+import { CountingNumber } from "@/components/ui/counting-number";
 
 interface ProfileHeaderProps {
   productivityScore: number;
@@ -80,7 +81,9 @@ export function ProfileHeader({ productivityScore, joinedLabel, currentStreak, i
             <p className="text-[10px] font-semibold uppercase tracking-wider text-brown-muted">
               Productivity Score
             </p>
-            <p className="mt-0.5 text-2xl font-serif font-medium text-terracotta">{productivityScore}</p>
+            <p className="mt-0.5 text-2xl font-serif font-medium text-terracotta">
+              <CountingNumber value={productivityScore} />
+            </p>
           </div>
         </div>
       </div>

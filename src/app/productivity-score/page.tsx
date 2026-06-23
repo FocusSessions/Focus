@@ -5,12 +5,12 @@ import Link from "next/link";
 import React, { useState } from "react";
 
 const RANKS = [
-  { range: "0â€“99", name: "Novice", color: "#9B9B8C", pct: 10 },
-  { range: "100â€“249", name: "Builder", color: "#84936C", pct: 25 },
-  { range: "250â€“449", name: "Craftsman", color: "#A07B52", pct: 45 },
-  { range: "450â€“699", name: "Deep Worker", color: "#7A5C3A", pct: 70 },
-  { range: "700â€“899", name: "Master", color: "#5C3D24", pct: 90 },
-  { range: "900â€“1000", name: "Elite", color: "#2C1810", pct: 100 },
+  { range: "0–99", name: "Novice", color: "#9B9B8C", pct: 10 },
+  { range: "100–249", name: "Builder", color: "#84936C", pct: 25 },
+  { range: "250–449", name: "Craftsman", color: "#A07B52", pct: 45 },
+  { range: "450–699", name: "Deep Worker", color: "#7A5C3A", pct: 70 },
+  { range: "700–899", name: "Master", color: "#5C3D24", pct: 90 },
+  { range: "900–1000", name: "Elite", color: "#2C1810", pct: 100 },
 ];
 
 const V_REF = [
@@ -152,7 +152,7 @@ export default function ProductivityScorePage() {
             formula={<span>V = 1 &minus; e<sup className="ml-0.5 text-xs">&minus;H / 400</sup></span>}
           >
             <p className="text-[14px] leading-relaxed text-brown-muted">
-              This tracks your total lifetime focus hours. You get the most points when you first startâ€”your early hours boost your score fast. After about 400 hours, the points slow down, rewarding long-term dedication.
+              This tracks your total lifetime focus hours. You get the most points when you first start—your early hours boost your score fast. After about 400 hours, the points slow down, rewarding long-term dedication.
             </p>
             <div className="mt-3 grid grid-cols-2 gap-2">
               {V_REF.map(r => <RefTile key={r.h} h={r.h} pts={r.pts} pct={r.pct} />)}
@@ -182,7 +182,7 @@ export default function ProductivityScorePage() {
             </div>
             <div className="mt-1">
               <Callout question="Why no streaks?">
-                Streaks are punishingâ€”if you miss one day, you go back to zero. We don&apos;t do that here. Missing a day just lowers your 30-day average slightly. Just jump back in and it recovers. (Though if you don&apos;t focus for 30 days straight, this part of your score will reset).
+                Streaks are punishing—if you miss one day, you go back to zero. We don&apos;t do that here. Missing a day just lowers your 30-day average slightly. Just jump back in and it recovers. (Though if you don&apos;t focus for 30 days straight, this part of your score will reset).
               </Callout>
               <Callout question="What about new accounts?">
                 If your account is only 15 days old, we only grade you on those 15 days. You can hit a perfect consistency score just like someone who has been here for years.
@@ -191,7 +191,7 @@ export default function ProductivityScorePage() {
                 Days reset at 4am, not midnight. So if you start a session at 11:30 PM, the whole thing counts toward today.
               </Callout>
               <Callout question="I took a month off. Where did my points go?">
-                If you don&apos;t log anything for a full 30 days, your consistency score drops to zero. But don&apos;t worryâ€”as soon as you start logging sessions again, the points will quickly build back up.
+                If you don&apos;t log anything for a full 30 days, your consistency score drops to zero. But don&apos;t worry—as soon as you start logging sessions again, the points will quickly build back up.
               </Callout>
               <Callout question="Why did my score drop if I worked yesterday?">
                 it&apos;s a rolling window. If you had a really good streak exactly 31 days ago, those days are now falling out of your 30-day window, which can cause a small dip.
@@ -216,11 +216,11 @@ export default function ProductivityScorePage() {
             <div className="mt-3 flex gap-2">
               <div className="flex-1 rounded-xl border border-[#A07B52]/20 bg-[#A07B52]/5 p-2.5 text-center">
                 <div className="text-[12px] font-semibold text-[#A07B52]">Higher Q</div>
-                <div className="mt-0.5 text-[12px] text-brown-muted">5 Ã— 2hr blocks</div>
+                <div className="mt-0.5 text-[12px] text-brown-muted">5 × 2hr blocks</div>
               </div>
               <div className="flex-1 rounded-xl border border-border bg-brown/5 p-2.5 text-center">
                 <div className="text-[12px] font-semibold text-brown-muted">Lower Q</div>
-                <div className="mt-0.5 text-[12px] text-brown-muted">60 Ã— 10min stints</div>
+                <div className="mt-0.5 text-[12px] text-brown-muted">60 × 10min stints</div>
               </div>
             </div>
             <p className="mt-3 text-[13px] italic text-sage">

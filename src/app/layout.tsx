@@ -4,6 +4,7 @@ import { AuthProvider } from "@/context/auth-context";
 import { FocusProvider } from "@/context/focus-app";
 import { SideNav } from "@/components/profile/side-nav";
 import { LayoutShell } from "@/components/layout-shell";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 const lora = Lora({
@@ -68,6 +69,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <FocusProvider>
             <SideNav />
             <LayoutShell>{children}</LayoutShell>
+            <Toaster 
+              theme="system" 
+              toastOptions={{
+                className: "font-sans border border-border bg-surface text-brown shadow-lg",
+              }} 
+            />
           </FocusProvider>
         </AuthProvider>
       </body>

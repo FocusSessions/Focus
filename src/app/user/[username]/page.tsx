@@ -17,6 +17,7 @@ import { calculateProductivityScore } from "@/lib/score";
 import { getLogicalDateKey } from "@/lib/time";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import type { HeatmapGranularity } from "@/types/analytics";
+import { toast } from "sonner";
 
 import { ProfileHeader } from "@/components/profile/profile-header";
 import { OverviewTab } from "@/components/profile/overview-tab";
@@ -148,7 +149,7 @@ export default function UserProfilePage() {
         .eq("following_id", profile.id);
         
       if (error) {
-        alert("Failed to unfollow: " + error.message);
+        toast.error("Failed to unfollow: " + error.message);
       } else {
         setIsFollowing(false);
         setFollowerCount((c) => Math.max(0, c - 1));
@@ -160,7 +161,7 @@ export default function UserProfilePage() {
       });
       
       if (error) {
-        alert("Failed to follow: " + error.message);
+        toast.error("Failed to follow: " + error.message);
       } else {
         setIsFollowing(true);
         setFollowerCount((c) => c + 1);

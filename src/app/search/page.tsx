@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/auth-context";
 import type { Profile } from "@/types/supabase";
 import { Search as SearchIcon, Loader2, UserPlus, UserCheck, Users } from "lucide-react";
+import { toast } from "sonner";
 import { determineRank } from "@/lib/ranks";
 import { RankBadgeIcon } from "@/components/profile/rank-icons";
 
@@ -81,7 +82,7 @@ export default function SearchPage() {
           
         if (error) {
           console.error("Failed to unfollow:", error);
-          alert("Failed to unfollow user.");
+          toast.error("Failed to unfollow user.");
         } else {
           setFollowingIds((prev) => {
             const next = new Set(prev);
@@ -97,7 +98,7 @@ export default function SearchPage() {
         
         if (error) {
           console.error("Failed to follow:", error);
-          alert("Failed to follow user.");
+          toast.error("Failed to follow user.");
         } else {
           setFollowingIds((prev) => new Set(prev).add(targetId));
         }

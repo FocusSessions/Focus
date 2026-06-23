@@ -31,7 +31,7 @@
   }
 
   :focus-visible {
-    @apply outline-none ring-2 ring-terracotta ring-offset-2 ring-offset-cream;
+    @apply outline-none ring-1 ring-terracotta border-terracotta;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -47,7 +47,7 @@
 
 @layer components {
   .card {
-    @apply rounded-cozy border border-border bg-surface shadow-cozy;
+    @apply rounded-cozy border border-border bg-surface shadow-cozy transition-all duration-cozy hover:-translate-y-0.5 hover:shadow-cozy-lg hover:border-border/80;
   }
 
   .btn {

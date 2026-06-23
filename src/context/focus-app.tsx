@@ -272,8 +272,15 @@ export function FocusProvider({ children }: { children: ReactNode }) {
   const setShowMilliseconds = useCallback((show: boolean) => updatePref({ showMilliseconds: show }), [updatePref]);
   const setTimerDirection = useCallback((dir: 'up' | 'down') => updatePref({ timerDirection: dir }), [updatePref]);
 
+  const triggerHaptic = () => {
+    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+      navigator.vibrate(50);
+    }
+  };
+
   const startTimer = useCallback(() => {
     if (activeTimer) return;
+    triggerHaptic();
     const timer: ActiveTimer = {
       startedAt: Date.now(),
       accumulatedMs: 0,
@@ -287,6 +294,7 @@ export function FocusProvider({ children }: { children: ReactNode }) {
 
   const pauseTimer = useCallback(() => {
     if (!activeTimer || activeTimer.isPaused) return;
+    triggerHaptic();
     const elapsed = computeElapsedMs(
       activeTimer.startedAt,
       activeTimer.accumulatedMs,
@@ -302,6 +310,7 @@ export function FocusProvider({ children }: { children: ReactNode }) {
 
   const resumeTimer = useCallback(() => {
     if (!activeTimer || !activeTimer.isPaused) return;
+    triggerHaptic();
     setActiveTimer({
       ...activeTimer,
       isPaused: false,
@@ -312,6 +321,7 @@ export function FocusProvider({ children }: { children: ReactNode }) {
 
   const requestStop = useCallback(() => {
     if (!activeTimer) return;
+    triggerHaptic();
     try {
       if (document.fullscreenElement && document.exitFullscreen) {
         document.exitFullscreen().catch(() => {});

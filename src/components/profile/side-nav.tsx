@@ -5,11 +5,30 @@ import { usePathname } from "next/navigation";
 import { User, Target, Newspaper, Settings, Search, LogIn, LogOut } from "lucide-react";
 import { useFocus } from "@/context/focus-app";
 import { useAuth } from "@/context/auth-context";
+import { useEffect, useState, useRef } from "react";
 
 export function SideNav() {
   const pathname = usePathname();
   const { isRunning } = useFocus();
   const { isGuest, profile, signOut, isLoading } = useAuth();
+  
+  const [isVisible, setIsVisible] = useState(true);
+  const lastScrollY = useRef(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      if (currentScrollY > lastScrollY.current && currentScrollY > 50) {
+        setIsVisible(false);
+      } else {
+        setIsVisible(true);
+      }
+      lastScrollY.current = currentScrollY;
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   if (isRunning) return null;
 
@@ -27,7 +46,8 @@ export function SideNav() {
 
   return (
     <nav
-      className="fixed z-40 flex bg-surface/90 backdrop-blur-md bottom-2 left-2 right-2 h-[60px] md:h-full md:bottom-auto md:left-0 md:top-0 md:w-44 flex-row items-center justify-around rounded-2xl border border-border/50 px-2 py-0 shadow-sm md:flex-col md:justify-start md:rounded-none md:border-r md:border-t-0 md:px-3 md:py-8 pb-safe"
+      className={`fixed z-40 flex bg-surface/90 backdrop-blur-md bottom-2 left-2 right-2 h-[60px] md:h-full md:bottom-auto md:left-0 md:top-0 md:w-44 flex-row items-center justify-around rounded-2xl border border-border/50 px-2 py-0 shadow-sm md:flex-col md:justify-start md:rounded-none md:border-r md:border-t-0 md:px-3 md:py-8 transition-transform duration-300 ease-in-out ${isVisible ? "translate-y-0" : "translate-y-[150%] md:translate-y-0"}`}
+      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       aria-label="Main navigation"
     >
       <div className="flex w-full md:w-auto flex-row md:flex-col items-center justify-around md:justify-start md:items-stretch gap-1 md:gap-2 md:flex-1">
