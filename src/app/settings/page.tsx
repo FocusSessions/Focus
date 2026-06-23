@@ -97,8 +97,9 @@ export default function SettingsPage() {
     setProfileError("");
     
     if (hasEditedProfile) {
-      // User already completed setup — only allow display name updates
-      const { error } = await updateProfile({ display_name: displayNameDraft.trim() });
+      // User already completed setup — allow username and display name updates
+      const cleanUsername = usernameDraft.toLowerCase().replace(/[^a-z0-9_]/g, "_").slice(0, 20);
+      const { error } = await updateProfile({ username: cleanUsername, display_name: displayNameDraft.trim() });
       if (error) {
         setProfileError(error);
       } else {
@@ -189,8 +190,8 @@ export default function SettingsPage() {
             </div>
             <p className="mb-5 text-sm text-brown-muted">
               {hasEditedProfile
-                ? "Your username is locked. You can still update your display name."
-                : <>Choose your username and display name. <strong className="text-terracotta">Username can only be set once.</strong></>}
+                ? "Update your username and display name."
+                : "Choose your username and display name."}
             </p>
 
             {profileError && (
@@ -210,16 +211,13 @@ export default function SettingsPage() {
                   type="text"
                   value={usernameDraft}
                   onChange={(e) => setUsernameDraft(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
-                  disabled={hasEditedProfile || isSavingProfile}
-                  className={`input max-w-sm w-full ${hasEditedProfile ? 'bg-surface/50 cursor-not-allowed text-brown-muted' : ''}`}
+                  disabled={isSavingProfile}
+                  className="input max-w-sm w-full"
                   placeholder="e.g. johndoe"
                   maxLength={20}
                   spellCheck={false}
                   autoComplete="off"
                 />
-                {hasEditedProfile && (
-                  <p className="text-xs text-brown-muted mt-1 italic">Username cannot be changed after initial setup.</p>
-                )}
               </div>
               <div>
                 <label htmlFor="display_name" className="mb-1.5 block text-sm font-medium text-brown">
@@ -241,10 +239,10 @@ export default function SettingsPage() {
               <button
                 type="button"
                 onClick={handleSaveProfile}
-                disabled={isSavingProfile || (!hasEditedProfile && !usernameDraft.trim()) || !displayNameDraft.trim()}
+                disabled={isSavingProfile || !usernameDraft.trim() || !displayNameDraft.trim()}
                 className="btn-primary mt-2"
               >
-                {isSavingProfile ? <Loader2 className="h-4 w-4 animate-spin" /> : hasEditedProfile ? "Update Display Name" : "Save Profile Details"}
+                {isSavingProfile ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Profile Details"}
               </button>
             </div>
           </section>

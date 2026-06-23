@@ -32,9 +32,9 @@ export function ProfileHeader({ productivityScore, joinedLabel, currentStreak, i
   const initial = displayName[0]?.toUpperCase() || "Y";
   const username = activeProfile?.username || meta?.username;
   
-  const hasSetupProfile = user?.user_metadata?.has_setup_profile === true;
+  const hasSetupProfile = user?.user_metadata?.has_setup_profile === true || !!activeProfile?.username;
 
-  const needsSetup = !user?.user_metadata?.has_setup_profile || !activeProfile?.username?.length;
+  const needsSetup = !hasSetupProfile;
 
   return (
     <header className="mb-6 space-y-3">
