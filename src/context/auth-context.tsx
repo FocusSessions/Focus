@@ -9,8 +9,9 @@ import {
   type ReactNode,
 } from "react";
 import { supabase } from "@/lib/supabase";
-import type { User, AuthError } from "@supabase/supabase-js";
+import type { User } from "@supabase/supabase-js";
 import type { Profile, ProfileUpdate } from "@/types/supabase";
+import { friendlyAuthError } from "@/lib/auth-errors";
 
 interface AuthState {
   user: User | null;
@@ -110,11 +111,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return;
 
-      if (session?.user) {
+      if (session?.user && (event === "SIGNED_IN" || event === "INITIAL_SESSION" || event === "TOKEN_REFRESHED" || event === "USER_UPDATED")) {
         setUser(session.user);
         const p = await ensureProfileExists(session.user);
         if (mounted) setProfile(p);
-      } else {
+      } else if (event === "SIGNED_OUT") {
         setUser(null);
         setProfile(null);
       }
@@ -258,7 +259,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const { error } = await supabase
         .from("profiles")
-        .update({ ...updates, updated_at: new Date().toISOString() })
+        .update({ ...updates })
         .eq("id", user.id);
 
       if (error) {
@@ -315,8 +316,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshProfile = useCallback(async () => {
     if (!user) return;
-    const p = await fetchProfile(user.id);
-    setProfile(p);
+    try {
+      const p = await fetchProfile(user.id);
+      setProfile(p);
+    } catch (error) {
+      console.error("[auth] Failed to refresh profile:", error);
+    }
   }, [user]);
 
   const value: AuthContextValue = {
@@ -340,18 +345,4 @@ export function useAuth(): AuthContextValue {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth must be used within AuthProvider");
   return ctx;
-}
-
-// Map Supabase error codes to user-friendly messages
-function friendlyAuthError(error: AuthError): string {
-  const msg = error.message.toLowerCase();
-  if (msg.includes("invalid login")) return "Incorrect email or password.";
-  if (msg.includes("email not confirmed"))
-    return "Please check your email to confirm your account.";
-  if (msg.includes("already registered"))
-    return "An account with this email already exists.";
-  if (msg.includes("password")) return "Password must be at least 6 characters.";
-  if (msg.includes("rate limit"))
-    return "Too many attempts. Please wait a moment.";
-  return error.message;
 }
