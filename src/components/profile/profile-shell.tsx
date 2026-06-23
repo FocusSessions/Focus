@@ -11,6 +11,7 @@ import {
   buildMonthlyChartData,
 } from "@/lib/analytics";
 import { generateWeeklyRecap } from "@/lib/weekly-recap";
+import { getLogicalDateKey } from "@/lib/time";
 
 import { ProfileHeader } from "@/components/profile/profile-header";
 import { calculateProductivityScore } from "@/lib/score";
@@ -80,9 +81,9 @@ export function ProfileShell() {
   ] as const;
 
   // Check if there is any focus session today
-  const todayKey = new Date().toLocaleDateString('en-CA'); // 'YYYY-MM-DD'
+  const todayKey = getLogicalDateKey(Date.now());
   const isStreakSecuredToday = focusSessions.some(
-    s => new Date(s.startedAt).toLocaleDateString('en-CA') === todayKey
+    s => getLogicalDateKey(s.startedAt) === todayKey
   );
 
   return (

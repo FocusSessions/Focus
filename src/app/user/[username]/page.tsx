@@ -14,6 +14,7 @@ import {
 } from "@/lib/analytics";
 import { generateWeeklyRecap } from "@/lib/weekly-recap";
 import { calculateProductivityScore } from "@/lib/score";
+import { getLogicalDateKey } from "@/lib/time";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import type { HeatmapGranularity } from "@/types/analytics";
 
@@ -218,9 +219,9 @@ export default function UserProfilePage() {
     { id: "achievements", label: "Achievements" },
   ] as const;
 
-  const todayKey = new Date().toLocaleDateString('en-CA');
+  const todayKey = getLogicalDateKey(Date.now());
   const isStreakSecuredToday = sessions.some(
-    s => new Date(s.startedAt).toLocaleDateString('en-CA') === todayKey
+    s => getLogicalDateKey(s.startedAt) === todayKey
   );
 
   return (

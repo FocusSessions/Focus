@@ -173,8 +173,9 @@ export function FocusProvider({ children }: { children: ReactNode }) {
       
       // Ensure joinedAt is populated from existing activities if missing
       if (!prefs.joinedAt) {
-        const earliest = loadedActivities.length > 0 
-          ? Math.min(...loadedActivities.map((a: Activity) => a.startedAt))
+        const focusActivities = loadedActivities.filter((a: Activity) => a.type === 'focus_session');
+        const earliest = focusActivities.length > 0 
+          ? Math.min(...focusActivities.map((a: Activity) => (a as FocusSessionActivity).startedAt))
           : Date.now();
         prefs.joinedAt = earliest;
         await saveUserPreferences(prefs);

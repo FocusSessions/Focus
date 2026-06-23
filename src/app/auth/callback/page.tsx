@@ -9,9 +9,23 @@ export default function AuthCallbackPage() {
 
   useEffect(() => {
     const handleCallback = async () => {
-      const { error } = await supabase.auth.getSession();
-      if (error) {
-        console.error("Auth callback error:", error);
+      // Check for code in URL params (PKCE flow)
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get('code');
+      
+      let sessionError = null;
+      
+      if (code) {
+        const { error } = await supabase.auth.exchangeCodeForSession(code);
+        sessionError = error;
+      } else {
+        // Fallback to implicit flow (hash fragment) which getSession handles automatically
+        const { error } = await supabase.auth.getSession();
+        sessionError = error;
+      }
+
+      if (sessionError) {
+        console.error("Auth callback error:", sessionError);
       }
       // After OAuth, redirect to profile to complete setup if needed
       router.replace("/profile");

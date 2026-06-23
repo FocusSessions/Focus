@@ -139,22 +139,34 @@ export function FeedShell() {
     const isFollowing = followingIds.has(targetId);
 
     if (isFollowing) {
-      await supabase
+      const { error } = await supabase
         .from("follows")
         .delete()
         .eq("follower_id", user.id)
         .eq("following_id", targetId);
-      setFollowingIds((prev) => {
-        const next = new Set(prev);
-        next.delete(targetId);
-        return next;
-      });
+        
+      if (error) {
+        console.error("Failed to unfollow:", error);
+        alert("Failed to unfollow user.");
+      } else {
+        setFollowingIds((prev) => {
+          const next = new Set(prev);
+          next.delete(targetId);
+          return next;
+        });
+      }
     } else {
-      await supabase.from("follows").insert({
+      const { error } = await supabase.from("follows").insert({
         follower_id: user.id,
         following_id: targetId,
       });
-      setFollowingIds((prev) => new Set(prev).add(targetId));
+      
+      if (error) {
+        console.error("Failed to follow:", error);
+        alert("Failed to follow user.");
+      } else {
+        setFollowingIds((prev) => new Set(prev).add(targetId));
+      }
     }
 
     setLoadingFollow(null);

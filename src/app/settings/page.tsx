@@ -18,7 +18,7 @@ const GOAL_PRESETS = [
 
 export default function SettingsPage() {
   const { dailyGoalMinutes, setDailyGoalMinutes, sessionGoalMinutes, setSessionGoalMinutes, showMilliseconds, setShowMilliseconds, timerDirection, setTimerDirection } = useFocus();
-  const { user, profile, updateProfile } = useAuth();
+  const { user, profile, setupProfile } = useAuth();
   
   const [draftMinutes, setDraftMinutes] = useState(String(dailyGoalMinutes));
   const [saved, setSaved] = useState(false);
@@ -93,17 +93,11 @@ export default function SettingsPage() {
     setIsSavingProfile(true);
     setProfileError("");
     
-    const { error } = await updateProfile({
-      username: usernameDraft.toLowerCase(),
-      display_name: displayNameDraft,
-    });
+    const { error } = await setupProfile(usernameDraft, displayNameDraft);
 
     if (error) {
       setProfileError(error);
     } else {
-      await supabase.auth.updateUser({
-        data: { has_setup_profile: true },
-      });
       setProfileSaved(true);
       setTimeout(() => setProfileSaved(false), 3000);
     }

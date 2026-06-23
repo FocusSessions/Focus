@@ -173,12 +173,17 @@ export async function persistActivities(activities: Activity[]): Promise<void> {
   lsSetActivities(activities);
   const ok = await ensureDb();
   if (!ok) return;
-  const existing = await idbGetAll<Activity>("activities");
   const db = await openDb();
   const tx = db.transaction("activities", "readwrite");
   const store = tx.objectStore("activities");
-  for (const row of existing) store.delete(row.id);
-  for (const a of activities) store.put(a);
+  
+  // Clear the entire store in the same transaction
+  store.clear();
+  
+  // Add all new activities
+  for (const a of activities) {
+    store.put(a);
+  }
 }
 
 export async function saveActivity(activity: Activity): Promise<Activity[]> {
@@ -301,14 +306,19 @@ export async function updateActivityInCloud(
 ): Promise<void> {
   try {
     const { supabase } = await import("@/lib/supabase");
+    
+    // Dynamically build payload to avoid setting omitted fields to undefined -> null
+    const payload: any = {};
+    if (updates.title !== undefined) payload.title = updates.title;
+    if (updates.category !== undefined) payload.category = updates.category;
+    if (updates.visibility !== undefined) payload.visibility = updates.visibility;
+    if (updates.description !== undefined) payload.description = updates.description || null;
+    
+    if (Object.keys(payload).length === 0) return;
+
     await supabase
       .from("sessions")
-      .update({
-        title: updates.title,
-        category: updates.category,
-        visibility: updates.visibility,
-        description: updates.description || null,
-      })
+      .update(payload)
       .eq("id", id);
   } catch (err) {
     console.error("[CloudSync] Failed to update activity:", err);
