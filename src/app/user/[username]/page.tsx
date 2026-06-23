@@ -161,7 +161,11 @@ export default function UserProfilePage() {
       });
       
       if (error) {
-        toast.error("Failed to follow: " + error.message);
+        if (error.code === '23505') {
+          setIsFollowing(true);
+        } else {
+          toast.error("Failed to follow: " + error.message);
+        }
       } else {
         setIsFollowing(true);
         setFollowerCount((c) => c + 1);

@@ -164,8 +164,12 @@ export function FeedShell() {
       });
       
       if (error) {
-        console.error("Failed to follow:", error);
-        toast.error("Failed to follow user.");
+        if (error.code === '23505') {
+          setFollowingIds((prev) => new Set(prev).add(targetId));
+        } else {
+          console.error("Failed to follow:", error);
+          toast.error("Failed to follow user.");
+        }
       } else {
         setFollowingIds((prev) => new Set(prev).add(targetId));
       }
