@@ -327,11 +327,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (error.code === "23505") {
           return { error: "That username is already taken." };
         }
+        console.error("[auth] Profile update failed:", error.message);
         return { error: "Failed to update profile." };
       }
 
-      const p = await ensureProfileExists(user);
-      setProfile(p);
+      // Fetch fresh profile directly — ensureProfileExists may return stale data
+      const fresh = await fetchProfile(user.id);
+      if (fresh) setProfile(fresh);
       return { error: null };
     },
     [user]
@@ -358,6 +360,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (profileError) {
         if (profileError.code === "23505") return { error: "That username is already taken. Try another." };
+        console.error("[auth] Profile upsert failed:", profileError.message);
         return { error: "Failed to update profile." };
       }
 
@@ -365,11 +368,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         data: { has_setup_profile: true },
       });
 
-      if (userError) return { error: "Failed to save profile setup state." };
+      if (userError) {
+        console.error("[auth] updateUser failed:", userError.message);
+        return { error: "Failed to save profile setup state." };
+      }
 
       setUser(data.user);
-      const p = await ensureProfileExists(data.user);
-      setProfile(p);
+      // Fetch fresh profile directly — ensureProfileExists may return stale data
+      const fresh = await fetchProfile(data.user.id);
+      setProfile(fresh);
       return { error: null };
     },
     [user]

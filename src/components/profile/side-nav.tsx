@@ -86,7 +86,7 @@ export function SideNav() {
             <LogIn className="h-4 w-4 shrink-0" />
             Sign In
           </Link>
-        )}
+        ) : null}
       </div>
     </nav>
   );

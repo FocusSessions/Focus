@@ -92,17 +92,28 @@ export default function SettingsPage() {
   }, [profile, user]);
 
   const handleSaveProfile = async () => {
-    if (!user || hasEditedProfile) return;
+    if (!user) return;
     setIsSavingProfile(true);
     setProfileError("");
     
-    const { error } = await setupProfile(usernameDraft, displayNameDraft);
-
-    if (error) {
-      setProfileError(error);
+    if (hasEditedProfile) {
+      // User already completed setup — only allow display name updates
+      const { error } = await updateProfile({ display_name: displayNameDraft.trim() });
+      if (error) {
+        setProfileError(error);
+      } else {
+        setProfileSaved(true);
+        setTimeout(() => setProfileSaved(false), 3000);
+      }
     } else {
-      setProfileSaved(true);
-      setTimeout(() => setProfileSaved(false), 3000);
+      // First-time setup — set username + display name
+      const { error } = await setupProfile(usernameDraft, displayNameDraft);
+      if (error) {
+        setProfileError(error);
+      } else {
+        setProfileSaved(true);
+        setTimeout(() => setProfileSaved(false), 3000);
+      }
     }
     setIsSavingProfile(false);
   };
@@ -165,7 +176,7 @@ export default function SettingsPage() {
           </section>
         )}
 
-        {user && profile && !hasEditedProfile && (
+        {user && profile && (
           <section id="profile-settings" className="card p-6">
             <div className="mb-1 flex items-center justify-between gap-3">
               <h2 className="text-base font-medium text-brown">Profile Details</h2>
@@ -177,7 +188,9 @@ export default function SettingsPage() {
               )}
             </div>
             <p className="mb-5 text-sm text-brown-muted">
-              Choose your username and display name. <strong className="text-terracotta">This can only be done once.</strong>
+              {hasEditedProfile
+                ? "Your username is locked. You can still update your display name."
+                : <>Choose your username and display name. <strong className="text-terracotta">Username can only be set once.</strong></>}
             </p>
 
             {profileError && (
@@ -198,12 +211,15 @@ export default function SettingsPage() {
                   value={usernameDraft}
                   onChange={(e) => setUsernameDraft(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
                   disabled={hasEditedProfile || isSavingProfile}
-                  className="input max-w-sm w-full"
+                  className={`input max-w-sm w-full ${hasEditedProfile ? 'bg-surface/50 cursor-not-allowed text-brown-muted' : ''}`}
                   placeholder="e.g. johndoe"
                   maxLength={20}
                   spellCheck={false}
                   autoComplete="off"
                 />
+                {hasEditedProfile && (
+                  <p className="text-xs text-brown-muted mt-1 italic">Username cannot be changed after initial setup.</p>
+                )}
               </div>
               <div>
                 <label htmlFor="display_name" className="mb-1.5 block text-sm font-medium text-brown">
@@ -214,7 +230,7 @@ export default function SettingsPage() {
                   type="text"
                   value={displayNameDraft}
                   onChange={(e) => setDisplayNameDraft(e.target.value)}
-                  disabled={hasEditedProfile || isSavingProfile}
+                  disabled={isSavingProfile}
                   className="input max-w-sm w-full"
                   placeholder="e.g. John Doe"
                   maxLength={50}
@@ -222,21 +238,14 @@ export default function SettingsPage() {
                 />
               </div>
 
-              {!hasEditedProfile && (
-                <button
-                  type="button"
-                  onClick={handleSaveProfile}
-                  disabled={isSavingProfile || !usernameDraft.trim()}
-                  className="btn-primary mt-2"
-                >
-                  {isSavingProfile ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Profile Details"}
-                </button>
-              )}
-              {hasEditedProfile && (
-                <p className="text-xs text-brown-muted mt-2 italic">
-                  Your profile details have been locked and cannot be changed again.
-                </p>
-              )}
+              <button
+                type="button"
+                onClick={handleSaveProfile}
+                disabled={isSavingProfile || (!hasEditedProfile && !usernameDraft.trim()) || !displayNameDraft.trim()}
+                className="btn-primary mt-2"
+              >
+                {isSavingProfile ? <Loader2 className="h-4 w-4 animate-spin" /> : hasEditedProfile ? "Update Display Name" : "Save Profile Details"}
+              </button>
             </div>
           </section>
         )}
