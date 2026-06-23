@@ -3,21 +3,33 @@ import { useAuth } from "@/context/auth-context";
 import { determineRank } from "@/lib/ranks";
 import { RankBadgeIcon } from "@/components/profile/rank-icons";
 import Link from "next/link";
+import type { Profile } from "@/types/supabase";
+import { useState } from "react";
+import { EditProfileDialog } from "@/components/profile/edit-profile-dialog";
+import { Settings2 } from "lucide-react";
 
 interface ProfileHeaderProps {
   productivityScore: number;
   joinedLabel: string;
   currentStreak: number;
   isStreakSecuredToday: boolean;
+  userProfile?: Profile | null;
 }
 
-export function ProfileHeader({ productivityScore, joinedLabel, currentStreak, isStreakSecuredToday }: ProfileHeaderProps) {
+export function ProfileHeader({ productivityScore, joinedLabel, currentStreak, isStreakSecuredToday, userProfile }: ProfileHeaderProps) {
   const { current: currentRank } = determineRank(productivityScore);
-  const { profile, isGuest } = useAuth();
+  const { user, profile: currentUser, isGuest } = useAuth();
 
-  const displayName = profile?.display_name || profile?.username || "You";
+  const activeProfile = userProfile || currentUser;
+  const isOwnProfile = !userProfile || (currentUser?.id === userProfile.id);
+
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
+  const displayName = activeProfile?.display_name || activeProfile?.username || "You";
   const initial = displayName[0]?.toUpperCase() || "Y";
-  const username = profile?.username;
+  const username = activeProfile?.username;
+  
+  const hasSetupProfile = user?.user_metadata?.has_setup_profile === true;
 
   return (
     <header className="mb-6 space-y-3">
@@ -41,7 +53,16 @@ export function ProfileHeader({ productivityScore, joinedLabel, currentStreak, i
         </div>
 
         <div className="flex items-center gap-6">
-          {isGuest && (
+          {!isGuest && isOwnProfile && !hasSetupProfile && (
+            <button
+              onClick={() => setIsEditDialogOpen(true)}
+              className="btn-secondary text-xs px-4 py-2 flex items-center gap-2"
+            >
+              <Settings2 className="w-3.5 h-3.5" />
+              Complete Profile Setup
+            </button>
+          )}
+          {isGuest && isOwnProfile && (
             <Link
               href="/auth"
               className="btn-secondary text-xs px-4 py-2"
@@ -65,13 +86,21 @@ export function ProfileHeader({ productivityScore, joinedLabel, currentStreak, i
         </div>
         <div>
           <p className="text-sm font-medium text-brown">
-            {isStreakSecuredToday ? "Streak secured for today." : "Focus today to keep the streak alive."}
+            {currentStreak === 0 
+              ? "Start your first session to begin a streak." 
+              : isStreakSecuredToday 
+                ? "Streak secured for today." 
+                : "Focus today to keep the streak alive."}
           </p>
           <p className="text-xs text-brown-muted">
             Current streak: {currentStreak} {currentStreak === 1 ? "day" : "days"}
           </p>
         </div>
       </div>
+
+      {isEditDialogOpen && (
+        <EditProfileDialog onClose={() => setIsEditDialogOpen(false)} />
+      )}
     </header>
   );
 }

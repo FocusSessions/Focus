@@ -43,3 +43,5 @@ next-env.d.ts
 **/mcp.txt
 **/mcp.json
 
+# Agents
+.agents/

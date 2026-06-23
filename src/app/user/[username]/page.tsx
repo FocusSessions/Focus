@@ -1,27 +1,32 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/auth-context";
 import type { Profile, CloudSession } from "@/types/supabase";
 import type { FocusSessionActivity } from "@/types";
-import { determineRank } from "@/lib/ranks";
-import { RankBadgeIcon } from "@/components/profile/rank-icons";
-import { computeStats, buildHeatmapData } from "@/lib/analytics";
-import { ActivityHeatmap } from "@/components/profile/activity-heatmap";
-import { formatDurationShort } from "@/lib/time";
-import { ErrorBoundary } from "@/components/ui/error-boundary";
 import {
-  UserPlus,
-  UserCheck,
-  Loader2,
-  Flame,
-  Calendar,
-  Clock,
-  Trophy,
-} from "lucide-react";
+  computeStats,
+  buildHeatmapData,
+  buildWeeklyChartData,
+  buildMonthlyChartData,
+} from "@/lib/analytics";
+import { generateWeeklyRecap } from "@/lib/weekly-recap";
+import { calculateProductivityScore } from "@/lib/score";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
 import type { HeatmapGranularity } from "@/types/analytics";
+
+import { ProfileHeader } from "@/components/profile/profile-header";
+import { OverviewTab } from "@/components/profile/overview-tab";
+import { ActivityTab } from "@/components/profile/activity-tab";
+import { ProgressTab } from "@/components/profile/progress-tab";
+import { AchievementsTab } from "@/components/profile/achievements-tab";
+import { FollowListModal } from "@/components/profile/follow-list-modal";
+
+import { UserPlus, UserCheck, Loader2 } from "lucide-react";
+
+type TabId = "overview" | "activity" | "progress" | "achievements";
 
 function cloudToLocal(session: CloudSession): FocusSessionActivity {
   return {
@@ -40,6 +45,7 @@ function cloudToLocal(session: CloudSession): FocusSessionActivity {
 
 export default function UserProfilePage() {
   const params = useParams<{ username: string }>();
+  const router = useRouter();
   const username = params.username;
   const { user } = useAuth();
 
@@ -51,7 +57,11 @@ export default function UserProfilePage() {
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const [followLoading, setFollowLoading] = useState(false);
-  const [granularity, setGranularity] = useState<HeatmapGranularity>("year");
+  
+  const [activeTab, setActiveTab] = useState<TabId>("overview");
+  const [granularity, setGranularity] = useState<HeatmapGranularity>("month");
+  
+  const [modalType, setModalType] = useState<"followers" | "following" | null>(null);
 
   // Load profile + sessions
   useEffect(() => {
@@ -130,41 +140,47 @@ export default function UserProfilePage() {
     setFollowLoading(true);
 
     if (isFollowing) {
-      await supabase
+      const { error } = await supabase
         .from("follows")
         .delete()
         .eq("follower_id", user.id)
         .eq("following_id", profile.id);
-      setIsFollowing(false);
-      setFollowerCount((c) => Math.max(0, c - 1));
+        
+      if (error) {
+        alert("Failed to unfollow: " + error.message);
+      } else {
+        setIsFollowing(false);
+        setFollowerCount((c) => Math.max(0, c - 1));
+      }
     } else {
-      await supabase.from("follows").insert({
+      const { error } = await supabase.from("follows").insert({
         follower_id: user.id,
         following_id: profile.id,
       });
-      setIsFollowing(true);
-      setFollowerCount((c) => c + 1);
+      
+      if (error) {
+        alert("Failed to follow: " + error.message);
+      } else {
+        setIsFollowing(true);
+        setFollowerCount((c) => c + 1);
+      }
     }
 
     setFollowLoading(false);
   }, [user, profile, isFollowing, followLoading]);
 
-  const stats = useMemo(() => computeStats(sessions), [sessions]);
-
   const joinedAt = profile
     ? new Date(profile.created_at).getTime()
     : undefined;
 
-  const heatmapDays = useMemo(
-    () => buildHeatmapData(sessions, granularity, joinedAt),
-    [sessions, granularity, joinedAt]
-  );
-
-  const { current: currentRank } = useMemo(() => {
-    // Approximate score from public data
-    const totalHrs = sessions.reduce((s, a) => s + a.durationMs, 0) / 3600000;
-    return determineRank(Math.round(totalHrs * 10));
-  }, [sessions]);
+  const stats = useMemo(() => computeStats(sessions), [sessions]);
+  const { score: productivityScore } = useMemo(() => calculateProductivityScore(sessions, joinedAt), [sessions, joinedAt]);
+  const weeklyRecap = useMemo(() => generateWeeklyRecap(sessions), [sessions]);
+  const heatmapDays = useMemo(() => buildHeatmapData(sessions, granularity, joinedAt), [sessions, granularity, joinedAt]);
+  const weeklyChartData = useMemo(() => buildWeeklyChartData(sessions), [sessions]);
+  const monthlyChartData = useMemo(() => buildMonthlyChartData(sessions), [sessions]);
+  
+  const recentSessions = useMemo(() => [...sessions].sort((a, b) => b.startedAt - a.startedAt).slice(0, 5), [sessions]);
 
   if (loading) {
     return (
@@ -188,164 +204,159 @@ export default function UserProfilePage() {
     );
   }
 
-  const initial =
-    (profile.display_name || profile.username)[0]?.toUpperCase() || "?";
   const isSelf = user?.id === profile.id;
-
+  
   const joinedLabel = new Date(profile.created_at).toLocaleDateString(
     undefined,
     { month: "long", year: "numeric" }
   );
 
+  const tabs = [
+    { id: "overview", label: "Overview" },
+    { id: "activity", label: "Activity" },
+    { id: "progress", label: "Progress" },
+    { id: "achievements", label: "Achievements" },
+  ] as const;
+
+  const todayKey = new Date().toLocaleDateString('en-CA');
+  const isStreakSecuredToday = sessions.some(
+    s => new Date(s.startedAt).toLocaleDateString('en-CA') === todayKey
+  );
+
   return (
-    <div className="mx-auto max-w-[720px] px-4 pb-36 pt-10">
-      {/* Profile Header */}
-      <header className="mb-6 space-y-3">
-        <div className="card p-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
-            <div className="flex items-center gap-5">
-              {/* Avatar */}
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sage to-[#5a7a5f] text-2xl font-bold text-white font-serif leading-[0]">
-                {initial}
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="font-serif text-2xl font-medium text-brown">
-                    {profile.display_name || profile.username}
-                  </h1>
-                  <div className="flex items-center justify-center cursor-help">
-                    <RankBadgeIcon
-                      rankId={currentRank.id}
-                      className="w-6 h-6 drop-shadow-sm transition-transform hover:scale-110"
-                    />
-                  </div>
-                </div>
-                <p className="text-sm text-brown-muted">@{profile.username}</p>
-                {profile.bio && (
-                  <p className="mt-1 text-sm text-brown-muted">{profile.bio}</p>
-                )}
-              </div>
-            </div>
-
-            {/* Follow button or badge */}
-            <div className="flex items-center gap-4">
-              {!isSelf && user && (
-                <button
-                  onClick={toggleFollow}
-                  disabled={followLoading}
-                  className={`flex items-center gap-2 rounded-full px-5 py-2 text-sm font-medium transition-all duration-cozy ${
-                    isFollowing
-                      ? "border border-border bg-surface text-brown-muted hover:border-terracotta/40 hover:text-terracotta"
-                      : "bg-terracotta text-white hover:bg-terracotta-hover"
-                  }`}
-                >
-                  {followLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : isFollowing ? (
-                    <>
-                      <UserCheck className="h-4 w-4" />
-                      Following
-                    </>
-                  ) : (
-                    <>
-                      <UserPlus className="h-4 w-4" />
-                      Follow
-                    </>
-                  )}
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Stats row */}
-          <div className="mt-5 flex items-center gap-6 border-t border-border/40 pt-4">
-            <div className="flex items-center gap-1.5 text-sm">
-              <Calendar className="h-3.5 w-3.5 text-brown-muted" />
-              <span className="text-brown-muted">Joined {joinedLabel}</span>
-            </div>
-            <div className="text-sm">
-              <span className="font-medium text-brown">{followerCount}</span>
-              <span className="text-brown-muted"> followers</span>
-            </div>
-            <div className="text-sm">
-              <span className="font-medium text-brown">{followingCount}</span>
-              <span className="text-brown-muted"> following</span>
-            </div>
-          </div>
+    <div className="mx-auto max-w-[720px] px-4 pb-36 pt-10 relative">
+      <ProfileHeader
+        productivityScore={productivityScore}
+        joinedLabel={`Joined ${joinedLabel}`}
+        currentStreak={stats.currentStreak}
+        isStreakSecuredToday={isStreakSecuredToday}
+        userProfile={profile}
+      />
+      
+      {/* Custom Follow Button and Followers row embedded inside or below ProfileHeader via positioning or flex, but ProfileHeader is imported. Since ProfileHeader doesn't have follow button natively, we can render an action bar right below it. */}
+      
+      <div className="card p-4 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-6">
+          <button 
+            onClick={() => setModalType("followers")}
+            className="text-sm hover:opacity-80 transition-opacity focus:outline-none"
+          >
+            <span className="font-medium text-brown">{followerCount}</span>
+            <span className="text-brown-muted ml-1">followers</span>
+          </button>
+          <button 
+            onClick={() => setModalType("following")}
+            className="text-sm hover:opacity-80 transition-opacity focus:outline-none"
+          >
+            <span className="font-medium text-brown">{followingCount}</span>
+            <span className="text-brown-muted ml-1">following</span>
+          </button>
         </div>
-
-        {/* Streak */}
-        {stats.currentStreak > 0 && (
-          <div className="card px-5 py-3.5 flex items-center gap-4">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-sand-dark">
-              <Flame className="h-5 w-5 text-brown" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-brown">
-                {stats.currentStreak} day streak
-              </p>
-              <p className="text-xs text-brown-muted">
-                Longest: {stats.longestStreak} days
-              </p>
-            </div>
-          </div>
+        
+        {!isSelf && (
+          <button
+            onClick={() => {
+              if (!user) {
+                router.push("/auth");
+                return;
+              }
+              toggleFollow();
+            }}
+            disabled={followLoading}
+            className={`flex items-center gap-2 rounded-full px-5 py-2 text-sm font-medium transition-all duration-cozy ${
+              isFollowing
+                ? "border border-border bg-surface text-brown-muted hover:border-terracotta/40 hover:text-terracotta"
+                : "bg-terracotta text-white hover:bg-terracotta-hover"
+            }`}
+          >
+            {followLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : isFollowing ? (
+              <>
+                <UserCheck className="h-4 w-4" />
+                Following
+              </>
+            ) : (
+              <>
+                <UserPlus className="h-4 w-4" />
+                Follow
+              </>
+            )}
+          </button>
         )}
-      </header>
+      </div>
 
-      {/* Quick Stats */}
-      <ErrorBoundary title="Failed to load quick stats">
-        <div className="mb-6 grid grid-cols-3 gap-2 md:gap-3">
-          <div className="card p-3 md:p-4 text-center">
-            <Clock className="mx-auto mb-1 h-4 w-4 text-brown-muted" />
-            <p className="text-lg font-serif font-medium text-brown">
-              {formatDurationShort(stats.totalFocusMs)}
-            </p>
-            <p className="text-[10px] uppercase tracking-wider text-brown-muted">
-              Total Focus
-            </p>
-          </div>
-          <div className="card p-3 md:p-4 text-center">
-            <Trophy className="mx-auto mb-1 h-4 w-4 text-brown-muted" />
-            <p className="text-lg font-serif font-medium text-brown">
-              {stats.totalSessions}
-            </p>
-            <p className="text-[10px] uppercase tracking-wider text-brown-muted">
-              Sessions
-            </p>
-          </div>
-          <div className="card p-3 md:p-4 text-center">
-            <Flame className="mx-auto mb-1 h-4 w-4 text-brown-muted" />
-            <p className="text-lg font-serif font-medium text-brown">
-              {stats.longestStreak}
-            </p>
-            <p className="text-[10px] uppercase tracking-wider text-brown-muted">
-              Best Streak
-            </p>
+      <div className="relative mb-4">
+        <div className="overflow-x-auto scrollbar-hide pb-1">
+          <div className="flex w-max items-center rounded-full border border-border/50 bg-surface/80 backdrop-blur-md p-1 shadow-sm">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as TabId)}
+                className={`relative rounded-full px-5 py-2 text-sm font-medium transition-all duration-cozy focus:outline-none ${
+                  activeTab === tab.id
+                    ? "bg-terracotta text-white"
+                    : "text-brown-muted hover:bg-cream hover:text-brown"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
         </div>
-      </ErrorBoundary>
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-cream dark:from-[#0d0c0b] to-transparent z-10" />
+      </div>
 
-      {/* Heatmap */}
-      {sessions.length > 0 && (
-        <ErrorBoundary title="Failed to load activity heatmap">
-          <section className="card p-5">
-            <h2 className="mb-4 font-serif text-lg text-brown">Activity</h2>
-            <ActivityHeatmap
-              days={heatmapDays}
-              granularity={granularity}
-              onGranularityChange={setGranularity}
-            />
-          </section>
+      <main>
+        <ErrorBoundary title="Failed to load tab">
+          {sessions.length === 0 ? (
+            <div className="card flex min-h-[160px] flex-col items-center justify-center rounded-cozy border-dashed p-10 text-center">
+              <p className="font-medium text-brown">No public sessions</p>
+              <p className="mt-1 text-sm text-brown-muted">
+                This user hasn&apos;t shared any sessions publicly yet.
+              </p>
+            </div>
+          ) : (
+            <>
+              {activeTab === "overview" && (
+                <OverviewTab
+                  stats={stats}
+                  weeklyRecap={weeklyRecap}
+                  heatmapDays={heatmapDays}
+                  allSessions={sessions}
+                  recentSessions={recentSessions}
+                  granularity={granularity}
+                  onGranularityChange={setGranularity}
+                />
+              )}
+              {activeTab === "activity" && (
+                <ActivityTab 
+                  heatmapDays={heatmapDays}
+                  granularity={granularity}
+                  onGranularityChange={setGranularity}
+                />
+              )}
+              {activeTab === "progress" && (
+                <ProgressTab 
+                  weeklyData={weeklyChartData}
+                  monthlyData={monthlyChartData}
+                  joinedAt={joinedAt}
+                />
+              )}
+              {activeTab === "achievements" && (
+                <AchievementsTab activities={sessions} joinedAt={joinedAt} productivityScore={productivityScore} />
+              )}
+            </>
+          )}
         </ErrorBoundary>
-      )}
+      </main>
 
-      {sessions.length === 0 && (
-        <div className="card flex min-h-[160px] flex-col items-center justify-center rounded-cozy border-dashed p-10 text-center">
-          <p className="font-medium text-brown">No public sessions</p>
-          <p className="mt-1 text-sm text-brown-muted">
-            This user hasn&apos;t shared any sessions publicly yet.
-          </p>
-        </div>
+      {modalType && profile && (
+        <FollowListModal 
+          userId={profile.id} 
+          type={modalType} 
+          onClose={() => setModalType(null)} 
+        />
       )}
     </div>
   );

@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useFocus } from "@/context/focus-app";
+import { useAuth } from "@/context/auth-context";
+import { supabase } from "@/lib/supabase";
 import { DEFAULT_DAILY_GOAL_MINUTES } from "@/types";
-import { Check } from "lucide-react";
+import { Check, AlertCircle, Loader2 } from "lucide-react";
 import Link from "next/link";
 
 const GOAL_PRESETS = [
@@ -16,19 +18,30 @@ const GOAL_PRESETS = [
 
 export default function SettingsPage() {
   const { dailyGoalMinutes, setDailyGoalMinutes, sessionGoalMinutes, setSessionGoalMinutes, showMilliseconds, setShowMilliseconds, timerDirection, setTimerDirection } = useFocus();
+  const { user, profile, updateProfile } = useAuth();
+  
   const [draftMinutes, setDraftMinutes] = useState(String(dailyGoalMinutes));
   const [saved, setSaved] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('light');
+
+  // Profile Form State
+  const [usernameDraft, setUsernameDraft] = useState("");
+  const [displayNameDraft, setDisplayNameDraft] = useState("");
+  const [profileSaved, setProfileSaved] = useState(false);
+  const [profileError, setProfileError] = useState("");
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+
+  const hasEditedProfile = user?.user_metadata?.has_setup_profile === true;
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       const stored = localStorage.theme;
       if (stored === 'dark') {
         setTheme('dark');
-      } else if (stored === 'system') {
-        setTheme('system');
-      } else {
+      } else if (stored === 'light') {
         setTheme('light');
+      } else {
+        setTheme('system');
       }
     }
   }, []);
@@ -37,7 +50,11 @@ export default function SettingsPage() {
     setTheme(newTheme);
     if (newTheme === 'system') {
       localStorage.theme = 'system';
-      document.documentElement.classList.remove('dark');
+      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
     } else {
       localStorage.theme = newTheme;
       if (newTheme === 'dark') {
@@ -62,6 +79,35 @@ export default function SettingsPage() {
     await setDailyGoalMinutes(minutes);
     setDraftMinutes(String(minutes));
     setSaved(true);
+  };
+
+  useEffect(() => {
+    if (profile) {
+      setUsernameDraft(profile.username);
+      setDisplayNameDraft(profile.display_name || "");
+    }
+  }, [profile]);
+
+  const handleSaveProfile = async () => {
+    if (!user || hasEditedProfile) return;
+    setIsSavingProfile(true);
+    setProfileError("");
+    
+    const { error } = await updateProfile({
+      username: usernameDraft.toLowerCase(),
+      display_name: displayNameDraft,
+    });
+
+    if (error) {
+      setProfileError(error);
+    } else {
+      await supabase.auth.updateUser({
+        data: { has_setup_profile: true },
+      });
+      setProfileSaved(true);
+      setTimeout(() => setProfileSaved(false), 3000);
+    }
+    setIsSavingProfile(false);
   };
 
   const handleCustomChange = (raw: string) => {
@@ -89,6 +135,78 @@ export default function SettingsPage() {
       </header>
 
       <div className="space-y-6">
+        {user && profile && (
+          <section id="profile-settings" className="card p-6">
+            <div className="mb-1 flex items-center justify-between gap-3">
+              <h2 className="text-base font-medium text-brown">Profile Details</h2>
+              {profileSaved && (
+                <span className="flex items-center gap-1 text-xs font-medium text-sage animate-in fade-in">
+                  <Check className="h-3.5 w-3.5" />
+                  Saved
+                </span>
+              )}
+            </div>
+            <p className="mb-5 text-sm text-brown-muted">
+              You can personalize your Google-generated username and display name. <strong className="text-terracotta">This can only be done once.</strong>
+            </p>
+
+            {profileError && (
+              <div className="mb-4 flex items-center gap-2 rounded-lg bg-red-500/10 p-3 text-sm text-red-600 dark:text-red-400">
+                <AlertCircle className="h-4 w-4 shrink-0" />
+                <p>{profileError}</p>
+              </div>
+            )}
+
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="username" className="mb-1.5 block text-sm font-medium text-brown">
+                  Username
+                </label>
+                <input
+                  id="username"
+                  type="text"
+                  value={usernameDraft}
+                  onChange={(e) => setUsernameDraft(e.target.value.replace(/[^a-zA-Z0-9_]/g, ""))}
+                  disabled={hasEditedProfile || isSavingProfile}
+                  className="input max-w-sm w-full"
+                  placeholder="e.g. johndoe"
+                  maxLength={20}
+                />
+              </div>
+              <div>
+                <label htmlFor="display_name" className="mb-1.5 block text-sm font-medium text-brown">
+                  Display Name
+                </label>
+                <input
+                  id="display_name"
+                  type="text"
+                  value={displayNameDraft}
+                  onChange={(e) => setDisplayNameDraft(e.target.value)}
+                  disabled={hasEditedProfile || isSavingProfile}
+                  className="input max-w-sm w-full"
+                  placeholder="e.g. John Doe"
+                  maxLength={50}
+                />
+              </div>
+
+              {!hasEditedProfile && (
+                <button
+                  type="button"
+                  onClick={handleSaveProfile}
+                  disabled={isSavingProfile || !usernameDraft.trim()}
+                  className="btn-primary mt-2"
+                >
+                  {isSavingProfile ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Profile Details"}
+                </button>
+              )}
+              {hasEditedProfile && (
+                <p className="text-xs text-brown-muted mt-2 italic">
+                  Your profile details have been locked and cannot be changed again.
+                </p>
+              )}
+            </div>
+          </section>
+        )}
         <section id="daily-goal" className="card p-6">
           <div className="mb-1 flex items-center justify-between gap-3">
             <h2 className="text-base font-medium text-brown">Daily Focus Goal</h2>

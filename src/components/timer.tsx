@@ -165,124 +165,131 @@ export function Timer({ focusMode = false }: TimerProps) {
 
   /* ─── Idle mode: main page timer card ─── */
   return (
-    <motion.section
-      initial={{ scale: 0.95, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
-      aria-label="Focus timer"
-      className="card mx-auto flex flex-col items-center justify-center text-center px-8 py-16 max-w-2xl"
-    >
-      <h2 className="mb-10 font-serif text-2xl font-medium tracking-tight text-brown">
-        Focus Session
-      </h2>
+    <div className="flex flex-col items-center gap-6 w-full max-w-2xl mx-auto">
+      <motion.section
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
+        aria-label="Focus timer"
+        className="card w-full flex flex-col items-center justify-center text-center px-8 py-12"
+      >
+        <h2 className="mb-8 font-serif text-2xl font-medium tracking-tight text-brown">
+          Focus Session
+        </h2>
 
-      <div className="relative mb-12 flex items-center justify-center">
-        <div className="flex flex-col items-center justify-center py-8">
-          <p
-            className="font-mono tabular-nums tracking-tight text-brown text-[15vw] sm:text-[100px] leading-none"
-            aria-live="polite"
-            aria-atomic="true"
-          >
-            {displayString}
-          </p>
-        </div>
-      </div>
-
-      <div className="flex flex-col items-center justify-center gap-6">
-        <div className="flex flex-col sm:flex-row items-center sm:items-end gap-6 sm:gap-8 min-h-[52px]">
-          {timerDirection === 'down' && (
-            <div className="flex flex-col items-center animate-in fade-in slide-in-from-top-2">
-              <span className="text-[10px] font-semibold uppercase tracking-widest text-brown-muted mb-2">
-                Session Target
-              </span>
-              <div className="flex gap-2">
-                {[15, 25, 45, 90].map((mins) => (
-                  <button
-                    key={mins}
-                    onClick={() => setSessionGoalMinutes(mins)}
-                    className={`rounded-xl px-3 py-1.5 text-xs font-medium transition-colors ${
-                      sessionGoalMinutes === mins
-                        ? 'bg-sage text-white'
-                        : 'bg-surface text-brown-muted border border-border hover:border-sage hover:text-sage'
-                    }`}
-                  >
-                    {mins}m
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="flex flex-col items-center animate-in fade-in slide-in-from-top-2">
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-brown-muted mb-2">
-              Category
-            </span>
-            <input
-              value={plannedCategory}
-              onChange={(e) => setPlannedCategory(e.target.value)}
-              placeholder="e.g. Coding"
-              list="timer-category-suggestions"
-              maxLength={30}
-              className="rounded-xl px-3 py-1.5 w-32 text-xs font-medium transition-colors bg-surface text-brown border border-border hover:border-sage focus:outline-none focus:ring-1 focus:ring-sage"
-            />
-            <datalist id="timer-category-suggestions">
-              <option value="Work" />
-              <option value="Study" />
-              <option value="Coding" />
-              <option value="Reading" />
-              <option value="Writing" />
-            </datalist>
+        <div className="relative mb-10 flex items-center justify-center">
+          <div className="flex flex-col items-center justify-center py-4">
+            <p
+              className="font-mono tabular-nums tracking-tight text-brown text-[15vw] sm:text-[100px] leading-none"
+              aria-live="polite"
+              aria-atomic="true"
+            >
+              {displayString}
+            </p>
           </div>
         </div>
 
-        <motion.button
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
-          type="button"
-          className="btn-primary min-w-[180px] rounded-2xl px-10 py-5 text-lg shadow-sm"
-          onClick={() => {
-            startTimer();
-            try {
-              if (document.documentElement.requestFullscreen) {
-                document.documentElement.requestFullscreen().catch(() => {});
-              }
-            } catch (err) {}
-          }}
-        >
-          <Play className="h-5 w-5" aria-hidden="true" />
-          Start
-        </motion.button>
-      </div>
+        <div className="flex flex-col items-center justify-center gap-6">
+          <motion.button
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            type="button"
+            className="btn-primary min-w-[200px] rounded-2xl px-12 py-6 text-xl shadow-sm"
+            onClick={() => {
+              startTimer();
+              try {
+                if (document.documentElement.requestFullscreen) {
+                  document.documentElement.requestFullscreen().catch(() => {});
+                }
+              } catch (err) {}
+            }}
+          >
+            <Play className="h-6 w-6" aria-hidden="true" />
+            Start
+          </motion.button>
 
-      {/* Stats below timer */}
-      <div className="mt-14 w-full max-w-md border-t border-border/60 pt-8">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-8 min-h-[52px]">
+            {timerDirection === 'down' && (
+              <div className="flex flex-col items-center animate-in fade-in slide-in-from-top-2">
+                <span className="text-[10px] font-semibold uppercase tracking-widest text-brown-muted mb-2">
+                  Session Target
+                </span>
+                <div className="flex gap-2">
+                  {[15, 25, 45, 90].map((mins) => (
+                    <button
+                      key={mins}
+                      onClick={() => setSessionGoalMinutes(mins)}
+                      className={`rounded-xl px-3 py-1.5 text-xs font-medium transition-colors ${
+                        sessionGoalMinutes === mins
+                          ? 'bg-sage text-white'
+                          : 'bg-surface text-brown-muted border border-border hover:border-sage hover:text-sage'
+                      }`}
+                    >
+                      {mins}m
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="flex flex-col items-center animate-in fade-in slide-in-from-top-2">
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-brown-muted mb-2">
+                Category
+              </span>
+              <input
+                value={plannedCategory}
+                onChange={(e) => setPlannedCategory(e.target.value)}
+                placeholder="e.g. Coding"
+                list="timer-category-suggestions"
+                maxLength={30}
+                className="rounded-xl px-3 py-1.5 w-32 text-xs font-medium transition-colors bg-surface text-brown border border-border hover:border-sage focus:outline-none focus:ring-1 focus:ring-sage"
+              />
+              <datalist id="timer-category-suggestions">
+                <option value="Work" />
+                <option value="Study" />
+                <option value="Coding" />
+                <option value="Reading" />
+                <option value="Writing" />
+              </datalist>
+            </div>
+          </div>
+        </div>
+      </motion.section>
+
+      {/* Stats below timer (Separate Card) */}
+      <motion.section
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.4, delay: 0.1, ease: "easeOut" }}
+        className="card w-full p-6"
+      >
         <div className="grid grid-cols-3 gap-6 text-center">
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-brown-muted">
+            <p className="text-xs font-semibold uppercase tracking-wider text-brown-muted">
               Current Streak
             </p>
-            <p className="mt-1.5 text-lg font-medium text-brown">
+            <p className="mt-1.5 text-xl font-medium text-brown">
               {stats.currentStreak} {stats.currentStreak === 1 ? "Day" : "Days"}
             </p>
           </div>
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-brown-muted">
+            <p className="text-xs font-semibold uppercase tracking-wider text-brown-muted">
               Today
             </p>
-            <p className="mt-1.5 text-lg font-medium text-brown">
+            <p className="mt-1.5 text-xl font-medium text-brown">
               {formatDurationShort(totalWithCurrent)}
             </p>
           </div>
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-brown-muted">
+            <p className="text-xs font-semibold uppercase tracking-wider text-brown-muted">
               Sessions
             </p>
-            <p className="mt-1.5 text-lg font-medium text-brown">
+            <p className="mt-1.5 text-xl font-medium text-brown">
               {stats.totalSessions}
             </p>
           </div>
         </div>
-      </div>
-    </motion.section>
+      </motion.section>
+    </div>
   );
 }

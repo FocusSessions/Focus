@@ -57,6 +57,7 @@ export function formatDurationShort(ms: number): string {
   if (h > 0 && m > 0) return `${h} hr ${m} min`;
   if (h > 0) return `${h} hr`;
   if (m > 0) return `${m} min`;
+  if (ms === 0) return "0 min";
   return "< 1 min";
 }
 

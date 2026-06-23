@@ -42,11 +42,11 @@ export function SideNav() {
                 isActive
                   ? "bg-cream/80 md:bg-cream/80 text-brown shadow-sm md:shadow-sm border border-transparent md:border-border/50"
                   : "text-brown-muted hover:bg-cream/40 hover:text-brown"
-              }`}
+              } ${href === "/profile" && !isGuest ? "md:hidden" : ""}`}
               aria-current={isActive ? "page" : undefined}
             >
               <Icon className="h-5 w-5 md:h-4 md:w-4 shrink-0" aria-hidden="true" />
-              <span className="hidden md:inline text-[10px] md:text-sm font-medium md:font-medium">{label}</span>
+              <span className="text-[10px] md:text-sm font-medium md:font-medium">{label}</span>
             </Link>
           );
         })}
@@ -78,11 +78,13 @@ export function SideNav() {
               </div>
               <div className="min-w-0">
                 <p className="truncate text-xs font-medium text-brown">
-                  {profile?.display_name || profile?.username}
+                  {profile?.display_name || (profile?.username?.startsWith("user_") ? "Focus User" : profile?.username)}
                 </p>
-                <p className="truncate text-[10px] text-brown-muted">
-                  @{profile?.username}
-                </p>
+                {!profile?.username?.startsWith("user_") && (
+                  <p className="truncate text-[10px] text-brown-muted">
+                    @{profile?.username}
+                  </p>
+                )}
               </div>
             </Link>
 

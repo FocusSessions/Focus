@@ -68,6 +68,30 @@ export default function AuthPage() {
 
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
+  const handleResetPassword = async () => {
+    if (!email) {
+      setError("Please enter your email address first to reset your password.");
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    setSuccessMsg(null);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/settings`,
+      });
+      if (error) {
+        setError(error.message);
+      } else {
+        setSuccessMsg("Check your email for a password reset link.");
+      }
+    } catch (err) {
+      setError("An unexpected error occurred.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
@@ -238,30 +262,16 @@ export default function AuthPage() {
                     )}
                   </div>
                 </div>
-                <p className="mt-1 text-xs text-brown-muted">
+                <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
                   {usernameStatus === "invalid" && "3–20 characters: letters, numbers, underscores only."}
                   {usernameStatus === "taken" && "This username is taken."}
-                  {usernameStatus === "available" && "Available!"}
+                  {usernameStatus === "available" && <span className="text-sage">Available!</span>}
                   {usernameStatus === "idle" && "This is your unique handle."}
                   {usernameStatus === "checking" && "Checking…"}
                 </p>
               </div>
 
-              {/* Display Name */}
-              <div>
-                <label htmlFor="displayName" className="mb-1.5 block text-sm font-medium text-brown">
-                  Display Name <span className="text-brown-muted font-normal">(optional)</span>
-                </label>
-                <input
-                  id="displayName"
-                  type="text"
-                  placeholder="How you want to be known"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  maxLength={50}
-                  className="input"
-                />
-              </div>
+              {/* Display Name removed to reduce cognitive load */}
             </>
           )}
 
@@ -310,6 +320,17 @@ export default function AuthPage() {
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
+            {mode === "signin" && (
+              <div className="mt-2 text-right">
+                <button
+                  type="button"
+                  onClick={handleResetPassword}
+                  className="text-xs text-brown-muted hover:text-brown underline underline-offset-2 transition-colors"
+                >
+                  Forgot password?
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Error */}
@@ -329,8 +350,8 @@ export default function AuthPage() {
           {/* Submit */}
           <button
             type="submit"
-            disabled={loading || (mode === "signup" && usernameStatus !== "available")}
-            className="btn-primary w-full justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={loading}
+            className="btn-primary w-full justify-center disabled:opacity-50 disabled:cursor-not-allowed mt-2"
           >
             {loading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -342,6 +363,31 @@ export default function AuthPage() {
             )}
           </button>
         </form>
+
+        {/* Fallback Links */}
+        <div className="mt-6 text-center">
+          {mode === "signin" ? (
+            <p className="text-sm text-brown-muted">
+              Don&apos;t have an account?{" "}
+              <button
+                onClick={() => { setMode("signup"); setError(null); setSuccessMsg(null); }}
+                className="font-medium text-terracotta hover:underline underline-offset-2 transition-colors"
+              >
+                Sign up
+              </button>
+            </p>
+          ) : (
+            <p className="text-sm text-brown-muted">
+              Already have an account?{" "}
+              <button
+                onClick={() => { setMode("signin"); setError(null); setSuccessMsg(null); }}
+                className="font-medium text-terracotta hover:underline underline-offset-2 transition-colors"
+              >
+                Sign in
+              </button>
+            </p>
+          )}
+        </div>
 
         {/* Guest CTA */}
         <div className="mt-6 text-center">

@@ -35,6 +35,7 @@ interface AuthActions {
   ) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: ProfileUpdate) => Promise<{ error: string | null }>;
+  setupProfile: (username: string, displayName: string) => Promise<{ error: string | null }>;
   refreshProfile: () => Promise<void>;
 }
 
@@ -279,6 +280,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [user]
   );
 
+  const setupProfile = useCallback(
+    async (username: string, displayName: string): Promise<{ error: string | null }> => {
+      if (!user) return { error: "Not signed in." };
+
+      if (user.user_metadata?.has_setup_profile) {
+        return { error: "Profile has already been set up." };
+      }
+
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({ 
+          username: username.toLowerCase().replace(/[^a-z0-9_]/g, "_").slice(0, 20), 
+          display_name: displayName || username,
+          updated_at: new Date().toISOString() 
+        })
+        .eq("id", user.id);
+
+      if (profileError) {
+        if (profileError.code === "23505") {
+          return { error: "That username is already taken. Try another." };
+        }
+        return { error: "Failed to update profile." };
+      }
+
+      const { data, error: userError } = await supabase.auth.updateUser({
+        data: { has_setup_profile: true }
+      });
+
+      if (userError) {
+        return { error: "Failed to save profile setup state." };
+      }
+
+      setUser(data.user);
+      const p = await fetchProfile(user.id);
+      setProfile(p);
+      return { error: null };
+    },
+    [user]
+  );
+
   const refreshProfile = useCallback(async () => {
     if (!user) return;
     const p = await fetchProfile(user.id);
@@ -295,6 +336,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signInWithOAuth,
     signOut,
     updateProfile,
+    setupProfile,
     refreshProfile,
   };
 
