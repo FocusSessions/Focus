@@ -38,6 +38,8 @@ export default function SearchPage() {
 
   // Debounced search
   useEffect(() => {
+    let isCancelled = false;
+
     if (!query.trim()) {
       setResults([]);
       setSearching(false);
@@ -56,8 +58,10 @@ export default function SearchPage() {
         .replace(/_/g, "\\_");  // escape _ wildcard
 
       if (!sanitizedQuery.trim()) {
-        setResults([]);
-        setSearching(false);
+        if (!isCancelled) {
+          setResults([]);
+          setSearching(false);
+        }
         return;
       }
 
@@ -65,8 +69,10 @@ export default function SearchPage() {
         const { data, error } = await supabase
           .from("profiles")
           .select("*")
-          .or(`username.ilike."%${sanitizedQuery}%",display_name.ilike."%${sanitizedQuery}%"`)
+          .or(`username.ilike.%${sanitizedQuery}%,display_name.ilike.%${sanitizedQuery}%`)
           .limit(20);
+
+        if (isCancelled) return;
 
         if (error) {
           console.error("Search query failed:", error);
@@ -75,16 +81,19 @@ export default function SearchPage() {
           setResults((data as Profile[]) ?? []);
         }
       } catch (err) {
+        if (isCancelled) return;
         console.error("Search query failed:", err);
         setResults([]);
       } finally {
-        setSearching(false);
+        if (!isCancelled) {
+          setSearching(false);
+        }
       }
     }, 300);
 
     return () => {
+      isCancelled = true;
       if (debounceRef.current) clearTimeout(debounceRef.current);
-      setSearching(false);
     };
   }, [query]);
 
