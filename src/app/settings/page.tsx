@@ -18,7 +18,7 @@ const GOAL_PRESETS = [
 
 export default function SettingsPage() {
   const { dailyGoalMinutes, setDailyGoalMinutes, sessionGoalMinutes, setSessionGoalMinutes, showMilliseconds, setShowMilliseconds, timerDirection, setTimerDirection } = useFocus();
-  const { user, profile, setupProfile, updateProfile } = useAuth();
+  const { user, profile, setupProfile, updateProfile, signOut } = useAuth();
   
   const [draftMinutes, setDraftMinutes] = useState(String(dailyGoalMinutes));
   const [saved, setSaved] = useState(false);
@@ -131,6 +131,39 @@ export default function SettingsPage() {
       </header>
 
       <div className="space-y-6">
+        {user && (
+          <section id="account-settings" className="card p-6">
+            <div className="mb-5">
+              <h2 className="text-base font-medium text-brown">Account Details</h2>
+              <p className="text-sm text-brown-muted">
+                Manage your account credentials and session.
+              </p>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-brown">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  value={user.email || ""}
+                  disabled
+                  className="input max-w-sm w-full bg-surface/50 cursor-not-allowed text-brown-muted"
+                />
+              </div>
+              <div className="pt-2 flex flex-wrap gap-3 items-center">
+                <button
+                  type="button"
+                  onClick={() => signOut()}
+                  className="rounded-2xl border border-border bg-surface px-4 py-2 text-sm font-medium text-terracotta hover:border-terracotta hover:bg-terracotta/5 transition-colors"
+                >
+                  Sign Out
+                </button>
+              </div>
+            </div>
+          </section>
+        )}
+
         {user && profile && !hasEditedProfile && (
           <section id="profile-settings" className="card p-6">
             <div className="mb-1 flex items-center justify-between gap-3">
