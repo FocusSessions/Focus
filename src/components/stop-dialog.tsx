@@ -21,7 +21,7 @@ export function StopDialog() {
     }
   }, [pendingStop, plannedCategory]);
 
-  if (!pendingStop) return null;
+
 
   const handleSave = useCallback(() => {
     void confirmStop(title, category, visibility, description);
@@ -45,6 +45,7 @@ export function StopDialog() {
       return () => window.removeEventListener("keydown", handleKeyDown);
     }
   }, [pendingStop, handleSave]);
+  if (!pendingStop) return null;
 
   return (
     <div
