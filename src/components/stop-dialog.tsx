@@ -1,18 +1,24 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useFocus } from "@/context/focus-app";
 import { formatDurationShort } from "@/lib/time";
 import type { SessionCategory, SessionVisibility } from "@/types";
+import { Plus, X } from "lucide-react";
+
+const DEFAULT_CATEGORIES = ['Work', 'Study', 'Coding', 'Reading', 'Gaming'];
 
 export function StopDialog() {
-  const { pendingStop, confirmStop, cancelStop, discardSession, plannedCategory } = useFocus();
+  const { pendingStop, confirmStop, cancelStop, discardSession, plannedCategory, customCategories, addCustomCategory } = useFocus();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState<SessionCategory>(plannedCategory);
   const [visibility, setVisibility] = useState<SessionVisibility>("private");
   const [showConfirmCancel, setShowConfirmCancel] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showCustomInput, setShowCustomInput] = useState(false);
+  const [customCategoryInput, setCustomCategoryInput] = useState("");
+  const customInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (pendingStop) {
@@ -20,8 +26,6 @@ export function StopDialog() {
       setShowConfirmCancel(false);
     }
   }, [pendingStop, plannedCategory]);
-
-
 
   const handleSave = useCallback(() => {
     void confirmStop(title, category, visibility, description);
@@ -31,6 +35,8 @@ export function StopDialog() {
     setVisibility("private");
     setShowConfirmCancel(false);
     setShowAdvanced(false);
+    setShowCustomInput(false);
+    setCustomCategoryInput("");
   }, [confirmStop, title, category, visibility, description, plannedCategory]);
 
   useEffect(() => {
@@ -45,7 +51,28 @@ export function StopDialog() {
       return () => window.removeEventListener("keydown", handleKeyDown);
     }
   }, [pendingStop, handleSave]);
+
+  useEffect(() => {
+    if (showCustomInput && customInputRef.current) {
+      customInputRef.current.focus();
+    }
+  }, [showCustomInput]);
+
   if (!pendingStop) return null;
+
+  const allCategories = [...DEFAULT_CATEGORIES, ...customCategories];
+
+  const handleAddCustom = () => {
+    const trimmed = customCategoryInput.trim();
+    if (!trimmed) return;
+    // Don't duplicate
+    if (!allCategories.some(c => c.toLowerCase() === trimmed.toLowerCase())) {
+      addCustomCategory(trimmed);
+    }
+    setCategory(trimmed);
+    setCustomCategoryInput("");
+    setShowCustomInput(false);
+  };
 
   return (
     <div
@@ -75,6 +102,7 @@ export function StopDialog() {
             placeholder="Finished chapter 3, solved two problems…"
             onChange={(e) => setDescription(e.target.value)}
           />
+          <p className="mt-1 text-right text-[10px] text-brown-muted/60">{description.length}/200</p>
         </div>
 
         {!showAdvanced ? (
@@ -107,7 +135,7 @@ export function StopDialog() {
             <div>
               <label className="block text-sm text-brown-muted">Category</label>
               <div className="mt-1.5 flex flex-wrap gap-1.5">
-                {['Work', 'Study', 'Coding', 'Reading', 'Gaming'].map(c => (
+                {allCategories.map(c => (
                   <button
                     key={c}
                     type="button"
@@ -117,6 +145,52 @@ export function StopDialog() {
                     {c}
                   </button>
                 ))}
+
+                {/* Add custom category */}
+                {showCustomInput ? (
+                  <div className="flex items-center gap-1 animate-fade-in">
+                    <input
+                      ref={customInputRef}
+                      type="text"
+                      value={customCategoryInput}
+                      onChange={(e) => setCustomCategoryInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") handleAddCustom();
+                        if (e.key === "Escape") {
+                          setShowCustomInput(false);
+                          setCustomCategoryInput("");
+                        }
+                      }}
+                      maxLength={20}
+                      placeholder="e.g. Music"
+                      className="input text-[11px] px-2.5 py-1 w-24 bg-surface rounded-full"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddCustom}
+                      disabled={!customCategoryInput.trim()}
+                      className="flex h-6 w-6 items-center justify-center rounded-full bg-sage text-white text-xs disabled:opacity-40 transition-opacity"
+                    >
+                      ✓
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setShowCustomInput(false); setCustomCategoryInput(""); }}
+                      className="flex h-6 w-6 items-center justify-center rounded-full text-brown-muted hover:text-brown transition-colors"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    className="rounded-full px-2.5 py-1 text-[11px] font-medium border border-dashed border-border text-brown-muted hover:border-terracotta/50 hover:text-terracotta transition-colors flex items-center gap-1"
+                    onClick={() => setShowCustomInput(true)}
+                  >
+                    <Plus className="h-3 w-3" />
+                    Custom
+                  </button>
+                )}
               </div>
             </div>
 

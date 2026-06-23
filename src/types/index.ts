@@ -42,6 +42,7 @@ export interface UserPreferences {
   showMilliseconds: boolean;
   timerDirection?: 'up' | 'down';
   joinedAt?: number;
+  customCategories?: string[];
 }
 
 export const DEFAULT_DAILY_GOAL_MINUTES = 240;

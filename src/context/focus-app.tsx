@@ -117,6 +117,8 @@ interface FocusActions {
   timerDirection: 'up' | 'down';
   setTimerDirection: (dir: 'up' | 'down') => void;
   joinedAt?: number;
+  customCategories: string[];
+  addCustomCategory: (cat: string) => void;
 }
 
 const FocusContext = createContext<(FocusState & FocusActions) | null>(null);
@@ -605,6 +607,18 @@ export function FocusProvider({ children }: { children: ReactNode }) {
     timerDirection: userPreferences.timerDirection ?? 'up',
     setTimerDirection,
     joinedAt: userPreferences.joinedAt,
+    customCategories: userPreferences.customCategories ?? [],
+    addCustomCategory: useCallback((cat: string) => {
+      const trimmed = cat.trim();
+      if (!trimmed) return;
+      setUserPreferences(prev => {
+        const existing = prev.customCategories ?? [];
+        if (existing.some(c => c.toLowerCase() === trimmed.toLowerCase())) return prev;
+        const next = { ...prev, customCategories: [...existing, trimmed] };
+        void saveUserPreferences(next);
+        return next;
+      });
+    }, []),
   };
 
   return (

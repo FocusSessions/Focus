@@ -116,10 +116,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return;
 
-      if (event === "SIGNED_IN" && session?.user) {
+      if ((event === "SIGNED_IN" || event === "INITIAL_SESSION" || event === "TOKEN_REFRESHED") && session?.user) {
         setUser(session.user);
         const p = await ensureProfileExists(session.user);
         if (mounted) setProfile(p);
+        if (mounted) setIsLoading(false);
       } else if (event === "SIGNED_OUT") {
         setUser(null);
         setProfile(null);

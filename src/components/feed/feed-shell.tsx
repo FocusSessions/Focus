@@ -38,7 +38,7 @@ export function FeedShell() {
   const router = useRouter();
 
   const [feedItems, setFeedItems] = useState<FeedItem[]>([]);
-  const [feedLoading, setFeedLoading] = useState(false);
+  const [feedLoading, setFeedLoading] = useState(!isGuest && !!user);
   const [followingIds, setFollowingIds] = useState<Set<string>>(new Set());
   const [loadingFollow, setLoadingFollow] = useState<string | null>(null);
   const [isGlobalFeed, setIsGlobalFeed] = useState(false);
