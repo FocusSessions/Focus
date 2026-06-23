@@ -54,25 +54,29 @@ export function FeedShell() {
       .sort((a, b) => b.startedAt - a.startedAt);
   }, [activities]);
 
-  // Load social feed when signed in
+  // Load social feed (global for guests, personal for signed-in users)
   useEffect(() => {
-    if (isGuest || !user || authLoading) return;
+    if (authLoading) return;
 
     let mounted = true;
 
     const loadFeed = async () => {
       setFeedLoading(true);
 
-      // Get IDs of users we follow
-      const { data: followData } = await supabase
-        .from("follows")
-        .select("following_id")
-        .eq("follower_id", user.id);
+      let fIds: string[] = [];
 
-      const fIds = followData?.map((f) => f.following_id) ?? [];
+      if (!isGuest && user) {
+        // Get IDs of users we follow
+        const { data: followData } = await supabase
+          .from("follows")
+          .select("following_id")
+          .eq("follower_id", user.id);
 
-      if (mounted) {
-        setFollowingIds(new Set(fIds));
+        fIds = followData?.map((f) => f.following_id) ?? [];
+
+        if (mounted) {
+          setFollowingIds(new Set(fIds));
+        }
       }
 
       let sessionData;
@@ -221,7 +225,7 @@ export function FeedShell() {
   }
 
   // Determine what to show
-  const showSocialFeed = !isGuest && feedItems.length > 0;
+  const showSocialFeed = feedItems.length > 0;
 
   return (
     <div className="mx-auto max-w-[720px] px-4 pb-28 pt-10">

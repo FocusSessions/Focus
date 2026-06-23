@@ -59,23 +59,45 @@ async function ensureProfileExists(user: User): Promise<Profile | null> {
   
   if (!p && user.user_metadata) {
     const meta = user.user_metadata;
-    const username = meta.username || meta.preferred_username || `user_${user.id.slice(0, 8)}`;
-    const displayName = meta.display_name || meta.full_name || meta.name || username;
+    const baseUsername = meta.username || meta.preferred_username || `user_${user.id.slice(0, 8)}`;
+    const displayName = meta.display_name || meta.full_name || meta.name || baseUsername;
 
-    const { error: insertErr } = await supabase
-      .from("profiles")
-      .insert({
-        id: user.id,
-        username: username.toLowerCase().replace(/[^a-z0-9_]/g, "_").slice(0, 20),
-        display_name: displayName,
-        is_public: true,
-      });
+    let attempt = 0;
+    let currentUsername = baseUsername.toLowerCase().replace(/[^a-z0-9_]/g, "_").slice(0, 20);
 
-    if (!insertErr || insertErr.code === "23505") {
-      p = await fetchProfile(user.id);
-    } else {
-      console.error("[auth] Auto-create profile failed:", insertErr.message);
+    while (attempt < 3) {
+      const { error: insertErr } = await supabase
+        .from("profiles")
+        .insert({
+          id: user.id,
+          username: currentUsername,
+          display_name: displayName,
+          is_public: true,
+        });
+
+      if (!insertErr) {
+        break;
+      }
+
+      if (insertErr.code === "23505") {
+        // If it's a unique constraint violation, it could be the ID (profile already exists via trigger)
+        // or the username (username taken). Let's check if the ID exists.
+        const check = await fetchProfile(user.id);
+        if (check) {
+          return check; // The trigger made it, we are good.
+        }
+        
+        // It was a username collision! We must randomize and retry.
+        const randomSuffix = Math.floor(Math.random() * 10000).toString();
+        currentUsername = `${currentUsername.slice(0, 15)}_${randomSuffix}`;
+        attempt++;
+      } else {
+        console.error("[auth] Auto-create profile failed:", insertErr.message);
+        break;
+      }
     }
+
+    p = await fetchProfile(user.id);
   }
   return p;
 }
@@ -124,6 +146,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else if (event === "SIGNED_OUT") {
         setUser(null);
         setProfile(null);
+        if (mounted) setIsLoading(false);
+      } else if (event === "INITIAL_SESSION" && !session?.user) {
+        if (mounted) setIsLoading(false);
       }
     });
 
