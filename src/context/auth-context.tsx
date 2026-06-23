@@ -54,6 +54,32 @@ async function fetchProfile(userId: string): Promise<Profile | null> {
   return data as Profile;
 }
 
+async function ensureProfileExists(user: User): Promise<Profile | null> {
+  let p = await fetchProfile(user.id);
+  
+  if (!p && user.user_metadata) {
+    const meta = user.user_metadata;
+    const username = meta.username || meta.preferred_username || `user_${user.id.slice(0, 8)}`;
+    const displayName = meta.display_name || meta.full_name || meta.name || username;
+
+    const { error: insertErr } = await supabase
+      .from("profiles")
+      .insert({
+        id: user.id,
+        username: username.toLowerCase().replace(/[^a-z0-9_]/g, "_").slice(0, 20),
+        display_name: displayName,
+        is_public: true,
+      });
+
+    if (!insertErr || insertErr.code === "23505") {
+      p = await fetchProfile(user.id);
+    } else {
+      console.error("[auth] Auto-create profile failed:", insertErr.message);
+    }
+  }
+  return p;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -72,7 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } = await supabase.auth.getSession();
         if (session?.user && mounted) {
           setUser(session.user);
-          const p = await fetchProfile(session.user.id);
+          const p = await ensureProfileExists(session.user);
           if (mounted) setProfile(p);
         }
       } catch {
@@ -92,30 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (event === "SIGNED_IN" && session?.user) {
         setUser(session.user);
-        let p = await fetchProfile(session.user.id);
-
-        // Auto-create profile if it doesn't exist yet (e.g. email confirmation flow)
-        if (!p && session.user.user_metadata) {
-          const meta = session.user.user_metadata;
-          const username = meta.username || meta.preferred_username || `user_${session.user.id.slice(0, 8)}`;
-          const displayName = meta.display_name || meta.full_name || meta.name || username;
-
-          const { error: insertErr } = await supabase
-            .from("profiles")
-            .insert({
-              id: session.user.id,
-              username: username.toLowerCase().replace(/[^a-z0-9_]/g, "_").slice(0, 20),
-              display_name: displayName,
-              is_public: true,
-            });
-
-          if (!insertErr) {
-            p = await fetchProfile(session.user.id);
-          } else if (insertErr.code !== "23505") {
-            console.error("[auth] Auto-create profile failed:", insertErr.message);
-          }
-        }
-
+        const p = await ensureProfileExists(session.user);
         if (mounted) setProfile(p);
       } else if (event === "SIGNED_OUT") {
         setUser(null);
