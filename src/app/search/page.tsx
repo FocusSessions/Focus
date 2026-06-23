@@ -62,14 +62,19 @@ export default function SearchPage() {
       }
 
       try {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from("profiles")
           .select("*")
-          .or(`username.ilike.%${sanitizedQuery}%,display_name.ilike.%${sanitizedQuery}%`)
+          .or(`username.ilike."%${sanitizedQuery}%",display_name.ilike."%${sanitizedQuery}%"`)
           .eq("is_public", true)
           .limit(20);
 
-        setResults((data as Profile[]) ?? []);
+        if (error) {
+          console.error("Search query failed:", error);
+          setResults([]);
+        } else {
+          setResults((data as Profile[]) ?? []);
+        }
       } catch (err) {
         console.error("Search query failed:", err);
         setResults([]);
