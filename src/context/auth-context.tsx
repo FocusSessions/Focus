@@ -67,11 +67,13 @@ async function ensureProfileExists(user: User): Promise<Profile | null> {
       // Auto-patch legacy accounts that have a null username
       if (!existing.username) {
         const fallbackBase = `user_${user.id.slice(0, 8)}`;
+        const meta = user.user_metadata || {};
+        const betterDisplayName = existing.display_name || meta.display_name || meta.full_name || meta.name || fallbackBase;
         const { error: patchError } = await supabase
           .from("profiles")
           .update({
             username: fallbackBase,
-            display_name: existing.display_name || fallbackBase,
+            display_name: betterDisplayName,
           })
           .eq("id", user.id);
           
