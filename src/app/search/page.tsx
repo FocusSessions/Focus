@@ -18,7 +18,7 @@ export default function SearchPage() {
   const [results, setResults] = useState<Profile[]>([]);
   const [searching, setSearching] = useState(false);
   const [followingIds, setFollowingIds] = useState<Set<string>>(new Set());
-  const [loadingFollow, setLoadingFollow] = useState<string | null>(null);
+  const [loadingFollows, setLoadingFollows] = useState<Set<string>>(new Set());
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
   // Load who the current user follows
@@ -108,8 +108,8 @@ export default function SearchPage() {
 
   const toggleFollow = useCallback(
     async (targetId: string) => {
-      if (!user || loadingFollow === targetId) return;
-      setLoadingFollow(targetId);
+      if (!user || loadingFollows.has(targetId) || user.id === targetId) return;
+      setLoadingFollows((prev) => new Set(prev).add(targetId));
 
       const isFollowing = followingIds.has(targetId);
 
@@ -148,9 +148,13 @@ export default function SearchPage() {
         }
       }
 
-      setLoadingFollow(null);
+      setLoadingFollows((prev) => {
+        const next = new Set(prev);
+        next.delete(targetId);
+        return next;
+      });
     },
-    [user, followingIds, loadingFollow]
+    [user, followingIds, loadingFollows]
   );
 
   return (
@@ -249,14 +253,14 @@ export default function SearchPage() {
                       e.stopPropagation();
                       toggleFollow(profile.id);
                     }}
-                    disabled={loadingFollow === profile.id}
+                    disabled={loadingFollows.has(profile.id)}
                     className={`flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-medium transition-all duration-cozy ${
                       isFollowing
                         ? "border border-border bg-surface text-brown-muted hover:border-terracotta/40 hover:text-terracotta"
                         : "bg-terracotta text-white hover:bg-terracotta-hover"
                     }`}
                   >
-                    {loadingFollow === profile.id ? (
+                    {loadingFollows.has(profile.id) ? (
                       <Loader2 className="h-3 w-3 animate-spin" />
                     ) : isFollowing ? (
                       <>
