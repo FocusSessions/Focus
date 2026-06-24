@@ -36,9 +36,8 @@ export default function SearchPage() {
     loadFollowing();
   }, [user]);
 
-  // Debounced search
   useEffect(() => {
-    let isCancelled = false;
+    let active = true;
 
     if (!query.trim()) {
       setResults([]);
@@ -47,18 +46,18 @@ export default function SearchPage() {
     }
 
     setSearching(true);
-    if (debounceRef.current) clearTimeout(debounceRef.current);
+    console.log("[Search] Starting search for:", query);
 
-    debounceRef.current = setTimeout(async () => {
-      // Sanitize query: remove PostgREST control chars, then escape ILIKE wildcards
-      const cleaned = query.replace(/[,.()\"']/g, "");
-      const sanitizedQuery = cleaned
-        .replace(/\\/g, "\\\\")  // escape backslash first
-        .replace(/%/g, "\\%")   // escape % wildcard
-        .replace(/_/g, "\\_");  // escape _ wildcard
+    const timeoutId = setTimeout(async () => {
+      const sanitizedQuery = query
+        .replace(/[,.()\"']/g, "")
+        .replace(/\\/g, "\\\\")
+        .replace(/%/g, "\\%")
+        .replace(/_/g, "\\_")
+        .trim();
 
-      if (!sanitizedQuery.trim()) {
-        if (!isCancelled) {
+      if (!sanitizedQuery) {
+        if (active) {
           setResults([]);
           setSearching(false);
         }
@@ -66,34 +65,44 @@ export default function SearchPage() {
       }
 
       try {
+        console.log("[Search] Fetching from Supabase:", sanitizedQuery);
         const { data, error } = await supabase
           .from("profiles")
           .select("*")
           .or(`username.ilike.%${sanitizedQuery}%,display_name.ilike.%${sanitizedQuery}%`)
           .limit(20);
 
-        if (isCancelled) return;
+        console.log("[Search] Supabase response received:", { data, error });
+
+        if (!active) {
+          console.log("[Search] Component unmounted or query changed, discarding results.");
+          return;
+        }
 
         if (error) {
-          console.error("Search query failed:", error);
+          console.error("[Search] Supabase error:", error);
+          toast.error("Database error: " + error.message);
           setResults([]);
         } else {
-          setResults((data as Profile[]) ?? []);
+          setResults((data as Profile[]) || []);
         }
-      } catch (err) {
-        if (isCancelled) return;
-        console.error("Search query failed:", err);
-        setResults([]);
+      } catch (err: any) {
+        console.error("[Search] Hard crash during fetch:", err);
+        if (active) {
+          toast.error("Network error: " + (err.message || "Failed to fetch"));
+          setResults([]);
+        }
       } finally {
-        if (!isCancelled) {
+        if (active) {
+          console.log("[Search] Setting searching to false");
           setSearching(false);
         }
       }
-    }, 300);
+    }, 400);
 
     return () => {
-      isCancelled = true;
-      if (debounceRef.current) clearTimeout(debounceRef.current);
+      active = false;
+      clearTimeout(timeoutId);
     };
   }, [query]);
 
