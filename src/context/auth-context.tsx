@@ -63,7 +63,24 @@ async function fetchProfile(userId: string): Promise<Profile | null> {
 async function ensureProfileExists(user: User): Promise<Profile | null> {
   try {
     const existing = await fetchProfile(user.id);
-    if (existing) return existing;
+    if (existing) {
+      // Auto-patch legacy accounts that have a null username
+      if (!existing.username) {
+        const fallbackBase = `user_${user.id.slice(0, 8)}`;
+        const { error: patchError } = await supabase
+          .from("profiles")
+          .update({
+            username: fallbackBase,
+            display_name: existing.display_name || fallbackBase,
+          })
+          .eq("id", user.id);
+          
+        if (!patchError) {
+          return await fetchProfile(user.id);
+        }
+      }
+      return existing;
+    }
 
     if (!user.user_metadata) return null;
 
@@ -194,11 +211,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       displayName?: string
     ): Promise<{ error: string | null }> => {
       try {
+        const cleanUsername = username.toLowerCase().trim().replace(/[^a-z0-9_]/g, "").slice(0, 20);
+        const cleanDisplayName = displayName?.trim();
+
         // Client-side uniqueness check (informational only — server is the source of truth)
         const { data: existing } = await supabase
           .from("profiles")
           .select("id")
-          .eq("username", username.toLowerCase())
+          .eq("username", cleanUsername)
           .maybeSingle();
 
         if (existing) {
@@ -210,8 +230,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           password,
           options: {
             data: {
-              username: username.toLowerCase(),
-              display_name: displayName || username,
+              username: cleanUsername,
+              display_name: cleanDisplayName || cleanUsername,
             },
           },
         });
@@ -238,14 +258,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             // We have a session — create profile now
             let p = await ensureProfileExists(data.user);
             
-            if (!p || p.username !== username.toLowerCase()) {
+            if (!p || p.username !== cleanUsername) {
               // Trigger didn't create the profile or fallback returned wrong username — try insert manually
               const { error: insertError } = await supabase
                 .from("profiles")
                 .insert({
                   id: data.user.id,
-                  username: username.toLowerCase(),
-                  display_name: displayName || username,
+                  username: cleanUsername,
+                  display_name: cleanDisplayName || cleanUsername,
                   is_public: true,
                 });
 
@@ -318,9 +338,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async (updates: ProfileUpdate): Promise<{ error: string | null }> => {
       if (!user) return { error: "Not signed in." };
 
+      const sanitizedUpdates = { ...updates };
+      if (sanitizedUpdates.username) {
+        sanitizedUpdates.username = sanitizedUpdates.username.toLowerCase().trim().replace(/[^a-z0-9_]/g, "").slice(0, 20);
+      }
+      if (sanitizedUpdates.display_name) {
+        sanitizedUpdates.display_name = sanitizedUpdates.display_name.trim();
+      }
+
       const { error } = await supabase
         .from("profiles")
-        .update({ ...updates })
+        .update(sanitizedUpdates)
         .eq("id", user.id);
 
       if (error) {
@@ -343,7 +371,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async (username: string, displayName: string): Promise<{ error: string | null }> => {
       if (!user) return { error: "Not signed in." };
 
-      const cleanUsername = username.toLowerCase().replace(/[^a-z0-9_]/g, "_").slice(0, 20);
+      const cleanUsername = username.toLowerCase().trim().replace(/[^a-z0-9_]/g, "").slice(0, 20);
+      const cleanDisplayName = displayName?.trim() || cleanUsername;
 
       // Use upsert so missing profile rows are created, not silently skipped
       const { error: profileError } = await supabase
@@ -352,7 +381,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           {
             id: user.id,
             username: cleanUsername,
-            display_name: displayName || username,
+            display_name: cleanDisplayName,
             is_public: true,
           },
           { onConflict: "id" }

@@ -205,13 +205,15 @@ export default function SearchPage() {
           {results.map((profile) => {
             const isSelf = user?.id === profile.id;
             const isFollowing = followingIds.has(profile.id);
-            const initial = (profile.display_name || profile.username)[0]?.toUpperCase() || "?";
+            const safeUsername = profile.username || `user_${profile.id.slice(0, 8)}`;
+            const safeDisplayName = profile.display_name || profile.username || "Unknown";
+            const initial = safeDisplayName[0]?.toUpperCase() || "?";
 
             return (
               <article
                 key={profile.id}
                 className="card flex items-center gap-4 p-4 transition-all duration-cozy hover:shadow-md cursor-pointer"
-                onClick={() => router.push(`/user/${profile.username}`)}
+                onClick={() => router.push(`/user/${safeUsername}`)}
               >
                 {/* Avatar */}
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sage to-[#5a7a5f] text-lg font-bold text-white font-serif leading-[0]">
@@ -222,10 +224,10 @@ export default function SearchPage() {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
                     <span className="truncate font-medium text-brown">
-                      {profile.display_name || profile.username}
+                      {safeDisplayName}
                     </span>
                   </div>
-                  <p className="text-xs text-brown-muted">@{profile.username}</p>
+                  <p className="text-xs text-brown-muted">@{safeUsername}</p>
                   {profile.bio && (
                     <p className="mt-0.5 truncate text-xs text-brown-muted">{profile.bio}</p>
                   )}
