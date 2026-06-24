@@ -108,7 +108,7 @@ export default function SearchPage() {
 
   const toggleFollow = useCallback(
     async (targetId: string) => {
-      if (!user || loadingFollow) return;
+      if (!user || loadingFollow === targetId) return;
       setLoadingFollow(targetId);
 
       const isFollowing = followingIds.has(targetId);
