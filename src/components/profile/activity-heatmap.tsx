@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import type { HeatmapDay, HeatmapGranularity } from "@/types/analytics";
 import { toHeatmapGrid, padHeatmapGrid, DAY_LABELS } from "@/lib/analytics";
 import { formatDurationShort, dayLabel } from "@/lib/time";
@@ -103,7 +104,7 @@ function HeatmapTooltip({ tooltip }: { tooltip: TooltipState }) {
   const { day } = tooltip;
   const categoryText = formatCategories(day.categories);
 
-  return (
+  const tooltipElement = (
     <div
       className="pointer-events-none fixed z-50 -translate-x-1/2 -translate-y-full rounded-cozy border border-border bg-brown shadow-xl"
       style={{ left: Math.max(90, Math.min(typeof window !== 'undefined' ? window.innerWidth - 90 : 1000, tooltip.x)), top: tooltip.y }}
@@ -148,6 +149,9 @@ function HeatmapTooltip({ tooltip }: { tooltip: TooltipState }) {
       </div>
     </div>
   );
+
+  if (typeof document === 'undefined') return null;
+  return createPortal(tooltipElement, document.body);
 }
 
 // ─── Empty state ──────────────────────────────────────────────────────────────

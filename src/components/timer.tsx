@@ -69,36 +69,7 @@ export function Timer({ focusMode = false }: TimerProps) {
     displayString = formatFocusClock(elapsedMs, showMilliseconds);
   }
 
-  /* ─── Keyboard Shortcuts ─── */
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Toggle timer on Spacebar
-      if (e.code === 'Space') {
-        // Ignore if user is typing in an input field or interacting with a button
-        const activeElement = document.activeElement;
-        const isInput = activeElement && ['INPUT', 'TEXTAREA', 'BUTTON', 'A', 'SELECT'].includes(activeElement.tagName);
-        
-        if (!isInput && !pendingStop) {
-          e.preventDefault();
-          if (!isRunning) {
-            startTimer();
-            try {
-              if (document.documentElement.requestFullscreen) {
-                document.documentElement.requestFullscreen().catch(() => {});
-              }
-            } catch (err) {}
-          } else if (isPaused) {
-            resumeTimer();
-          } else {
-            pauseTimer();
-          }
-        }
-      }
-    };
-    
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isRunning, isPaused, startTimer, resumeTimer, pauseTimer, pendingStop]);
+  /* ─── Keyboard Shortcuts Removed ─── */
 
   /* ─── Focus mode: full-screen immersive view ─── */
   if (focusMode) {

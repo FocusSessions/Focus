@@ -57,7 +57,7 @@ function FeedItemCard({
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
           {profile && (
-            <div className="mb-2 flex items-center gap-2">
+            <div className="mb-2 flex flex-wrap items-center gap-2">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -67,15 +67,15 @@ function FeedItemCard({
                     router.push(`/user/${profile.username}`);
                   }
                 }}
-                className="flex items-center gap-2 group"
+                className="flex min-w-0 items-center gap-2 group"
               >
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sage to-[#5a7a5f] text-[12px] font-bold text-white">
                   {(profile.display_name || profile.username)[0]?.toUpperCase()}
                 </div>
-                <span className="text-xs font-medium text-brown group-hover:text-terracotta transition-colors">
+                <span className="truncate text-xs font-medium text-brown group-hover:text-terracotta transition-colors">
                   {profile.display_name || profile.username}
                 </span>
-                <span className="text-[10px] text-brown-muted">
+                <span className="truncate text-[10px] text-brown-muted">
                   @{profile.username}
                 </span>
               </button>

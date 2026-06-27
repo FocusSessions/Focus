@@ -147,39 +147,6 @@ export default function SettingsPage() {
       <div className="space-y-6">
         {user && (
           <section id="account-details" className="card p-6 space-y-8">
-            <div className="border-b border-border/40 pb-6">
-              <div className="mb-5 flex items-center justify-between gap-3">
-                <div>
-                  <h2 className="text-base font-medium text-brown">Account Details</h2>
-                  <p className="text-sm text-brown-muted">
-                    Manage your account credentials and session.
-                  </p>
-                </div>
-              </div>
-              <div className="space-y-4">
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium text-brown">
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    value={user.email || ""}
-                    disabled
-                    className="input max-w-sm w-full bg-surface/50 cursor-not-allowed text-brown-muted"
-                  />
-                </div>
-                <div className="pt-2 flex flex-wrap gap-3 items-center">
-                  <button
-                    type="button"
-                    onClick={() => signOut()}
-                    className="rounded-2xl border border-border bg-surface px-4 py-2 text-sm font-medium text-terracotta hover:border-terracotta hover:bg-terracotta/5 transition-colors"
-                  >
-                    Sign Out
-                  </button>
-                </div>
-              </div>
-            </div>
-
             {profile && (
               <>
                 <div className="border-b border-border/40 pb-6">
@@ -484,6 +451,39 @@ export default function SettingsPage() {
               </div>
             </div>
           )}
+        </section>
+
+        <section className="card p-6">
+          <div className="mb-5 flex items-center justify-between gap-3">
+            <div>
+              <h2 className="text-base font-medium text-brown">Account Details</h2>
+              <p className="text-sm text-brown-muted">
+                Manage your account credentials and session.
+              </p>
+            </div>
+          </div>
+          <div className="space-y-4">
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-brown">
+                Email Address
+              </label>
+              <input
+                type="email"
+                value={user?.email || ""}
+                disabled
+                className="input max-w-sm w-full bg-surface/50 cursor-not-allowed text-brown-muted"
+              />
+            </div>
+            <div className="pt-2 flex flex-wrap gap-3 items-center">
+              <button
+                type="button"
+                onClick={() => signOut()}
+                className="rounded-2xl border border-border bg-surface px-4 py-2 text-sm font-medium text-terracotta hover:border-terracotta hover:bg-terracotta/5 transition-colors"
+              >
+                Sign Out
+              </button>
+            </div>
+          </div>
         </section>
 
         <section className="card p-6">
