@@ -60,7 +60,7 @@ async function fetchProfile(userId: string): Promise<Profile | null> {
     if (error || !data) return null;
     return data as Profile;
   } catch (err) {
-    console.error("[auth] Unexpected error fetching profile:", err?.message || err);
+    console.error("[auth] Unexpected error fetching profile:", (err as any)?.message || err);
     return null;
   }
 }
@@ -138,7 +138,7 @@ async function ensureProfileExistsInner(user: User): Promise<Profile | null> {
       updated_at: new Date().toISOString()
     } as Profile;
   } catch (err) {
-    console.error("[auth] Unexpected error ensuring profile exists:", err?.message || err);
+    console.error("[auth] Unexpected error ensuring profile exists:", (err as any)?.message || err);
     return null;
   }
 }
@@ -184,7 +184,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           initHandledRef.current = true;
         }
       } catch (err) {
-        console.error("[auth] Session initialization failed:", err?.message || err);
+        console.error("[auth] Session initialization failed:", (err as any)?.message || err);
       } finally {
         if (mounted) setIsLoading(false);
       }
@@ -219,7 +219,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         }
       } catch (err) {
-        console.error("[auth] Auth state change handler failed:", err?.message || err);
+        console.error("[auth] Auth state change handler failed:", (err as any)?.message || err);
       } finally {
         if (mounted) setIsLoading(false);
       }
@@ -313,7 +313,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         return { error: null };
       } catch (err) {
-        console.error("[signUp] Unexpected error:", err?.message || err);
+        console.error("[signUp] Unexpected error:", (err as any)?.message || err);
         return { error: "Something went wrong. Please try again." };
       }
     },
@@ -362,7 +362,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await supabase.auth.signOut();
     } catch (err) {
-      console.error("[auth] Failed to sign out:", err?.message || err);
+      console.error("[auth] Failed to sign out:", (err as any)?.message || err);
     }
   }, []);
 
@@ -449,7 +449,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const p = await ensureProfileExists(user);
       setProfile(p);
     } catch (error) {
-      console.error("[auth] Failed to refresh profile:", error?.message || error);
+      console.error("[auth] Failed to refresh profile:", (error as any)?.message || error);
     }
   }, [user]);
 
