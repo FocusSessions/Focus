@@ -168,7 +168,7 @@ export function FeedShell() {
             .eq("follower_id", user.id);
 
           if (followError) {
-            console.error("[feed] Failed to load follows:", followError.message);
+            console.error("[feed] Failed to load follows:", followError.message || followError);
           }
 
           fIds = followData?.map((f) => f.following_id) ?? [];
@@ -192,7 +192,7 @@ export function FeedShell() {
             .order("started_at", { ascending: false })
             .limit(50);
           if (error) {
-            console.error("[feed] Global fetch failed:", error.message);
+            console.error("[feed] Global fetch failed:", error.message || error);
             if (mounted) setFeedError("Failed to load feed. Try again.");
           }
           sessionData = data;
@@ -205,7 +205,7 @@ export function FeedShell() {
             .order("started_at", { ascending: false })
             .limit(50);
           if (error) {
-            console.error("[feed] Following fetch failed:", error.message);
+            console.error("[feed] Following fetch failed:", error.message || error);
             if (mounted) setFeedError("Failed to load feed. Try again.");
           }
           sessionData = data;
@@ -258,8 +258,8 @@ export function FeedShell() {
           );
           setFeedLoading(false);
         }
-      } catch (err) {
-        console.error("[feed] Unexpected error:", err);
+      } catch (err: any) {
+        console.error("[feed] Unexpected error:", err.message || err);
         if (mounted) {
           setFeedError("Something went wrong loading the feed.");
           setFeedLoading(false);
@@ -288,7 +288,7 @@ export function FeedShell() {
         .eq("following_id", targetId);
         
       if (error) {
-        console.error("Failed to unfollow:", error);
+        console.error("Failed to unfollow:", error.message || error);
         toast.error("Failed to unfollow user.");
       } else {
         setFollowingIds((prev) => {
@@ -309,7 +309,7 @@ export function FeedShell() {
         if (error.code === '23505') {
           setFollowingIds((prev) => new Set(prev).add(targetId));
         } else {
-          console.error("Failed to follow:", error);
+          console.error("Failed to follow:", error.message || error);
           toast.error("Failed to follow user.");
         }
       } else {

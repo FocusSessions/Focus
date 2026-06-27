@@ -30,7 +30,7 @@ export default function AuthCallbackPage() {
       }
 
       if (sessionError) {
-        console.error("Auth callback error:", sessionError);
+        console.error("Auth callback error:", sessionError?.message || sessionError);
         setCallbackError("Sign-in failed. Please try again.");
       } else {
         setSessionReady(true);

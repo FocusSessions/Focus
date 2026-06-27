@@ -238,7 +238,7 @@ export function FocusProvider({ children }: { children: ReactNode }) {
         // This ensures guest-mode sessions get persisted when user signs in
         await syncLocalToCloud(user.id);
       } catch (err) {
-        console.error("[CloudSync] Failed to sync sessions:", err);
+        console.error("[CloudSync] Failed to sync sessions:", err?.message || err);
       } finally {
         syncInFlightRef.current = false;
       }

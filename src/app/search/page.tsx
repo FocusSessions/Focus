@@ -76,14 +76,14 @@ export default function SearchPage() {
         if (!active) return;
 
         if (error) {
-          console.error("[Search] Supabase error:", error);
+          console.error("[Search] Supabase error:", error.message || error);
           toast.error("Database error: " + error.message);
           setResults([]);
         } else {
           setResults((data as Profile[]) || []);
         }
       } catch (err: any) {
-        console.error("[Search] Fetch error:", err);
+        console.error("[Search] Fetch error:", err.message || err);
         if (active) {
           toast.error("Network error: " + (err.message || "Failed to fetch"));
           setResults([]);
@@ -116,7 +116,7 @@ export default function SearchPage() {
           .eq("following_id", targetId);
           
         if (error) {
-          console.error("Failed to unfollow:", error);
+          console.error("Failed to unfollow:", error.message || error);
           toast.error("Failed to unfollow user.");
         } else {
           setFollowingIds((prev) => {
@@ -135,7 +135,7 @@ export default function SearchPage() {
           if (error.code === '23505') {
             setFollowingIds((prev) => new Set(prev).add(targetId));
           } else {
-            console.error("Failed to follow:", error);
+            console.error("Failed to follow:", error.message || error);
             toast.error("Failed to follow user.");
           }
         } else {

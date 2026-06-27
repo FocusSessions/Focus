@@ -362,7 +362,7 @@ export async function deleteActivityFromCloud(id: string): Promise<void> {
     const { supabase } = await import("@/lib/supabase");
     await supabase.from("sessions").delete().eq("id", id);
   } catch (err) {
-    console.error("[CloudSync] Failed to delete activity:", err);
+    console.error("[CloudSync] Failed to delete activity:", err?.message || err);
   }
 }
 
@@ -387,7 +387,7 @@ export async function updateActivityInCloud(
       .update(payload)
       .eq("id", id);
   } catch (err) {
-    console.error("[CloudSync] Failed to update activity:", err);
+    console.error("[CloudSync] Failed to update activity:", err?.message || err);
   }
 }
 

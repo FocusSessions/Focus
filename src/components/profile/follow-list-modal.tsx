@@ -48,7 +48,7 @@ export function FollowListModal({ userId, type, onClose }: FollowListModalProps)
           setProfiles([]);
         }
       } catch (err) {
-        console.error("[FollowListModal] Failed to load:", err);
+        console.error("[FollowListModal] Failed to load:", err?.message || err);
         if (mounted) setError("Failed to load list. Please try again.");
       }
       
