@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/auth-context";
@@ -19,7 +19,6 @@ export default function SearchPage() {
   const [searching, setSearching] = useState(false);
   const [followingIds, setFollowingIds] = useState<Set<string>>(new Set());
   const [loadingFollows, setLoadingFollows] = useState<Set<string>>(new Set());
-  const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
   // Load who the current user follows
   useEffect(() => {
@@ -46,14 +45,17 @@ export default function SearchPage() {
     }
 
     setSearching(true);
-    console.log("[Search] Starting search for:", query);
 
     const timeoutId = setTimeout(async () => {
+      // Escape special Postgres ilike characters:
+      // 1. Escape backslashes first (\ → \\)
+      // 2. Then escape % and _ with backslash
+      // 3. Strip other problematic chars
       const sanitizedQuery = query
-        .replace(/[,.()\"']/g, "")
-        .replace(/\\/g, "\\\\")
-        .replace(/%/g, "\\%")
-        .replace(/_/g, "\\_")
+        .replace(/\\/g, "\\\\")         // escape backslashes first
+        .replace(/%/g, "\\%")           // escape % for ilike
+        .replace(/_/g, "\\_")           // escape _ for ilike
+        .replace(/[,.()\"']/g, "")      // strip punctuation
         .trim();
 
       if (!sanitizedQuery) {
@@ -65,19 +67,13 @@ export default function SearchPage() {
       }
 
       try {
-        console.log("[Search] Fetching from Supabase:", sanitizedQuery);
         const { data, error } = await supabase
           .from("profiles")
           .select("*")
           .or(`username.ilike.%${sanitizedQuery}%,display_name.ilike.%${sanitizedQuery}%`)
           .limit(20);
 
-        console.log("[Search] Supabase response received:", { data, error });
-
-        if (!active) {
-          console.log("[Search] Component unmounted or query changed, discarding results.");
-          return;
-        }
+        if (!active) return;
 
         if (error) {
           console.error("[Search] Supabase error:", error);
@@ -87,14 +83,13 @@ export default function SearchPage() {
           setResults((data as Profile[]) || []);
         }
       } catch (err: any) {
-        console.error("[Search] Hard crash during fetch:", err);
+        console.error("[Search] Fetch error:", err);
         if (active) {
           toast.error("Network error: " + (err.message || "Failed to fetch"));
           setResults([]);
         }
       } finally {
         if (active) {
-          console.log("[Search] Setting searching to false");
           setSearching(false);
         }
       }

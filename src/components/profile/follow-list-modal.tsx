@@ -18,6 +18,7 @@ export function FollowListModal({ userId, type, onClose }: FollowListModalProps)
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     let mounted = true;
@@ -56,7 +57,7 @@ export function FollowListModal({ userId, type, onClose }: FollowListModalProps)
 
     fetchUsers();
     return () => { mounted = false; };
-  }, [userId, type]);
+  }, [userId, type, retryCount]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -85,7 +86,7 @@ export function FollowListModal({ userId, type, onClose }: FollowListModalProps)
             <div className="text-center py-8">
               <p className="text-sm text-terracotta">{error}</p>
               <button
-                onClick={() => { setError(null); setLoading(true); }}
+                onClick={() => setRetryCount((c) => c + 1)}
                 className="mt-2 text-xs text-brown-muted hover:text-brown underline"
               >
                 Try again

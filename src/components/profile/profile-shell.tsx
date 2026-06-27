@@ -1,7 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useFocus } from "@/context/focus-app";
+import { useAuth } from "@/context/auth-context";
+import { supabase } from "@/lib/supabase";
 import type { FocusSessionActivity } from "@/types";
 import type { HeatmapGranularity } from "@/types/analytics";
 import {
@@ -20,14 +22,46 @@ import { ActivityTab } from "@/components/profile/activity-tab";
 import { ProgressTab } from "@/components/profile/progress-tab";
 import { AchievementsTab } from "@/components/profile/achievements-tab";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
+import { FollowListModal } from "@/components/profile/follow-list-modal";
 
 type TabId = "overview" | "activity" | "progress" | "achievements";
 
 export function ProfileShell() {
   const { activities, loadState, loadError, retryLoad, joinedAt } = useFocus();
+  const { profile } = useAuth();
   
   const [activeTab, setActiveTab] = useState<TabId>("overview");
   const [granularity, setGranularity] = useState<HeatmapGranularity>("month");
+  
+  const [followerCount, setFollowerCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
+  const [modalType, setModalType] = useState<"followers" | "following" | null>(null);
+
+  useEffect(() => {
+    if (!profile?.id) return;
+    let mounted = true;
+
+    const loadFollows = async () => {
+      const [{ count: followers }, { count: following }] = await Promise.all([
+        supabase
+          .from("follows")
+          .select("*", { count: "exact", head: true })
+          .eq("following_id", profile.id),
+        supabase
+          .from("follows")
+          .select("*", { count: "exact", head: true })
+          .eq("follower_id", profile.id),
+      ]);
+
+      if (mounted) {
+        setFollowerCount(followers ?? 0);
+        setFollowingCount(following ?? 0);
+      }
+    };
+
+    loadFollows();
+    return () => { mounted = false; };
+  }, [profile?.id]);
 
   const focusSessions = useMemo(() => {
     return activities.filter((a): a is FocusSessionActivity => a.type === 'focus_session');
@@ -39,10 +73,42 @@ export function ProfileShell() {
       .slice(0, 5);
   }, [focusSessions]);
 
-  const joinedLabel = useMemo(() => {
+  const joinedDateLabel = useMemo(() => {
     const timestamp = joinedAt || Date.now();
     return `Joined ${new Date(timestamp).toLocaleDateString(undefined, { month: "long", year: "numeric" })}`;
   }, [joinedAt]);
+
+  const followersLabel = (
+    <div className="flex flex-col items-start gap-1">
+      <div className="flex items-center gap-4 mt-1">
+        <button 
+          onClick={() => setModalType("followers")}
+          className="text-sm hover:opacity-80 transition-opacity focus:outline-none"
+        >
+          <span className="font-medium text-brown">{followerCount}</span>
+          <span className="text-brown-muted ml-1">followers</span>
+        </button>
+        <button 
+          onClick={() => setModalType("following")}
+          className="text-sm hover:opacity-80 transition-opacity focus:outline-none"
+        >
+          <span className="font-medium text-brown">{followingCount}</span>
+          <span className="text-brown-muted ml-1">following</span>
+        </button>
+      </div>
+      <span className="text-xs text-brown-muted">{joinedDateLabel}</span>
+    </div>
+  );
+
+  // Calculate required data — memoized to avoid recomputation on every render
+  const stats = useMemo(() => computeStats(focusSessions), [focusSessions]);
+  const { score: productivityScore } = useMemo(() => calculateProductivityScore(activities, joinedAt), [activities, joinedAt]);
+  const weeklyRecap = useMemo(() => generateWeeklyRecap(activities), [activities]);
+  const heatmapDays = useMemo(() => buildHeatmapData(focusSessions, granularity, joinedAt), [focusSessions, granularity, joinedAt]);
+
+  // Chart Data
+  const weeklyChartData = useMemo(() => buildWeeklyChartData(focusSessions), [focusSessions]);
+  const monthlyChartData = useMemo(() => buildMonthlyChartData(focusSessions), [focusSessions]);
 
   if (loadState === "loading") {
     return (
@@ -63,16 +129,6 @@ export function ProfileShell() {
     );
   }
 
-  // Calculate required data
-  const stats = computeStats(focusSessions);
-  const { score: productivityScore } = calculateProductivityScore(activities, joinedAt);
-  const weeklyRecap = generateWeeklyRecap(activities);
-  const heatmapDays = buildHeatmapData(focusSessions, granularity, joinedAt);
-
-  // Chart Data
-  const weeklyChartData = buildWeeklyChartData(focusSessions);
-  const monthlyChartData = buildMonthlyChartData(focusSessions);
-
   const tabs = [
     { id: "overview", label: "Overview" },
     { id: "activity", label: "Activity" },
@@ -90,7 +146,7 @@ export function ProfileShell() {
     <div className="mx-auto max-w-[720px] px-4 pb-36 pt-10">
       <ProfileHeader
         productivityScore={productivityScore}
-        joinedLabel={joinedLabel}
+        joinedLabel={followersLabel}
         currentStreak={stats.currentStreak}
         isStreakSecuredToday={isStreakSecuredToday}
       />
@@ -148,6 +204,14 @@ export function ProfileShell() {
           )}
         </ErrorBoundary>
       </main>
+
+      {modalType && profile && (
+        <FollowListModal 
+          userId={profile.id} 
+          type={modalType} 
+          onClose={() => setModalType(null)} 
+        />
+      )}
     </div>
   );
 }

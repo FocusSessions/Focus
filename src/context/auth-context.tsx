@@ -5,6 +5,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -44,6 +45,10 @@ type AuthContextValue = AuthState & AuthActions;
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+// ---- Dedup lock for ensureProfileExists ----
+// Prevents concurrent calls from racing each other and creating duplicate rows.
+let profileLockPromise: Promise<Profile | null> | null = null;
+
 async function fetchProfile(userId: string): Promise<Profile | null> {
   try {
     const { data, error } = await supabase
@@ -60,7 +65,7 @@ async function fetchProfile(userId: string): Promise<Profile | null> {
   }
 }
 
-async function ensureProfileExists(user: User): Promise<Profile | null> {
+async function ensureProfileExistsInner(user: User): Promise<Profile | null> {
   try {
     const existing = await fetchProfile(user.id);
     if (existing) {
@@ -138,12 +143,30 @@ async function ensureProfileExists(user: User): Promise<Profile | null> {
   }
 }
 
+/**
+ * Deduplicated wrapper: if a call is already in-flight for the same user,
+ * return the existing promise instead of starting a parallel one.
+ */
+async function ensureProfileExists(user: User): Promise<Profile | null> {
+  if (profileLockPromise) return profileLockPromise;
+  profileLockPromise = ensureProfileExistsInner(user);
+  try {
+    return await profileLockPromise;
+  } finally {
+    profileLockPromise = null;
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const isGuest = !user;
+
+  // Tracks whether initSession already handled the initial session,
+  // so the onAuthStateChange listener can skip the duplicate INITIAL_SESSION event.
+  const initHandledRef = useRef(false);
 
   // Boot: check existing session
   useEffect(() => {
@@ -158,6 +181,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(session.user);
           const p = await ensureProfileExists(session.user);
           if (mounted) setProfile(p);
+          initHandledRef.current = true;
         }
       } catch (err) {
         console.error("[auth] Session initialization failed:", err);
@@ -175,10 +199,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (session?.user) {
           setUser(session.user);
 
-          if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
+          if (event === "INITIAL_SESSION") {
+            // Skip if initSession() already handled this
+            if (initHandledRef.current) return;
             const p = await ensureProfileExists(session.user);
             if (mounted) setProfile(p);
-          } else if (event === "TOKEN_REFRESHED" || event === "USER_UPDATED") {
+          } else if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "USER_UPDATED") {
             const p = await ensureProfileExists(session.user);
             if (mounted) setProfile(p);
           }
@@ -314,16 +340,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async (
       provider: "google" | "github" | "apple"
     ): Promise<{ error: string | null }> => {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo: typeof window !== "undefined"
-            ? `${window.location.origin}/auth/callback`
-            : undefined,
-        },
-      });
-      if (error) return { error: friendlyAuthError(error) };
-      return { error: null };
+      try {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider,
+          options: {
+            redirectTo: typeof window !== "undefined"
+              ? `${window.location.origin}/auth/callback`
+              : undefined,
+          },
+        });
+        if (error) return { error: friendlyAuthError(error) };
+        return { error: null };
+      } catch {
+        return { error: "Something went wrong. Please try again." };
+      }
     },
     []
   );

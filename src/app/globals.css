@@ -47,7 +47,7 @@
 
 @layer components {
   .card {
-    @apply rounded-cozy border border-border bg-surface shadow-cozy transition-all duration-cozy hover:-translate-y-0.5 hover:shadow-cozy-lg hover:border-border/80;
+    @apply rounded-cozy border border-border bg-surface shadow-cozy transition-all duration-cozy;
   }
 
   .btn {

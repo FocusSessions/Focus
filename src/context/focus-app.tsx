@@ -133,6 +133,7 @@ export function FocusProvider({ children }: { children: ReactNode }) {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [activeTimer, setActiveTimer] = useState<ActiveTimer | null>(null);
+  const syncInFlightRef = useRef(false);
   const [showRecovery, setShowRecovery] = useState(false);
   const [pendingStop, setPendingStop] = useState<PendingStop | null>(null);
   const [musicSettings, setMusicSettings] = useState<MusicSettings>({
@@ -205,36 +206,41 @@ export function FocusProvider({ children }: { children: ReactNode }) {
   // Sync cloud sessions down to local, and local up to cloud
   useEffect(() => {
     if (!user || isGuest) return;
+    // Skip if a sync is already in-flight (prevents duplicate syncs from rapid state changes)
+    if (syncInFlightRef.current) return;
     let mounted = true;
 
     const syncSessions = async () => {
-      // 1. Download cloud sessions and merge into local
-      const cloudSessions = await loadCloudActivities(user.id);
-
-      if (mounted && cloudSessions.length > 0) {
-        setActivities((prev) => {
-          const map = new Map(prev.map((a) => [a.id, a]));
-          let changed = false;
-          for (const cs of cloudSessions) {
-            if (!map.has(cs.id)) {
-              map.set(cs.id, cs);
-              changed = true;
-            }
-          }
-          if (!changed) return prev;
-          const next = Array.from(map.values()).sort((a, b) => b.createdAt - a.createdAt);
-          // Persist the merged list locally
-          persistActivities(next).catch(() => {});
-          return next;
-        });
-      }
-
-      // 2. Upload local sessions to cloud (idempotent via upsert)
-      // This ensures guest-mode sessions get persisted when user signs in
+      syncInFlightRef.current = true;
       try {
+        // 1. Download cloud sessions and merge into local
+        const cloudSessions = await loadCloudActivities(user.id);
+
+        if (mounted && cloudSessions.length > 0) {
+          setActivities((prev) => {
+            const map = new Map(prev.map((a) => [a.id, a]));
+            let changed = false;
+            for (const cs of cloudSessions) {
+              if (!map.has(cs.id)) {
+                map.set(cs.id, cs);
+                changed = true;
+              }
+            }
+            if (!changed) return prev;
+            const next = Array.from(map.values()).sort((a, b) => b.createdAt - a.createdAt);
+            // Persist the merged list locally
+            persistActivities(next).catch(() => {});
+            return next;
+          });
+        }
+
+        // 2. Upload local sessions to cloud (idempotent via upsert)
+        // This ensures guest-mode sessions get persisted when user signs in
         await syncLocalToCloud(user.id);
       } catch (err) {
-        console.error("[CloudSync] Failed to sync local sessions to cloud:", err);
+        console.error("[CloudSync] Failed to sync sessions:", err);
+      } finally {
+        syncInFlightRef.current = false;
       }
     };
 

@@ -6,6 +6,7 @@ import { useAuth } from "@/context/auth-context";
 import { supabase } from "@/lib/supabase";
 import { DEFAULT_DAILY_GOAL_MINUTES } from "@/types";
 import { Check, AlertCircle, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import Link from "next/link";
 
 const GOAL_PRESETS = [
@@ -145,142 +146,151 @@ export default function SettingsPage() {
 
       <div className="space-y-6">
         {user && (
-          <section id="account-settings" className="card p-6">
-            <div className="mb-5">
-              <h2 className="text-base font-medium text-brown">Account Details</h2>
-              <p className="text-sm text-brown-muted">
-                Manage your account credentials and session.
-              </p>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-brown">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  value={user.email || ""}
-                  disabled
-                  className="input max-w-sm w-full bg-surface/50 cursor-not-allowed text-brown-muted"
-                />
+          <section id="account-details" className="card p-6 space-y-8">
+            <div className="border-b border-border/40 pb-6">
+              <div className="mb-5 flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-base font-medium text-brown">Account Details</h2>
+                  <p className="text-sm text-brown-muted">
+                    Manage your account credentials and session.
+                  </p>
+                </div>
               </div>
-              <div className="pt-2 flex flex-wrap gap-3 items-center">
-                <button
-                  type="button"
-                  onClick={() => signOut()}
-                  className="rounded-2xl border border-border bg-surface px-4 py-2 text-sm font-medium text-terracotta hover:border-terracotta hover:bg-terracotta/5 transition-colors"
-                >
-                  Sign Out
-                </button>
+              <div className="space-y-4">
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-brown">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    value={user.email || ""}
+                    disabled
+                    className="input max-w-sm w-full bg-surface/50 cursor-not-allowed text-brown-muted"
+                  />
+                </div>
+                <div className="pt-2 flex flex-wrap gap-3 items-center">
+                  <button
+                    type="button"
+                    onClick={() => signOut()}
+                    className="rounded-2xl border border-border bg-surface px-4 py-2 text-sm font-medium text-terracotta hover:border-terracotta hover:bg-terracotta/5 transition-colors"
+                  >
+                    Sign Out
+                  </button>
+                </div>
               </div>
             </div>
-          </section>
-        )}
 
-        {user && profile && (
-          <section id="profile-settings" className="card p-6">
-            <div className="mb-1 flex items-center justify-between gap-3">
-              <h2 className="text-base font-medium text-brown">Profile Details</h2>
-              {profileSaved && (
-                <span className="flex items-center gap-1 text-xs font-medium text-sage animate-in fade-in">
-                  <Check className="h-3.5 w-3.5" />
-                  Saved
-                </span>
-              )}
-            </div>
-            <p className="mb-5 text-sm text-brown-muted">
-              {hasEditedProfile
-                ? "Update your username and display name."
-                : "Choose your username and display name."}
-            </p>
+            {profile && (
+              <>
+                <div className="border-b border-border/40 pb-6">
+                  <div className="mb-1 flex items-center justify-between gap-3">
+                    <h2 className="text-base font-medium text-brown">Profile Details</h2>
+                    {profileSaved && (
+                      <span className="flex items-center gap-1 text-xs font-medium text-sage animate-in fade-in">
+                        <Check className="h-3.5 w-3.5" />
+                        Saved
+                      </span>
+                    )}
+                  </div>
+                  <p className="mb-5 text-sm text-brown-muted">
+                    {hasEditedProfile
+                      ? "Update your username and display name."
+                      : "Choose your username and display name."}
+                  </p>
 
-            {profileError && (
-              <div className="mb-4 flex items-center gap-2 rounded-lg bg-red-500/10 p-3 text-sm text-red-600 dark:text-red-400">
-                <AlertCircle className="h-4 w-4 shrink-0" />
-                <p>{profileError}</p>
-              </div>
-            )}
+                  {profileError && (
+                    <div className="mb-4 flex items-center gap-2 rounded-lg bg-red-500/10 p-3 text-sm text-red-600 dark:text-red-400">
+                      <AlertCircle className="h-4 w-4 shrink-0" />
+                      <p>{profileError}</p>
+                    </div>
+                  )}
 
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="username" className="mb-1.5 block text-sm font-medium text-brown">
-                  Username
-                </label>
-                <input
-                  id="username"
-                  type="text"
-                  value={usernameDraft}
-                  onChange={(e) => setUsernameDraft(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
-                  disabled={isSavingProfile}
-                  className="input max-w-sm w-full"
-                  placeholder="e.g. johndoe"
-                  maxLength={20}
-                  spellCheck={false}
-                  autoComplete="off"
-                />
-              </div>
-              <div>
-                <label htmlFor="display_name" className="mb-1.5 block text-sm font-medium text-brown">
-                  Display Name
-                </label>
-                <input
-                  id="display_name"
-                  type="text"
-                  value={displayNameDraft}
-                  onChange={(e) => setDisplayNameDraft(e.target.value)}
-                  disabled={isSavingProfile}
-                  className="input max-w-sm w-full"
-                  placeholder="e.g. John Doe"
-                  maxLength={50}
-                  autoComplete="off"
-                />
-              </div>
+                  <div className="space-y-4">
+                    <div>
+                      <label htmlFor="username" className="mb-1.5 block text-sm font-medium text-brown">
+                        Username
+                      </label>
+                      <input
+                        id="username"
+                        type="text"
+                        value={usernameDraft}
+                        onChange={(e) => setUsernameDraft(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
+                        disabled={isSavingProfile}
+                        className="input max-w-sm w-full"
+                        placeholder="e.g. johndoe"
+                        maxLength={20}
+                        spellCheck={false}
+                        autoComplete="off"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="display_name" className="mb-1.5 block text-sm font-medium text-brown">
+                        Display Name
+                      </label>
+                      <input
+                        id="display_name"
+                        type="text"
+                        value={displayNameDraft}
+                        onChange={(e) => setDisplayNameDraft(e.target.value)}
+                        disabled={isSavingProfile}
+                        className="input max-w-sm w-full"
+                        placeholder="e.g. John Doe"
+                        maxLength={50}
+                        autoComplete="off"
+                      />
+                    </div>
 
-              <button
-                type="button"
-                onClick={handleSaveProfile}
-                disabled={isSavingProfile || !usernameDraft.trim() || !displayNameDraft.trim()}
-                className="btn-primary mt-2"
-              >
-                {isSavingProfile ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Profile Details"}
-              </button>
-            </div>
-          </section>
-        )}
+                    <button
+                      type="button"
+                      onClick={handleSaveProfile}
+                      disabled={isSavingProfile || !usernameDraft.trim() || !displayNameDraft.trim()}
+                      className="btn-primary mt-2"
+                    >
+                      {isSavingProfile ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Profile Details"}
+                    </button>
+                  </div>
+                </div>
 
-        {user && profile && (
-          <section id="profile-privacy" className="card p-6">
-            <div className="mb-1 flex items-center justify-between gap-3">
-              <h2 className="text-base font-medium text-brown">Profile Privacy</h2>
-            </div>
-            <p className="mb-5 text-sm text-brown-muted">
-              Control who can see your profile and focus activity.
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {(['public', 'private', 'followers'] as const).map((level) => (
-                <button
-                  key={level}
-                  type="button"
-                  onClick={async () => {
-                    setPrivacyLevel(level);
-                    // BUG 10: Derive is_public from privacy_level consistently
-                    const isPublic = level === 'public';
-                    await updateProfile({ privacy_level: level, is_public: isPublic });
-                  }}
-                  className={`rounded-2xl border px-4 py-2 text-sm font-medium transition-all duration-cozy capitalize ${
-                    privacyLevel === level
-                      ? "border-sage bg-sage text-white"
-                      : "border-border bg-surface text-brown-muted hover:border-sage/40 hover:text-brown"
-                  }`}
-                >
-                  {level}
-                </button>
-              ))}
-            </div>
-            {privacyLevel !== 'public' && (
-              <p className="mt-3 text-xs text-brown-muted">
-                Your profile won&apos;t appear in search results when set to {privacyLevel}.
-              </p>
+                <div>
+                  <div className="mb-1 flex items-center justify-between gap-3">
+                    <h2 className="text-base font-medium text-brown">Profile Privacy</h2>
+                  </div>
+                  <p className="mb-5 text-sm text-brown-muted">
+                    Control who can see your profile and focus activity.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                      {(['public', 'private', 'followers'] as const).map((level) => (
+                      <button
+                        key={level}
+                        type="button"
+                        onClick={async () => {
+                          const previousLevel = privacyLevel;
+                          setPrivacyLevel(level);
+                          const isPublic = level === 'public';
+                          const { error } = await updateProfile({ privacy_level: level, is_public: isPublic });
+                          if (error) {
+                            // Revert optimistic update on failure
+                            setPrivacyLevel(previousLevel);
+                            toast.error(error);
+                          }
+                        }}
+                        className={`rounded-2xl border px-4 py-2 text-sm font-medium transition-all duration-cozy capitalize ${
+                          privacyLevel === level
+                            ? "border-sage bg-sage text-white"
+                            : "border-border bg-surface text-brown-muted hover:border-sage/40 hover:text-brown"
+                        }`}
+                      >
+                        {level}
+                      </button>
+                    ))}
+                  </div>
+                  {privacyLevel !== 'public' && (
+                    <p className="mt-3 text-xs text-brown-muted">
+                      Your profile won&apos;t appear in search results when set to {privacyLevel}.
+                    </p>
+                  )}
+                </div>
+              </>
             )}
           </section>
         )}

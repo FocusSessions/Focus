@@ -72,7 +72,7 @@ export default function UserProfilePage() {
     const load = async () => {
       setLoading(true);
 
-      // Fetch profile
+      // Fetch profile first (required to get the user ID for subsequent queries)
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
         .select("*")
@@ -89,48 +89,48 @@ export default function UserProfilePage() {
 
       if (mounted) setProfile(profileData as Profile);
 
-      // Fetch public sessions
-      const { data: sessionData } = await supabase
-        .from("sessions")
-        .select("*")
-        .eq("user_id", profileData.id)
-        .eq("visibility", "public")
-        .order("started_at", { ascending: false });
-
-      if (mounted && sessionData) {
-        setSessions(sessionData.map(cloudToLocal));
-      }
-
-      // Fetch follower/following counts
-      const [{ count: followers }, { count: following }] = await Promise.all([
+      // Run all remaining queries in parallel
+      const [sessionsResult, followersResult, followingResult, followStatusResult] = await Promise.all([
+        // Fetch public sessions
+        supabase
+          .from("sessions")
+          .select("*")
+          .eq("user_id", profileData.id)
+          .eq("visibility", "public")
+          .order("started_at", { ascending: false }),
+        // Fetch follower count
         supabase
           .from("follows")
           .select("*", { count: "exact", head: true })
           .eq("following_id", profileData.id),
+        // Fetch following count
         supabase
           .from("follows")
           .select("*", { count: "exact", head: true })
           .eq("follower_id", profileData.id),
+        // Check if current user follows this profile
+        user && user.id !== profileData.id
+          ? supabase
+              .from("follows")
+              .select("follower_id")
+              .eq("follower_id", user.id)
+              .eq("following_id", profileData.id)
+              .maybeSingle()
+          : Promise.resolve({ data: null }),
       ]);
 
-      if (mounted) {
-        setFollowerCount(followers ?? 0);
-        setFollowingCount(following ?? 0);
-      }
+      if (!mounted) return;
 
-      // Check if current user follows this profile
+      if (sessionsResult.data) {
+        setSessions(sessionsResult.data.map(cloudToLocal));
+      }
+      setFollowerCount(followersResult.count ?? 0);
+      setFollowingCount(followingResult.count ?? 0);
       if (user && user.id !== profileData.id) {
-        const { data: followData } = await supabase
-          .from("follows")
-          .select("follower_id")
-          .eq("follower_id", user.id)
-          .eq("following_id", profileData.id)
-          .maybeSingle();
-
-        if (mounted) setIsFollowing(!!followData);
+        setIsFollowing(!!followStatusResult.data);
       }
 
-      if (mounted) setLoading(false);
+      setLoading(false);
     };
 
     load();

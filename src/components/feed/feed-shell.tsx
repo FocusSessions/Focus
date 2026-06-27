@@ -31,6 +31,107 @@ function cloudToLocal(s: CloudSession): FocusSessionActivity {
   };
 }
 
+function FeedItemCard({
+  session,
+  profile,
+  currentUser,
+  followingIds,
+  loadingFollow,
+  toggleFollow,
+}: {
+  session: FocusSessionActivity;
+  profile?: Profile;
+  currentUser: any;
+  followingIds: Set<string>;
+  loadingFollow: Set<string>;
+  toggleFollow: (id: string, e: React.MouseEvent) => void;
+}) {
+  const router = useRouter();
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  return (
+    <article
+      className={`card rounded-cozy p-5 break-inside-avoid mb-4 transition-all duration-300 ${session.description ? 'cursor-pointer hover:bg-brown/5' : ''}`}
+      onClick={() => session.description && setIsExpanded(!isExpanded)}
+    >
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          {profile && (
+            <div className="mb-2 flex items-center gap-2">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (currentUser?.id === profile.id) {
+                    router.push('/profile');
+                  } else {
+                    router.push(`/user/${profile.username}`);
+                  }
+                }}
+                className="flex items-center gap-2 group"
+              >
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sage to-[#5a7a5f] text-[12px] font-bold text-white">
+                  {(profile.display_name || profile.username)[0]?.toUpperCase()}
+                </div>
+                <span className="text-xs font-medium text-brown group-hover:text-terracotta transition-colors">
+                  {profile.display_name || profile.username}
+                </span>
+                <span className="text-[10px] text-brown-muted">
+                  @{profile.username}
+                </span>
+              </button>
+
+              {currentUser && currentUser.id !== profile.id && (
+                <button
+                  onClick={(e) => toggleFollow(profile.id, e)}
+                  disabled={loadingFollow.has(profile.id)}
+                  className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium transition-all duration-300 disabled:opacity-50 ${
+                    followingIds.has(profile.id)
+                      ? "border border-border bg-surface text-brown-muted hover:border-terracotta/40 hover:text-terracotta"
+                      : "bg-terracotta/10 text-terracotta hover:bg-terracotta hover:text-white"
+                  }`}
+                >
+                  {loadingFollow.has(profile.id) ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : followingIds.has(profile.id) ? (
+                    <><Check className="h-3 w-3" />Following</>
+                  ) : (
+                    <><Plus className="h-3 w-3" />Follow</>
+                  )}
+                </button>
+              )}
+            </div>
+          )}
+
+          <h2 className="truncate font-medium text-brown">
+            {session.title || "Untitled Session"}
+          </h2>
+          <p className="mt-1 text-xs text-brown-muted capitalize">
+            {session.category || "other"} •{" "}
+            {dayLabel(getLogicalDateKey(session.startedAt))}
+          </p>
+          <p className="mt-0.5 text-xs text-brown-muted">
+            {formatTimeRange(session.startedAt, session.endedAt)}
+          </p>
+        </div>
+        <div className="flex shrink-0 flex-col items-end gap-1">
+          <span className="text-sm font-medium text-sage">
+            {formatDurationShort(session.durationMs)}
+          </span>
+          <span className="rounded-md border border-border bg-cream px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-brown-muted">
+            {session.visibility}
+          </span>
+        </div>
+      </div>
+      
+      {isExpanded && session.description && (
+        <div className="mt-4 pt-4 border-t border-border/50 animate-in fade-in slide-in-from-top-2 text-sm text-brown-muted">
+          {session.description}
+        </div>
+      )}
+    </article>
+  );
+}
+
 export function FeedShell() {
   const { user, isGuest, isLoading: authLoading } = useAuth();
   const router = useRouter();
@@ -38,7 +139,7 @@ export function FeedShell() {
   const [feedItems, setFeedItems] = useState<FeedItem[]>([]);
   const [feedLoading, setFeedLoading] = useState(true);
   const [followingIds, setFollowingIds] = useState<Set<string>>(new Set());
-  const [loadingFollow, setLoadingFollow] = useState<string | null>(null);
+  const [loadingFollow, setLoadingFollow] = useState<Set<string>>(new Set());
   const [userForcedGlobal, setUserForcedGlobal] = useState(false);
   const [isRecommendingGlobal, setIsRecommendingGlobal] = useState(false);
   const [feedRefetch, triggerFeedRefetch] = useReducer((n: number) => n + 1, 0);
@@ -174,8 +275,8 @@ export function FeedShell() {
     e.preventDefault();
     e.stopPropagation();
     
-    if (!user || loadingFollow) return;
-    setLoadingFollow(targetId);
+    if (!user || loadingFollow.has(targetId)) return;
+    setLoadingFollow((prev) => new Set(prev).add(targetId));
 
     const isFollowing = followingIds.has(targetId);
 
@@ -218,7 +319,11 @@ export function FeedShell() {
       }
     }
 
-    setLoadingFollow(null);
+    setLoadingFollow((prev) => {
+      const next = new Set(prev);
+      next.delete(targetId);
+      return next;
+    });
   };
 
   if (authLoading || (feedLoading && feedItems.length === 0)) {
@@ -322,71 +427,15 @@ export function FeedShell() {
       {showSocialFeed && (
         <div className="columns-1 sm:columns-2 gap-4 space-y-4 sm:space-y-0">
           {feedItems.map(({ session, profile }) => (
-            <article key={session.id} className="card rounded-cozy p-5 break-inside-avoid mb-4">
-              <div className="flex items-start justify-between gap-4">
-                <div className="min-w-0 flex-1">
-                  {/* User attribution */}
-                  {profile && (
-                    <div className="mb-2 flex items-center gap-2">
-                      <button
-                        onClick={() => router.push(`/user/${profile.username}`)}
-                        className="flex items-center gap-2 group"
-                      >
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sage to-[#5a7a5f] text-[12px] font-bold text-white">
-                          {(profile.display_name || profile.username)[0]?.toUpperCase()}
-                        </div>
-                        <span className="text-xs font-medium text-brown group-hover:text-terracotta transition-colors">
-                          {profile.display_name || profile.username}
-                        </span>
-                        <span className="text-[10px] text-brown-muted">
-                          @{profile.username}
-                        </span>
-                      </button>
-
-                      {/* Follow Button — larger hit area + text label */}
-                      {user && user.id !== profile.id && (
-                        <button
-                          onClick={(e) => toggleFollow(profile.id, e)}
-                          disabled={loadingFollow === profile.id}
-                          className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium transition-all duration-300 disabled:opacity-50 ${
-                            followingIds.has(profile.id)
-                              ? "border border-border bg-surface text-brown-muted hover:border-terracotta/40 hover:text-terracotta"
-                              : "bg-terracotta/10 text-terracotta hover:bg-terracotta hover:text-white"
-                          }`}
-                        >
-                          {loadingFollow === profile.id ? (
-                            <Loader2 className="h-3 w-3 animate-spin" />
-                          ) : followingIds.has(profile.id) ? (
-                            <><Check className="h-3 w-3" />Following</>
-                          ) : (
-                            <><Plus className="h-3 w-3" />Follow</>
-                          )}
-                        </button>
-                      )}
-                    </div>
-                  )}
-
-                  <h2 className="truncate font-medium text-brown">
-                    {session.title || "Untitled Session"}
-                  </h2>
-                  <p className="mt-1 text-xs text-brown-muted capitalize">
-                    {session.category || "other"} •{" "}
-                    {dayLabel(getLogicalDateKey(session.startedAt))}
-                  </p>
-                  <p className="mt-0.5 text-xs text-brown-muted">
-                    {formatTimeRange(session.startedAt, session.endedAt)}
-                  </p>
-                </div>
-                <div className="flex shrink-0 flex-col items-end gap-1">
-                  <span className="text-sm font-medium text-sage">
-                    {formatDurationShort(session.durationMs)}
-                  </span>
-                  <span className="rounded-md border border-border bg-cream px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-brown-muted">
-                    {session.visibility}
-                  </span>
-                </div>
-              </div>
-            </article>
+            <FeedItemCard
+              key={session.id}
+              session={session}
+              profile={profile}
+              currentUser={user}
+              followingIds={followingIds}
+              loadingFollow={loadingFollow}
+              toggleFollow={toggleFollow}
+            />
           ))}
         </div>
       )}

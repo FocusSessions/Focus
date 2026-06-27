@@ -21,6 +21,7 @@ export function Timer({ focusMode = false }: TimerProps) {
     pauseTimer,
     resumeTimer,
     requestStop,
+    pendingStop,
     todayTotal,
     dailyGoalMinutes,
     showMilliseconds,
@@ -67,6 +68,37 @@ export function Timer({ focusMode = false }: TimerProps) {
   } else {
     displayString = formatFocusClock(elapsedMs, showMilliseconds);
   }
+
+  /* ─── Keyboard Shortcuts ─── */
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Toggle timer on Spacebar
+      if (e.code === 'Space') {
+        // Ignore if user is typing in an input field or interacting with a button
+        const activeElement = document.activeElement;
+        const isInput = activeElement && ['INPUT', 'TEXTAREA', 'BUTTON', 'A', 'SELECT'].includes(activeElement.tagName);
+        
+        if (!isInput && !pendingStop) {
+          e.preventDefault();
+          if (!isRunning) {
+            startTimer();
+            try {
+              if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen().catch(() => {});
+              }
+            } catch (err) {}
+          } else if (isPaused) {
+            resumeTimer();
+          } else {
+            pauseTimer();
+          }
+        }
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isRunning, isPaused, startTimer, resumeTimer, pauseTimer, pendingStop]);
 
   /* ─── Focus mode: full-screen immersive view ─── */
   if (focusMode) {
@@ -208,13 +240,13 @@ export function Timer({ focusMode = false }: TimerProps) {
             Start
           </motion.button>
 
-          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-8">
+          <div className="flex flex-col items-center gap-6 mt-4 w-full">
             {timerDirection === 'down' && (
               <div className="flex flex-col items-center animate-in fade-in slide-in-from-top-2">
                 <span className="text-xs font-semibold uppercase tracking-widest text-brown-muted mb-2">
                   Session Target
                 </span>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap justify-center gap-2">
                   {[15, 25, 45, 90].map((mins) => (
                     <button
                       key={mins}
@@ -232,28 +264,22 @@ export function Timer({ focusMode = false }: TimerProps) {
               </div>
             )}
 
-            <div className="flex flex-col items-center animate-in fade-in slide-in-from-top-2">
-              <label htmlFor="session-category" className="text-xs font-semibold uppercase tracking-widest text-brown-muted mb-2">
+            <div className="flex flex-col items-center w-full max-w-md animate-in fade-in slide-in-from-top-2">
+              <span className="text-xs font-semibold uppercase tracking-widest text-brown-muted mb-2">
                 Category
-              </label>
-              <input
-                id="session-category"
-                name="category"
-                autoComplete="off"
-                value={plannedCategory}
-                onChange={(e) => setPlannedCategory(e.target.value)}
-                placeholder="e.g. Coding…"
-                list="timer-category-suggestions"
-                maxLength={30}
-                className="rounded-xl px-3 py-1.5 w-32 text-xs font-medium transition-colors bg-surface text-brown border border-border hover:border-sage focus:outline-none focus:border-sage focus:ring-1 focus:ring-sage"
-              />
-              <datalist id="timer-category-suggestions">
-                <option value="work" />
-                <option value="study" />
-                <option value="coding" />
-                <option value="reading" />
-                <option value="writing" />
-              </datalist>
+              </span>
+              <div className="flex flex-wrap justify-center gap-2">
+                {['Work', 'Study', 'Coding', 'Reading', 'Gaming'].map(c => (
+                  <button
+                    key={c}
+                    type="button"
+                    className={`rounded-full px-3 py-1 text-[11px] font-medium border transition-colors ${plannedCategory.toLowerCase() === c.toLowerCase() ? 'bg-terracotta text-white border-terracotta' : 'bg-surface text-brown-muted border-border hover:bg-brown/5'}`}
+                    onClick={() => setPlannedCategory(c)}
+                  >
+                    {c}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>

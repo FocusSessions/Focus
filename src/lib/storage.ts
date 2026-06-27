@@ -27,14 +27,23 @@ const defaultPreferences: UserPreferences = {
   timerDirection: "up",
 };
 
+// ---- IDB Connection Pool (single cached connection) ----
+let cachedDb: IDBDatabase | null = null;
+let dbOpenPromise: Promise<IDBDatabase> | null = null;
+
 function openDb(): Promise<IDBDatabase> {
-  return new Promise((resolve, reject) => {
+  // Return cached connection if still open
+  if (cachedDb) return Promise.resolve(cachedDb);
+  // If a connection is already being opened, return that promise (dedup)
+  if (dbOpenPromise) return dbOpenPromise;
+
+  dbOpenPromise = new Promise<IDBDatabase>((resolve, reject) => {
     if (typeof indexedDB === "undefined") {
       reject(new Error("IndexedDB unavailable"));
       return;
     }
     const req = indexedDB.open(DB_NAME, DB_VERSION);
-    req.onupgradeneeded = (e) => {
+    req.onupgradeneeded = () => {
       const db = req.result;
       if (!db.objectStoreNames.contains("activities")) {
         db.createObjectStore("activities", { keyPath: "id" });
@@ -46,9 +55,25 @@ function openDb(): Promise<IDBDatabase> {
         db.createObjectStore("uploads", { keyPath: "id" });
       }
     };
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
+    req.onsuccess = () => {
+      cachedDb = req.result;
+      // If the connection is closed unexpectedly (e.g. version change from another tab),
+      // clear the cache so the next call opens a fresh one.
+      cachedDb.onclose = () => { cachedDb = null; };
+      cachedDb.onversionchange = () => {
+        cachedDb?.close();
+        cachedDb = null;
+      };
+      dbOpenPromise = null;
+      resolve(cachedDb);
+    };
+    req.onerror = () => {
+      dbOpenPromise = null;
+      reject(req.error);
+    };
   });
+
+  return dbOpenPromise;
 }
 
 async function idbGet<T>(store: string, key: string): Promise<T | null> {
@@ -174,16 +199,23 @@ export async function persistActivities(activities: Activity[]): Promise<void> {
   const ok = await ensureDb();
   if (!ok) return;
   const db = await openDb();
-  const tx = db.transaction("activities", "readwrite");
-  const store = tx.objectStore("activities");
-  
-  // Clear the entire store in the same transaction
-  store.clear();
-  
-  // Add all new activities
-  for (const a of activities) {
-    store.put(a);
-  }
+  return new Promise<void>((resolve, reject) => {
+    const tx = db.transaction("activities", "readwrite");
+    const store = tx.objectStore("activities");
+    
+    // Clear the entire store in the same transaction
+    store.clear();
+    
+    // Add all new activities
+    for (const a of activities) {
+      store.put(a);
+    }
+
+    // Wait for the transaction to fully complete before resolving
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error || new Error("Transaction aborted"));
+  });
 }
 
 export async function saveActivity(activity: Activity): Promise<Activity[]> {
@@ -220,10 +252,10 @@ export async function deleteActivity(id: string): Promise<Activity[]> {
 export async function saveActivityToCloud(
   activity: FocusSessionActivity,
   userId: string
-): Promise<void> {
+): Promise<{ error: string | null }> {
   try {
     const { supabase } = await import("@/lib/supabase");
-    await supabase.from("sessions").upsert({
+    const { error } = await supabase.from("sessions").upsert({
       id: activity.id,
       user_id: userId,
       title: activity.title,
@@ -235,8 +267,15 @@ export async function saveActivityToCloud(
       ended_at: new Date(activity.endedAt).toISOString(),
       tz_offset: activity.timezoneOffset ?? new Date().getTimezoneOffset(),
     });
+    if (error) {
+      console.error("[CloudSync] Failed to save activity:", error.message);
+      return { error: error.message };
+    }
+    return { error: null };
   } catch (err) {
-    console.error("[CloudSync] Failed to save activity:", err);
+    const msg = err instanceof Error ? err.message : "Unknown error";
+    console.error("[CloudSync] Failed to save activity:", msg);
+    return { error: msg };
   }
 }
 
@@ -271,6 +310,9 @@ export async function loadCloudActivities(
   }
 }
 
+// Batch size for upsert operations to stay within Supabase limits
+const CLOUD_BATCH_SIZE = 50;
+
 export async function syncLocalToCloud(userId: string): Promise<number> {
   const local = await loadActivities();
   const focusSessions = local.filter(
@@ -279,15 +321,39 @@ export async function syncLocalToCloud(userId: string): Promise<number> {
 
   if (focusSessions.length === 0) return 0;
 
+  const { supabase } = await import("@/lib/supabase");
+
+  // Build all rows up front
+  const rows = focusSessions.map((session) => ({
+    id: session.id,
+    user_id: userId,
+    title: session.title,
+    description: session.description || null,
+    duration_ms: session.durationMs,
+    category: session.category,
+    visibility: session.visibility,
+    started_at: new Date(session.startedAt).toISOString(),
+    ended_at: new Date(session.endedAt).toISOString(),
+    tz_offset: session.timezoneOffset ?? new Date().getTimezoneOffset(),
+  }));
+
   let synced = 0;
-  for (const session of focusSessions) {
+
+  // Batch upsert in chunks of CLOUD_BATCH_SIZE
+  for (let i = 0; i < rows.length; i += CLOUD_BATCH_SIZE) {
+    const batch = rows.slice(i, i + CLOUD_BATCH_SIZE);
     try {
-      await saveActivityToCloud(session, userId);
-      synced++;
+      const { error } = await supabase.from("sessions").upsert(batch);
+      if (!error) {
+        synced += batch.length;
+      } else {
+        console.error("[CloudSync] Batch upsert failed:", error.message);
+      }
     } catch {
-      // Continue with other sessions
+      // Continue with remaining batches
     }
   }
+
   return synced;
 }
 

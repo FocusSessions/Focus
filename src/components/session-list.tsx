@@ -17,7 +17,7 @@ export function SessionList({ activities, emptyMessage, emptyHint }: SessionList
 
   if (activities.length === 0) {
     return (
-      <div className="card rounded-cozy px-5 py-10 text-center">
+      <div className="px-5 py-10 text-center">
         <p className="font-medium text-brown">{emptyMessage}</p>
         {emptyHint && <p className="mt-2 text-sm text-brown-muted">{emptyHint}</p>}
       </div>
