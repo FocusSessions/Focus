@@ -51,10 +51,10 @@ function FeedItemCard({
 
   return (
     <article
-      className={`card rounded-xl p-4 sm:p-5 mb-4 transition-all duration-300 hover:bg-brown/[0.02] border border-border/50 ${session.description ? 'cursor-pointer' : ''}`}
+      className={`card rounded-xl p-5 mb-4 transition-all duration-300 hover:bg-brown/[0.02] border border-border/50 ${session.description ? 'cursor-pointer' : ''}`}
       onClick={() => session.description && setIsExpanded(!isExpanded)}
     >
-      <div className="flex items-start gap-3 sm:gap-4">
+      <div className="flex items-start gap-4">
         {/* Avatar */}
         {profile ? (
           <button
@@ -66,88 +66,92 @@ function FeedItemCard({
                 router.push(`/user/${profile.username}`);
               }
             }}
-            className="flex-shrink-0 group"
+            className="flex-shrink-0 group pt-1"
           >
-            <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-gradient-to-br from-sage to-[#5a7a5f] text-sm sm:text-base font-bold text-white shadow-sm transition-transform group-hover:scale-105">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-sage to-[#5a7a5f] text-base font-bold text-white shadow-sm transition-transform group-hover:scale-105">
               {(profile.display_name || profile.username)[0]?.toUpperCase()}
             </div>
           </button>
         ) : (
-           <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-sand-dark text-sm sm:text-base font-bold text-brown shadow-sm shrink-0">
+           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-sand-dark text-base font-bold text-brown shadow-sm shrink-0 pt-1">
              ?
            </div>
         )}
 
+        {/* Content */}
         <div className="min-w-0 flex-1">
-          {/* Header row: Name + Follow Button */}
-          <div className="flex items-center justify-between gap-2 mb-1">
-            <div className="flex flex-wrap items-baseline gap-x-1.5 min-w-0">
-              {profile ? (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (currentUser?.id === profile.id) {
-                      router.push('/profile');
-                    } else {
-                      router.push(`/user/${profile.username}`);
-                    }
-                  }}
-                  className="group flex flex-wrap items-baseline gap-x-1.5 min-w-0 text-left"
-                >
-                  <span className="truncate text-[15px] font-bold text-brown group-hover:text-terracotta transition-colors">
-                    {profile.display_name || profile.username}
-                  </span>
-                  <span className="truncate text-xs text-brown-muted font-medium">
-                    @{profile.username}
-                  </span>
-                </button>
-              ) : (
-                <span className="truncate text-[15px] font-bold text-brown">
-                  Unknown User
-                </span>
-              )}
-            </div>
-
-            {profile && currentUser && currentUser.id !== profile.id && (
+          <div className="flex items-center gap-2 mb-0.5">
+            {profile ? (
               <button
-                onClick={(e) => toggleFollow(profile.id, e)}
-                disabled={loadingFollow.has(profile.id)}
-                className={`shrink-0 flex items-center justify-center rounded-full px-3 py-1 text-[11px] font-bold transition-all duration-200 disabled:opacity-50 ${
-                  followingIds.has(profile.id)
-                    ? "border border-border bg-transparent text-brown-muted hover:border-terracotta/40 hover:text-terracotta hover:bg-terracotta/5"
-                    : "border border-terracotta/30 bg-terracotta/10 text-terracotta hover:bg-terracotta hover:text-white hover:border-terracotta"
-                }`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (currentUser?.id === profile.id) {
+                    router.push('/profile');
+                  } else {
+                    router.push(`/user/${profile.username}`);
+                  }
+                }}
+                className="group flex items-baseline gap-x-1.5 text-left"
               >
-                {loadingFollow.has(profile.id) ? (
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                ) : followingIds.has(profile.id) ? (
-                  "Following"
-                ) : (
-                  "Follow"
-                )}
+                <span className="truncate text-[15px] font-bold text-brown group-hover:text-terracotta transition-colors">
+                  {profile.display_name || profile.username}
+                </span>
+                <span className="truncate text-[13px] text-brown-muted font-medium">
+                  @{profile.username}
+                </span>
               </button>
+            ) : (
+              <span className="truncate text-[15px] font-bold text-brown">
+                Unknown User
+              </span>
             )}
           </div>
 
-          {/* Title & Metadata */}
-          <div className="mt-1">
-            <h2 className="text-base sm:text-lg font-semibold text-brown leading-snug">
-              {session.title || "Focus Session"}
-            </h2>
-            <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-brown-muted">
-              <span className="capitalize font-medium">{session.category || "other"}</span>
-              <span>•</span>
-              <span>{formatDurationShort(session.durationMs)}</span>
-              <span>•</span>
-              <span>{dayLabel(getLogicalDateKey(session.startedAt, session.timezoneOffset))}</span>
-            </div>
+          <h2 className="text-[17px] font-bold text-brown leading-snug mb-1">
+            {session.title || "Focus Session"}
+          </h2>
+          
+          <div className="flex flex-wrap items-center gap-2 text-[13px] text-brown-muted font-medium">
+            <span className="capitalize">{session.category || "other"}</span>
+            <span className="opacity-60">•</span>
+            <span>
+              {formatTimeRange(session.startedAt, session.endedAt)} ({dayLabel(getLogicalDateKey(session.startedAt, session.timezoneOffset))})
+            </span>
           </div>
           
-          {/* Description */}
           {session.description && (
-            <div className={`mt-3 text-[14px] leading-relaxed text-brown/90 ${!isExpanded ? 'line-clamp-3' : ''}`}>
+            <div className={`mt-3 text-[14px] leading-relaxed text-brown/90 ${!isExpanded ? 'line-clamp-2' : ''}`}>
               {session.description}
             </div>
+          )}
+        </div>
+
+        {/* Actions */}
+        <div className="flex-shrink-0 flex items-start gap-6 ml-4">
+          <div className="flex flex-col items-end pt-1">
+            <span className="text-sage font-bold text-[13px]">
+              {formatDurationShort(session.durationMs)}
+            </span>
+          </div>
+
+          {profile && currentUser && currentUser.id !== profile.id && (
+            <button
+              onClick={(e) => toggleFollow(profile.id, e)}
+              disabled={loadingFollow.has(profile.id)}
+              className={`mt-0.5 flex items-center justify-center rounded border px-4 py-1.5 text-[13px] font-medium transition-colors duration-200 disabled:opacity-50 ${
+                followingIds.has(profile.id)
+                  ? "border-border bg-transparent text-brown-muted hover:border-terracotta/40 hover:text-terracotta"
+                  : "border-terracotta/40 bg-transparent text-terracotta hover:bg-terracotta/5"
+              }`}
+            >
+              {loadingFollow.has(profile.id) ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : followingIds.has(profile.id) ? (
+                "Following"
+              ) : (
+                "Follow"
+              )}
+            </button>
           )}
         </div>
       </div>
@@ -167,8 +171,10 @@ export function FeedShell() {
   const [isRecommendingGlobal, setIsRecommendingGlobal] = useState(false);
   const [feedRefetch, triggerFeedRefetch] = useReducer((n: number) => n + 1, 0);
 
-  const isGlobalFeed = isGuest || followingIds.size === 0 || userForcedGlobal || isRecommendingGlobal;
   const [feedError, setFeedError] = useState<string | null>(null);
+  
+  // Category filter state
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
   // Load social feed (global for guests, personal for signed-in users)
   useEffect(() => {
@@ -208,25 +214,39 @@ export function FeedShell() {
         const useGlobal = fIds.length === 0 || userForcedGlobal;
 
         if (useGlobal) {
-          const { data, error } = await supabase
+          let query = supabase
             .from("sessions")
             .select("*")
             .eq("visibility", "public")
             .order("started_at", { ascending: false })
             .limit(50);
+            
+          if (selectedCategory !== "all") {
+            query = query.eq("category", selectedCategory);
+          }
+            
+          const { data, error } = await query;
+            
           if (error) {
             console.error("[feed] Global fetch failed:", error.message || error);
             if (mounted) setFeedError("Failed to load feed. Try again.");
           }
           sessionData = data;
         } else {
-          const { data, error } = await supabase
+          let query = supabase
             .from("sessions")
             .select("*")
             .in("user_id", fIds)
             .eq("visibility", "public")
             .order("started_at", { ascending: false })
             .limit(50);
+            
+          if (selectedCategory !== "all") {
+            query = query.eq("category", selectedCategory);
+          }
+            
+          const { data, error } = await query;
+            
           if (error) {
             console.error("[feed] Following fetch failed:", error.message || error);
             if (mounted) setFeedError("Failed to load feed. Try again.");
@@ -235,12 +255,18 @@ export function FeedShell() {
           
           // Fallback to global if following feed is empty
           if (!sessionData || sessionData.length === 0) {
-            const { data: globalData, error: globalError } = await supabase
+            let globalQuery = supabase
               .from("sessions")
               .select("*")
               .eq("visibility", "public")
               .order("started_at", { ascending: false })
               .limit(50);
+              
+            if (selectedCategory !== "all") {
+              globalQuery = globalQuery.eq("category", selectedCategory);
+            }
+              
+            const { data: globalData, error: globalError } = await globalQuery;
               
             if (!globalError && globalData && globalData.length > 0) {
               sessionData = globalData;
@@ -292,7 +318,7 @@ export function FeedShell() {
 
     loadFeed();
     return () => { mounted = false; };
-  }, [user, isGuest, authLoading, userForcedGlobal, feedRefetch]);
+  }, [user, isGuest, authLoading, userForcedGlobal, feedRefetch, selectedCategory]);
 
   const toggleFollow = async (targetId: string, e: React.MouseEvent) => {
     e.preventDefault();
@@ -351,7 +377,7 @@ export function FeedShell() {
 
   if (authLoading || (feedLoading && feedItems.length === 0)) {
     return (
-      <div className="mx-auto max-w-[600px] px-4 pb-28 pt-10">
+      <div className="mx-auto max-w-[1000px] px-4 pb-28 pt-10">
         <header className="mb-8">
           <Skeleton className="h-10 w-48 mb-2" />
           <Skeleton className="h-4 w-72" />
@@ -364,11 +390,14 @@ export function FeedShell() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2 mb-2">
                     <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-6 w-20 rounded-full" />
                   </div>
                   <Skeleton className="h-6 w-48 mb-2" />
                   <Skeleton className="h-3 w-36 mb-4" />
                   <Skeleton className="h-16 w-full rounded-md" />
+                </div>
+                <div className="flex-shrink-0 flex items-start gap-6 ml-4">
+                  <Skeleton className="h-5 w-16" />
+                  <Skeleton className="h-8 w-20 rounded" />
                 </div>
               </div>
             </div>
@@ -393,36 +422,104 @@ export function FeedShell() {
   const showSocialFeed = feedItems.length > 0;
 
   return (
-    <div className="mx-auto max-w-[600px] px-4 pb-28 pt-10">
-      <header className="mb-8 flex justify-between items-end">
-        <div>
-          <h1 className="font-serif text-3xl text-brown">
-            {isGuest ? "Global Discovery" : isRecommendingGlobal ? "Recommended Content" : isGlobalFeed ? "Global Discovery" : "Feed"}
-          </h1>
-          <p className="mt-1 text-sm text-brown-muted">
-            {isGuest
-              ? "Explore what others are working on. Sign in to follow users and build your feed."
-              : isRecommendingGlobal
-                ? "The people you follow haven't posted recently. Here are some recent public sessions to discover."
-                : isGlobalFeed
-                  ? "Recent public sessions. Follow users to build your personal feed."
-                  : "Sessions from people you follow."}
-          </p>
+    <div className="mx-auto max-w-[1000px] px-4 pb-28 pt-10">
+      <header className="mb-6 flex flex-col gap-6">
+        {/* Top Header Row */}
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="font-serif text-[28px] font-bold text-brown">
+              {isGuest ? "Global Discovery" : isRecommendingGlobal ? "Recommended Content" : isGlobalFeed ? "Global Discovery" : "Feed"}
+            </h1>
+            <p className="mt-1 text-sm text-brown-muted">
+              {isGuest
+                ? "Explore what others are working on. Sign in to follow users and build your feed."
+                : isRecommendingGlobal
+                  ? "The people you follow haven't posted recently. Here are some recent public sessions to discover."
+                  : isGlobalFeed
+                    ? "Recent public sessions. Follow users to build your personal feed."
+                    : "Sessions from people you follow."}
+            </p>
+          </div>
+          
+          <div className="flex items-center gap-4">
+            <div className="relative group">
+              <input 
+                type="text" 
+                placeholder="Search sessions or users..." 
+                className="pl-9 pr-10 py-1.5 bg-surface border border-border/50 rounded-lg text-sm w-64 focus:outline-none focus:ring-1 focus:ring-border transition-all"
+                readOnly
+                onClick={() => router.push('/search')}
+              />
+              <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-brown-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-50">
+                <kbd className="font-sans text-[10px] bg-background border border-border px-1.5 rounded">⌘K</kbd>
+              </div>
+            </div>
+          </div>
         </div>
-        
-        {/* Toggle between Following and Global if user has following */}
-        {!isGuest && followingIds.size > 0 && (
-          <button
-            onClick={() => {
-              setUserForcedGlobal(prev => !prev);
-              setFeedItems([]);
-              setFeedLoading(true);
-            }}
-            className="text-xs font-medium text-terracotta hover:text-terracotta-hover transition-colors"
-          >
-            {userForcedGlobal ? "View Following" : "View Global"}
-          </button>
-        )}
+
+        {/* Filter Row */}
+        <div className="flex items-center justify-between border-b border-border/40 pb-3">
+          <div className="flex items-center gap-6">
+            <button 
+              onClick={() => setSelectedCategory("all")}
+              className={`text-[13px] font-medium transition-colors ${selectedCategory === "all" ? "text-terracotta border border-terracotta/30 bg-terracotta/5 rounded-full px-4 py-1" : "text-brown-muted hover:text-brown"}`}
+            >
+              All
+            </button>
+            <button 
+              onClick={() => setSelectedCategory("coding")}
+              className={`text-[13px] font-medium transition-colors ${selectedCategory === "coding" ? "text-terracotta border border-terracotta/30 bg-terracotta/5 rounded-full px-4 py-1" : "text-brown-muted hover:text-brown"}`}
+            >
+              Coding
+            </button>
+            <button 
+              onClick={() => setSelectedCategory("gaming")}
+              className={`text-[13px] font-medium transition-colors ${selectedCategory === "gaming" ? "text-terracotta border border-terracotta/30 bg-terracotta/5 rounded-full px-4 py-1" : "text-brown-muted hover:text-brown"}`}
+            >
+              Gaming
+            </button>
+            <button 
+              onClick={() => setSelectedCategory("studying")}
+              className={`text-[13px] font-medium transition-colors ${selectedCategory === "studying" ? "text-terracotta border border-terracotta/30 bg-terracotta/5 rounded-full px-4 py-1" : "text-brown-muted hover:text-brown"}`}
+            >
+              Studying
+            </button>
+            <button 
+              onClick={() => setSelectedCategory("other")}
+              className={`text-[13px] font-medium transition-colors ${selectedCategory === "other" ? "text-terracotta border border-terracotta/30 bg-terracotta/5 rounded-full px-4 py-1" : "text-brown-muted hover:text-brown"}`}
+            >
+              Other
+            </button>
+          </div>
+          
+          <div className="flex items-center gap-4">
+            {!isGuest && followingIds.size > 0 && (
+              <button
+                onClick={() => {
+                  setUserForcedGlobal(prev => !prev);
+                  setFeedItems([]);
+                  setFeedLoading(true);
+                }}
+                className="text-[13px] font-medium text-terracotta hover:text-terracotta-hover transition-colors"
+              >
+                {userForcedGlobal ? "View Following" : "View Global"}
+              </button>
+            )}
+            
+            <button className="flex items-center gap-1.5 text-[13px] font-medium text-brown-muted hover:text-brown transition-colors">
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+              </svg>
+              Latest
+              <svg className="w-3 h-3 ml-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+          </div>
+        </div>
       </header>
 
       {/* Guest sign-in prompt */}

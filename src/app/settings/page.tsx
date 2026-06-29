@@ -117,8 +117,8 @@ export default function SettingsPage() {
         setTimeout(() => setProfileSaved(false), 3000);
       }
     } else {
-      // First-time setup — set username + display name
-      const { error } = await setupProfile(usernameDraft, displayNameDraft);
+      // First-time setup — set username + display name + bio
+      const { error } = await setupProfile(usernameDraft, displayNameDraft, bioDraft.trim());
       if (error) {
         setProfileError(error);
       } else {

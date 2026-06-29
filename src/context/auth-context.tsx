@@ -37,7 +37,7 @@ interface AuthActions {
   ) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: ProfileUpdate) => Promise<{ error: string | null }>;
-  setupProfile: (username: string, displayName: string) => Promise<{ error: string | null }>;
+  setupProfile: (username: string, displayName: string, bio?: string) => Promise<{ error: string | null }>;
   refreshProfile: () => Promise<void>;
 }
 
@@ -424,11 +424,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const setupProfile = useCallback(
-    async (username: string, displayName: string): Promise<{ error: string | null }> => {
+    async (username: string, displayName: string, bio?: string): Promise<{ error: string | null }> => {
       if (!user) return { error: "Not signed in." };
 
       const cleanUsername = username.toLowerCase().trim().replace(/[^a-z0-9_]/g, "").slice(0, 20);
       const cleanDisplayName = displayName?.trim() || cleanUsername;
+      const cleanBio = bio?.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "").trim().slice(0, 200) || null;
 
       // Use upsert so missing profile rows are created, not silently skipped
       const { error: profileError } = await supabase
@@ -439,6 +440,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             username: cleanUsername,
             display_name: cleanDisplayName,
             is_public: true,
+            bio: cleanBio,
           },
           { onConflict: "id" }
         );
