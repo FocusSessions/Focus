@@ -58,15 +58,19 @@ export function SideNav() {
             <Link
               key={href}
               href={href}
-              className={`flex flex-col md:flex-row items-center justify-center md:justify-start gap-1 md:gap-3 rounded-xl p-2 md:px-3 md:py-2.5 text-sm font-medium transition-all duration-cozy ${
+              className={`flex flex-col md:flex-row items-center justify-center md:justify-start gap-1 md:gap-3 p-2 md:px-4 md:py-2.5 transition-all duration-cozy outline-none focus-visible:ring-2 focus-visible:ring-terracotta focus-visible:ring-offset-2 focus-visible:ring-offset-surface rounded-full ${
                 isActive
-                  ? "bg-cream/80 md:bg-cream/80 text-brown shadow-sm md:shadow-sm border border-transparent md:border-border/50"
-                  : "text-brown-muted hover:bg-cream/40 hover:text-brown"
+                  ? "bg-terracotta/10 text-terracotta"
+                  : "text-brown-muted hover:bg-surface hover:text-brown"
               }`}
               aria-current={isActive ? "page" : undefined}
             >
-              <Icon className="h-5 w-5 md:h-4 md:w-4 shrink-0" aria-hidden="true" />
-              <span className="text-xs md:text-sm font-medium md:font-medium">{label}</span>
+              <Icon 
+                className="h-5 w-5 md:h-4 md:w-4 shrink-0" 
+                strokeWidth={isActive ? 2.5 : 2}
+                aria-hidden="true" 
+              />
+              <span className={`text-xs md:text-sm ${isActive ? 'font-semibold' : 'font-medium'}`}>{label}</span>
             </Link>
           );
         })}
@@ -76,9 +80,9 @@ export function SideNav() {
       {!isLoading && isGuest && (
         <Link
           href="/auth"
-          className="hidden md:flex items-center gap-3 rounded-cozy mt-auto border-t border-border/40 pt-4 w-full px-3 py-2.5 text-sm font-medium text-brown-muted transition-all duration-cozy hover:bg-cream/60 hover:text-brown"
+          className="hidden md:flex items-center gap-3 rounded-full mt-auto border-t border-border/40 pt-4 w-full px-4 py-2.5 text-sm font-medium text-brown-muted transition-all duration-cozy hover:bg-surface hover:text-brown outline-none focus-visible:ring-2 focus-visible:ring-terracotta focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
         >
-          <LogIn className="h-4 w-4 shrink-0" />
+          <LogIn className="h-4 w-4 shrink-0" strokeWidth={2} />
           Sign In
         </Link>
       )}
@@ -86,9 +90,9 @@ export function SideNav() {
       {!isLoading && isGuest && (
         <Link
           href="/auth"
-          className="flex md:hidden flex-col items-center justify-center gap-1 rounded-xl p-2 text-sm font-medium text-brown-muted hover:bg-cream/40 hover:text-brown transition-all duration-cozy"
+          className="flex md:hidden flex-col items-center justify-center gap-1 rounded-full p-2 text-sm font-medium text-brown-muted hover:bg-surface hover:text-brown transition-all duration-cozy outline-none focus-visible:ring-2 focus-visible:ring-terracotta focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
         >
-          <LogIn className="h-5 w-5 shrink-0" aria-hidden="true" />
+          <LogIn className="h-5 w-5 shrink-0" strokeWidth={2} aria-hidden="true" />
           <span className="text-xs font-medium">Sign In</span>
         </Link>
       )}

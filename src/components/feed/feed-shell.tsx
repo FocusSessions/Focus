@@ -7,7 +7,7 @@ import { supabase } from "@/lib/supabase";
 import type { FocusSessionActivity } from "@/types";
 import type { Profile, CloudSession } from "@/types/supabase";
 import { formatDurationShort, formatTimeRange, dayLabel, getLogicalDateKey } from "@/lib/time";
-import { Users, Loader2, Check } from "lucide-react";
+import { Users, Loader2, Check, Newspaper } from "lucide-react";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
@@ -183,11 +183,6 @@ function FeedItemCard({
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-sage to-[#5a7a5f] text-lg font-bold text-white shadow-sm transition-transform duration-300 hover:scale-105">
                 {(profile.display_name || profile.username)[0]?.toUpperCase()}
               </div>
-              {followingIds.has(profile.id) && (
-                <div className="absolute -bottom-1 -right-1 bg-terracotta text-white rounded-full p-0.5 border-2 border-white dark:border-[#1A1A1A]">
-                  <Check className="w-3 h-3" />
-                </div>
-              )}
             </button>
           ) : (
              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-sand-dark text-lg font-bold text-brown shadow-sm shrink-0">
@@ -241,7 +236,7 @@ function FeedItemCard({
               </div>
 
               {/* Actions & Follow */}
-              <div className="flex flex-col items-end gap-2.5 shrink-0">
+              <div className="flex items-center gap-2.5 shrink-0">
                 <div className="bg-sage/10 text-sage px-2.5 py-1 rounded-full font-bold text-[12px] border border-sage/20 shadow-sm">
                   {formatDurationShort(session.durationMs)}
                 </div>
@@ -270,12 +265,12 @@ function FeedItemCard({
             
             {session.description && (
               <div 
-                className="mt-3 cursor-pointer"
-                onClick={() => setIsExpanded(!isExpanded)}
+                className={`mt-3 ${session.description.length > 100 ? 'cursor-pointer' : ''}`}
+                onClick={() => session.description!.length > 100 && setIsExpanded(!isExpanded)}
               >
-                <div className={`text-[14px] leading-relaxed text-brown/80 relative transition-all duration-300 ${!isExpanded ? 'line-clamp-2' : ''}`}>
+                <div className={`text-[14px] leading-relaxed text-brown/80 relative transition-all duration-300 ${!isExpanded && session.description.length > 100 ? 'line-clamp-2' : ''}`}>
                   {session.description}
-                  {!isExpanded && (
+                  {!isExpanded && session.description.length > 100 && (
                     <div className="absolute bottom-0 right-0 bg-gradient-to-l from-white dark:from-[#1A1A1A] via-white/80 dark:via-[#1A1A1A]/80 to-transparent w-20 h-6 flex justify-end items-end">
                       <span className="text-terracotta text-xs font-semibold hover:underline">more</span>
                     </div>
@@ -375,7 +370,7 @@ export function FeedShell() {
   const [feedLoading, setFeedLoading] = useState(true);
   const [followingIds, setFollowingIds] = useState<Set<string>>(new Set());
   const [loadingFollow, setLoadingFollow] = useState<Set<string>>(new Set());
-  const [userForcedGlobal, setUserForcedGlobal] = useState(false);
+  const [userForcedGlobal, setUserForcedGlobal] = useState(true);
   const [isRecommendingGlobal, setIsRecommendingGlobal] = useState(false);
   const [feedRefetch, triggerFeedRefetch] = useReducer((n: number) => n + 1, 0);
 
@@ -431,7 +426,11 @@ export function FeedShell() {
             .limit(50);
             
           if (selectedCategory !== "all") {
-            query = query.eq("category", selectedCategory);
+            if (selectedCategory === "other") {
+              query = query.or('category.eq.other,category.is.null');
+            } else {
+              query = query.eq("category", selectedCategory);
+            }
           }
             
           const { data, error } = await query;
@@ -451,7 +450,11 @@ export function FeedShell() {
             .limit(50);
             
           if (selectedCategory !== "all") {
-            query = query.eq("category", selectedCategory);
+            if (selectedCategory === "other") {
+              query = query.or('category.eq.other,category.is.null');
+            } else {
+              query = query.eq("category", selectedCategory);
+            }
           }
             
           const { data, error } = await query;
@@ -472,7 +475,11 @@ export function FeedShell() {
               .limit(50);
               
             if (selectedCategory !== "all") {
-              globalQuery = globalQuery.eq("category", selectedCategory);
+              if (selectedCategory === "other") {
+                globalQuery = globalQuery.or('category.eq.other,category.is.null');
+              } else {
+                globalQuery = globalQuery.eq("category", selectedCategory);
+              }
             }
               
             const { data: globalData, error: globalError } = await globalQuery;
@@ -588,7 +595,7 @@ export function FeedShell() {
 
   if (authLoading || (feedLoading && feedItems.length === 0)) {
     return (
-      <div className="mx-auto max-w-[1000px] px-4 pb-28 pt-10">
+      <div className="mx-auto max-w-[1000px] px-4 md:px-8 pb-24 md:pb-10 pt-6 md:pt-10">
         <header className="mb-8">
           <Skeleton className="h-10 w-48 mb-2" />
           <Skeleton className="h-4 w-72" />
@@ -633,12 +640,12 @@ export function FeedShell() {
   const showSocialFeed = feedItems.length > 0;
 
   return (
-    <div className="mx-auto max-w-[1000px] px-4 pb-28 pt-10">
+    <div className="mx-auto max-w-[1000px] px-4 md:px-8 pb-24 md:pb-10 pt-6 md:pt-10">
       <header className="mb-6 flex flex-col gap-6">
         {/* Top Header Row */}
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-8">
           <div>
-            <h1 className="font-serif text-[28px] font-bold text-brown">
+            <h1 className="font-serif text-[28px] md:text-4xl font-bold text-brown">
               {isGuest ? "Global Discovery" : isRecommendingGlobal ? "Recommended Content" : isGlobalFeed ? "Global Discovery" : "Feed"}
             </h1>
             <p className="mt-1 text-sm text-brown-muted">
@@ -672,8 +679,8 @@ export function FeedShell() {
         </div>
 
         {/* Filter Row */}
-        <div className="flex items-center justify-between border-b border-border/30 pb-4 mt-2">
-          <div className="flex p-1.5 gap-1.5 bg-brown/[0.03] shadow-[inset_0_1px_4px_rgba(0,0,0,0.02)] backdrop-blur-xl rounded-[22px] border border-border/60">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-border/30 pb-4 mt-2">
+          <div className="flex flex-wrap p-1.5 gap-1.5 bg-brown/[0.03] shadow-[inset_0_1px_4px_rgba(0,0,0,0.02)] backdrop-blur-xl rounded-[22px] border border-border/60">
             {[
               { id: "all", label: "All" },
               { id: "coding", label: "Coding" },
@@ -722,36 +729,33 @@ export function FeedShell() {
               </button>
             )}
             
-            <button className="flex items-center gap-1.5 text-[13px] font-medium text-brown-muted hover:text-brown transition-colors">
+            <div className="flex items-center gap-1.5 text-[13px] font-medium text-brown-muted">
               <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
               </svg>
               Latest
-              <svg className="w-3 h-3 ml-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
+            </div>
           </div>
         </div>
       </header>
 
       {/* Guest sign-in prompt */}
       {isGuest && (
-        <div className="card mb-6 flex items-center gap-4 p-5">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-sand-dark">
-            <Users className="h-5 w-5 text-brown" />
+        <div className="card mb-8 flex flex-col sm:flex-row items-center gap-4 sm:gap-5 p-5 sm:p-6 animate-slide-up">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-terracotta/10">
+            <Users className="h-6 w-6 text-terracotta" strokeWidth={1.5} />
           </div>
-          <div className="flex-1">
-            <p className="text-sm font-medium text-brown">
+          <div className="flex-1 text-center sm:text-left">
+            <h3 className="font-serif text-lg font-medium text-brown mb-1">
               See what others are working on
-            </p>
-            <p className="text-xs text-brown-muted">
+            </h3>
+            <p className="text-sm text-brown-muted">
               Sign in and follow users to build your feed.
             </p>
           </div>
           <button
             onClick={() => router.push("/auth")}
-            className="btn-primary text-xs px-4 py-2"
+            className="btn-primary w-full sm:w-auto"
           >
             Sign In
           </button>
@@ -778,28 +782,31 @@ export function FeedShell() {
 
       {/* Empty state — no sessions found at all */}
       {!feedLoading && feedItems.length === 0 && (
-        <div className="card flex min-h-[200px] flex-col items-center justify-center rounded-cozy border-dashed p-10 text-center">
-          <p className="font-medium text-brown">
+        <div className="card flex min-h-[300px] flex-col items-center justify-center p-8 text-center animate-zoom-in">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-cream mb-4">
+            <Newspaper className="h-8 w-8 text-brown-muted" strokeWidth={1.5} />
+          </div>
+          <h2 className="text-xl font-serif font-medium text-brown mb-2">
             {isGuest ? "Nothing to show yet" : "Your feed is empty"}
-          </p>
-          <p className="mt-2 max-w-sm text-sm text-brown-muted">
+          </h2>
+          <p className="max-w-sm text-sm text-brown-muted leading-relaxed mb-6">
             {isGuest
               ? "No public sessions have been shared yet. Sign in and start a session to be the first!"
               : followingIds.size > 0 
                 ? "The people you follow haven't posted any public sessions yet."
                 : "No public sessions found. Follow other users or start sharing your own sessions!"}
           </p>
-          <div className="flex gap-3 mt-4">
+          <div className="flex gap-3">
             <button
               onClick={() => router.push("/")}
-              className="btn-primary text-xs"
+              className="btn-primary"
             >
               Start Session
             </button>
             {!isGuest && (
               <button
                 onClick={() => router.push("/search")}
-                className="btn-secondary text-xs"
+                className="btn-secondary"
               >
                 Find People
               </button>
@@ -807,7 +814,7 @@ export function FeedShell() {
             {isGuest && (
               <button
                 onClick={() => router.push("/auth")}
-                className="btn-secondary text-xs"
+                className="btn-secondary"
               >
                 Sign In
               </button>

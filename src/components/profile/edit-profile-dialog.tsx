@@ -48,9 +48,9 @@ export function EditProfileDialog({ onClose }: EditProfileDialogProps) {
       <div className="card relative w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 rounded-full p-2 text-brown-muted hover:bg-surface hover:text-brown transition-colors"
+          className="absolute right-4 top-4 rounded-full p-2 text-brown-muted hover:bg-surface hover:text-brown transition-colors outline-none focus-visible:ring-2 focus-visible:ring-terracotta focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={isSubmitting}
-          aria-label="Close"
+          aria-label="Close dialog"
         >
           <X className="h-5 w-5" />
         </button>
@@ -125,7 +125,7 @@ export function EditProfileDialog({ onClose }: EditProfileDialogProps) {
                 type="button"
                 onClick={onClose}
                 disabled={isSubmitting}
-                className="px-4 py-2 text-sm font-medium text-brown-muted hover:text-brown transition-colors"
+                className="px-4 py-2 text-sm font-medium text-brown-muted hover:text-brown transition-colors rounded-cozy outline-none focus-visible:ring-2 focus-visible:ring-terracotta focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Skip for now
               </button>

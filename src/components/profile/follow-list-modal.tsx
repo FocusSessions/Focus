@@ -67,17 +67,18 @@ export function FollowListModal({ userId, type, onClose }: FollowListModalProps)
       />
       
       <div className="relative w-full max-w-md animate-in fade-in zoom-in-95 rounded-2xl bg-cream dark:bg-[#121110] border border-border shadow-xl">
-        <div className="flex items-center justify-between border-b border-border p-4">
+        <div className="flex items-center justify-between border-b border-border p-6">
           <h2 className="font-serif text-lg font-medium text-brown capitalize">{type}</h2>
           <button 
             onClick={onClose}
-            className="rounded-full p-1.5 text-brown-muted hover:bg-surface hover:text-brown transition-colors"
+            className="rounded-full p-1.5 text-brown-muted hover:bg-surface hover:text-brown transition-colors outline-none focus-visible:ring-2 focus-visible:ring-terracotta focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+            aria-label="Close dialog"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <div className="p-4 max-h-[60vh] overflow-y-auto scrollbar-hide">
+        <div className="p-6 max-h-[60vh] overflow-y-auto scrollbar-hide">
           {loading ? (
             <div className="flex justify-center py-8">
               <Loader2 className="h-6 w-6 animate-spin text-brown-muted" />

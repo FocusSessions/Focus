@@ -97,7 +97,7 @@ export function UploadDialog({ onClose }: UploadDialogProps) {
                 <div className="flex shrink-0 gap-1">
                   <button
                     type="button"
-                    className="btn-ghost p-1.5"
+                    className="btn-ghost p-1.5 outline-none focus-visible:ring-2 focus-visible:ring-terracotta focus-visible:ring-offset-1 focus-visible:ring-offset-surface rounded-md"
                     aria-label="Rename track"
                     onClick={() => {
                       setRenameId(track.id);
@@ -108,7 +108,7 @@ export function UploadDialog({ onClose }: UploadDialogProps) {
                   </button>
                   <button
                     type="button"
-                    className="btn-ghost p-1.5"
+                    className="btn-ghost p-1.5 outline-none focus-visible:ring-2 focus-visible:ring-terracotta focus-visible:ring-offset-1 focus-visible:ring-offset-surface rounded-md"
                     aria-label="Delete track"
                     onClick={() => {
                       if (window.confirm("Are you sure you want to delete this track?")) {

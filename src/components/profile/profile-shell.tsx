@@ -155,7 +155,7 @@ export function ProfileShell() {
   );
 
   return (
-    <div className="mx-auto max-w-[720px] px-4 pb-36 pt-10">
+    <div className="mx-auto max-w-[720px] px-4 md:px-8 pb-24 md:pb-10 pt-6 md:pt-10">
       <ProfileHeader
         productivityScore={productivityScore}
         joinedLabel={followersLabel}
@@ -170,9 +170,9 @@ export function ProfileShell() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as TabId)}
-                className={`relative rounded-full px-5 py-2 text-sm font-medium transition-all duration-cozy focus:outline-none ${
+                className={`relative rounded-full px-5 py-2 text-sm font-medium transition-all duration-cozy outline-none focus-visible:ring-2 focus-visible:ring-terracotta focus-visible:ring-offset-2 focus-visible:ring-offset-surface ${
                   activeTab === tab.id
-                    ? "bg-terracotta text-white"
+                    ? "bg-terracotta text-white shadow-sm"
                     : "text-brown-muted hover:bg-cream hover:text-brown"
                 }`}
               >

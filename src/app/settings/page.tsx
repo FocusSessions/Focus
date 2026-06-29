@@ -150,9 +150,9 @@ export default function SettingsPage() {
   const presetMatches = (minutes: number) => dailyGoalMinutes === minutes;
 
   return (
-    <div className="mx-auto max-w-[640px] px-4 pb-36 pt-10">
+    <div className="mx-auto max-w-[640px] px-4 md:px-8 pb-24 md:pb-10 pt-6 md:pt-10">
       <header className="mb-10">
-        <h1 className="font-serif text-3xl text-brown">Settings</h1>
+        <h1 className="font-serif text-3xl md:text-4xl text-brown">Settings</h1>
         <p className="mt-1 text-sm text-brown-muted">Customize your focus experience</p>
       </header>
 

@@ -47,7 +47,7 @@ export function ProfileHeader({ productivityScore, joinedLabel, currentStreak, i
             </div>
             <div className="flex flex-col min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
-                <h1 className="font-serif text-[24px] font-bold text-brown leading-none">{displayName}</h1>
+                <h1 className="font-serif text-[24px] md:text-[32px] font-bold text-brown leading-none">{displayName}</h1>
                 <div className="flex items-center justify-center cursor-help">
                   <RankBadgeIcon rankId={currentRank.id} className="w-5 h-5 drop-shadow-sm transition-transform hover:scale-110" />
                 </div>
@@ -75,7 +75,7 @@ export function ProfileHeader({ productivityScore, joinedLabel, currentStreak, i
                 Productivity Score
               </p>
               <div className="flex items-baseline sm:justify-end gap-2">
-                <p className="text-2xl font-serif font-medium text-terracotta leading-none">
+                <p className="text-2xl md:text-3xl font-serif font-medium text-terracotta leading-none">
                   <CountingNumber value={productivityScore} />
                 </p>
               </div>

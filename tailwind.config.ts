@@ -50,10 +50,10 @@ const config: Config = {
         "cozy-lg": "0 16px 48px rgb(0 0 0 / var(--shadow-opacity-lg))",
       },
       transitionDuration: {
-        cozy: "180ms",
+        cozy: "150ms",
       },
       transitionTimingFunction: {
-        cozy: "cubic-bezier(0.4, 0, 0.2, 1)",
+        cozy: "cubic-bezier(0, 0, 0.2, 1)", // ease-out
       },
       keyframes: {
         "fade-in": {

@@ -66,9 +66,9 @@ export function AppShell() {
 
   return (
     <>
-      <div className="mx-auto max-w-[720px] px-4 pb-28 pt-10">
+      <div className="mx-auto max-w-[720px] px-4 md:px-8 pb-24 md:pb-10 pt-6 md:pt-10">
         <header className="mb-10 text-center">
-          <h1 className="font-serif text-3xl text-brown">Focus</h1>
+          <h1 className="font-serif text-3xl md:text-4xl text-brown">Focus</h1>
           <p className="mt-1 text-sm text-brown-muted">A quiet place to work</p>
         </header>
 
@@ -101,7 +101,7 @@ export function AppShell() {
         </section>
 
         <section className="mt-6" aria-labelledby="history-heading">
-          <h2 id="history-heading" className="mb-3 font-serif text-xl pl-1">
+          <h2 id="history-heading" className="mb-3 font-serif text-xl md:text-2xl pl-1">
             Session History
           </h2>
           <HistoryView />

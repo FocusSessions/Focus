@@ -16,22 +16,32 @@
   }
 
   body {
-    @apply bg-cream font-sans text-brown antialiased;
-    line-height: 1.6;
+    @apply bg-cream font-sans text-sm text-brown/90 antialiased;
+    line-height: 1.5;
   }
 
   .skip-link {
     @apply sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:rounded-cozy focus:bg-terracotta focus:text-white focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:shadow-lg;
   }
 
-  h1,
-  h2,
+  h1 {
+    @apply font-serif text-3xl md:text-4xl font-semibold text-brown tracking-tight;
+  }
+
+  h2 {
+    @apply font-serif text-2xl font-medium text-brown tracking-tight;
+  }
+
   h3 {
-    @apply font-serif font-medium tracking-tight text-brown;
+    @apply font-serif text-lg font-medium text-brown tracking-tight;
+  }
+
+  .caption {
+    @apply text-xs text-brown-muted;
   }
 
   :focus-visible {
-    @apply outline-none ring-1 ring-terracotta border-terracotta;
+    @apply outline-none ring-2 ring-terracotta ring-offset-2 ring-offset-surface border-terracotta;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -51,7 +61,7 @@
   }
 
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-cozy px-4 py-2.5 text-sm font-medium transition-[opacity,transform,background-color] duration-cozy ease-out;
+    @apply inline-flex items-center justify-center gap-2 rounded-cozy px-4 py-2.5 text-sm font-medium transition-all duration-cozy ease-out active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none;
   }
 
   .btn-primary {

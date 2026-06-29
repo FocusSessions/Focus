@@ -154,9 +154,9 @@ export default function SearchPage() {
   );
 
   return (
-    <div className="mx-auto max-w-[720px] px-4 pb-36 pt-10">
+    <div className="mx-auto max-w-[720px] px-4 md:px-8 pb-24 md:pb-10 pt-6 md:pt-10">
       <header className="mb-8">
-        <h1 className="font-serif text-3xl text-brown">Search</h1>
+        <h1 className="font-serif text-3xl md:text-4xl text-brown">Search</h1>
         <p className="mt-1 text-sm text-brown-muted">
           Find and follow other focused minds.
         </p>

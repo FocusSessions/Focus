@@ -194,10 +194,10 @@ export function StopDialog() {
           
           {!showConfirmCancel ? (
             <div className="flex justify-between items-center px-1">
-              <button type="button" className="text-sm font-medium text-brown-muted hover:text-brown transition-colors" onClick={cancelStop}>
+              <button type="button" className="px-3 py-1.5 -ml-3 text-sm font-medium text-brown-muted hover:text-brown hover:bg-surface transition-all duration-cozy rounded-full outline-none focus-visible:ring-2 focus-visible:ring-terracotta focus-visible:ring-offset-2 focus-visible:ring-offset-surface" onClick={cancelStop}>
                 Resume Timer
               </button>
-              <button type="button" className="text-sm font-medium text-red-500 hover:text-red-600 transition-colors" onClick={() => setShowConfirmCancel(true)}>
+              <button type="button" className="px-3 py-1.5 -mr-3 text-sm font-medium text-red-500 hover:text-red-600 hover:bg-red-50 transition-all duration-cozy rounded-full outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-surface" onClick={() => setShowConfirmCancel(true)}>
                 Discard Session
               </button>
             </div>
@@ -205,10 +205,10 @@ export function StopDialog() {
             <div className="mt-1 text-center bg-red-500/5 p-3 rounded-xl border border-red-500/20 animate-zoom-in">
               <p className="text-xs text-red-600 mb-3 font-medium">Discard this session?</p>
               <div className="flex gap-2">
-                <button type="button" className="btn-ghost flex-1 text-brown-muted bg-surface hover:bg-surface-dark text-xs py-1.5" onClick={() => setShowConfirmCancel(false)}>
+                <button type="button" className="btn-ghost flex-1 text-brown-muted bg-surface hover:bg-surface-dark text-xs py-1.5 focus-visible:ring-brown-muted" onClick={() => setShowConfirmCancel(false)}>
                   Keep it
                 </button>
-                <button type="button" className="btn-primary flex-1 bg-red-500 hover:bg-red-600 text-xs border-none py-1.5" onClick={discardSession}>
+                <button type="button" className="btn-primary flex-1 bg-red-500 hover:bg-red-600 focus-visible:ring-red-500 text-xs border-none py-1.5" onClick={discardSession}>
                   Discard
                 </button>
               </div>
