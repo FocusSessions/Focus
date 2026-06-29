@@ -37,65 +37,77 @@ export function ProfileHeader({ productivityScore, joinedLabel, currentStreak, i
 
   return (
     <header className="mb-6 space-y-3">
-      <div className="card p-6 flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="flex items-start gap-5 flex-1">
-          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sage to-[#5a7a5f] text-2xl font-bold text-white font-serif leading-[0] shadow-sm">
-            {initial}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="font-serif text-[24px] font-bold text-brown leading-none">{displayName}</h1>
-              <div className="flex items-center justify-center cursor-help">
-                <RankBadgeIcon rankId={currentRank.id} className="w-5 h-5 drop-shadow-sm transition-transform hover:scale-110" />
-              </div>
-              {followAction && (
-                <div className="ml-2">
-                  {followAction}
+      <div className="card p-5 sm:p-7 flex flex-col">
+        {/* Top Section */}
+        <div className="flex flex-col sm:flex-row justify-between items-start gap-6 mb-5">
+          {/* Left: Avatar + Details */}
+          <div className="flex items-center gap-5 sm:gap-6 w-full sm:w-auto">
+            <div className="flex h-[76px] w-[76px] sm:h-[88px] sm:w-[88px] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sage to-[#5a7a5f] text-3xl sm:text-4xl font-bold text-white font-serif leading-[0] shadow-sm ring-1 ring-black/5 dark:ring-white/10">
+              {initial}
+            </div>
+            <div className="flex flex-col gap-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <h1 className="font-serif text-[28px] sm:text-[34px] font-bold text-brown leading-none tracking-tight">{displayName}</h1>
+                <div className="flex items-center justify-center cursor-help mt-1">
+                  <RankBadgeIcon rankId={currentRank.id} className="w-[22px] h-[22px] drop-shadow-sm transition-transform hover:scale-110" />
                 </div>
+                {followAction && (
+                  <div className="ml-1 mt-1">
+                    {followAction}
+                  </div>
+                )}
+              </div>
+              {username && (
+                <p className="text-[15px] sm:text-[16px] text-brown-muted/90 font-medium tracking-tight">@{username}</p>
+              )}
+              {activeProfile?.bio && (
+                <p className="text-[15px] text-brown/90 leading-relaxed max-w-xl whitespace-pre-wrap mt-2 sm:mt-2.5">
+                  {activeProfile.bio}
+                </p>
               )}
             </div>
-            {username && (
-              <p className="mt-1 text-[14px] text-brown-muted/90">@{username}</p>
-            )}
-            
-            {activeProfile?.bio && (
-              <p className="mt-2 text-[14px] text-brown/90 leading-relaxed max-w-xl whitespace-pre-wrap">
-                {activeProfile.bio}
+          </div>
+
+          {/* Right: Score & Actions */}
+          <div className="flex flex-col sm:items-end gap-3 mt-4 sm:mt-0 shrink-0">
+            <div className="text-left sm:text-right">
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-brown-muted/70 mb-1 sm:mb-1.5">
+                Productivity Score
               </p>
-            )}
-            
-            <div className="mt-4 pt-4 border-t border-black/5 w-full">
-              {joinedLabel}
+              <div className="flex items-baseline sm:justify-end gap-2">
+                <p className="text-[52px] sm:text-[64px] font-serif font-medium text-[#ea580c] dark:text-[#f97316] leading-none tracking-tight drop-shadow-sm">
+                  <CountingNumber value={productivityScore} />
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2 mt-1 sm:mt-2">
+              {!isGuest && isOwnProfile && needsSetup && (
+                <button
+                  onClick={() => setIsEditDialogOpen(true)}
+                  className="btn-secondary text-xs px-3 py-1.5 flex items-center gap-2"
+                >
+                  <Settings2 className="w-3.5 h-3.5" />
+                  Complete Profile Setup
+                </button>
+              )}
+              {isGuest && isOwnProfile && (
+                <Link
+                  href="/auth"
+                  className="btn-secondary text-xs px-3 py-1.5"
+                >
+                  Sign up to save progress
+                </Link>
+              )}
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-6">
-          {!isGuest && isOwnProfile && needsSetup && (
-            <button
-              onClick={() => setIsEditDialogOpen(true)}
-              className="btn-secondary text-xs px-4 py-2 flex items-center gap-2"
-            >
-              <Settings2 className="w-3.5 h-3.5" />
-              Complete Profile Setup
-            </button>
-          )}
-          {isGuest && isOwnProfile && (
-            <Link
-              href="/auth"
-              className="btn-secondary text-xs px-4 py-2"
-            >
-              Sign up to save progress
-            </Link>
-          )}
-          <div className="text-right">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-brown-muted">
-              Productivity Score
-            </p>
-            <p className="mt-0.5 text-2xl font-serif font-medium text-terracotta">
-              <CountingNumber value={productivityScore} />
-            </p>
-          </div>
+        {/* Divider */}
+        <div className="w-full h-px bg-black/5 dark:bg-white/5 mb-4" />
+
+        {/* Bottom Section */}
+        <div className="w-full">
+          {joinedLabel}
         </div>
       </div>
 
