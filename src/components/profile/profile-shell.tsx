@@ -79,24 +79,30 @@ export function ProfileShell() {
   }, [joinedAt]);
 
   const followersLabel = (
-    <div className="flex flex-col items-start gap-1">
-      <div className="flex items-center gap-4 mt-1">
-        <button 
-          onClick={() => setModalType("followers")}
-          className="text-sm hover:opacity-80 transition-opacity focus:outline-none"
-        >
-          <span className="font-medium text-brown">{followerCount}</span>
-          <span className="text-brown-muted ml-1">followers</span>
-        </button>
-        <button 
-          onClick={() => setModalType("following")}
-          className="text-sm hover:opacity-80 transition-opacity focus:outline-none"
-        >
-          <span className="font-medium text-brown">{followingCount}</span>
-          <span className="text-brown-muted ml-1">following</span>
-        </button>
+    <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+      <button 
+        onClick={() => setModalType("followers")}
+        className="group flex items-center gap-1.5 text-[14px] hover:opacity-80 transition-opacity focus:outline-none"
+      >
+        <span className="font-bold text-brown">{followerCount}</span>
+        <span className="text-brown-muted font-medium group-hover:text-brown transition-colors">Followers</span>
+      </button>
+      <button 
+        onClick={() => setModalType("following")}
+        className="group flex items-center gap-1.5 text-[14px] hover:opacity-80 transition-opacity focus:outline-none"
+      >
+        <span className="font-bold text-brown">{followingCount}</span>
+        <span className="text-brown-muted font-medium group-hover:text-brown transition-colors">Following</span>
+      </button>
+      <div className="flex items-center gap-1.5 text-[14px] text-brown-muted font-medium sm:ml-auto">
+        <svg className="w-4 h-4 opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <line x1="16" y1="2" x2="16" y2="6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <line x1="8" y1="2" x2="8" y2="6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <line x1="3" y1="10" x2="21" y2="10" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+        {joinedDateLabel}
       </div>
-      <span className="text-xs text-brown-muted">{joinedDateLabel}</span>
     </div>
   );
 

@@ -7,9 +7,10 @@ import { supabase } from "@/lib/supabase";
 import type { FocusSessionActivity } from "@/types";
 import type { Profile, CloudSession } from "@/types/supabase";
 import { formatDurationShort, formatTimeRange, dayLabel, getLogicalDateKey } from "@/lib/time";
-import { Users, Loader2, Plus, Check } from "lucide-react";
+import { Users, Loader2, Plus, Check, Heart, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
+import { motion } from "framer-motion";
 
 interface FeedItem {
   session: FocusSessionActivity;
@@ -48,114 +49,230 @@ function FeedItemCard({
 }) {
   const router = useRouter();
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isLiked, setIsLiked] = useState(false); // UI mock for now
+  const [likeCount, setLikeCount] = useState(Math.floor(Math.random() * 20)); // UI mock for now
+  const [showComments, setShowComments] = useState(false);
+  const [comment, setComment] = useState("");
+  const [comments, setComments] = useState<{user: string, text: string}[]>([]);
+
+  const handleLike = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsLiked(!isLiked);
+    setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
+  };
+
+  const handleCommentSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!comment.trim()) return;
+    setComments([...comments, { user: currentUser?.display_name || currentUser?.username || "You", text: comment }]);
+    setComment("");
+  };
 
   return (
-    <article
-      className={`card rounded-xl p-5 mb-4 transition-all duration-300 hover:bg-brown/[0.02] border border-border/50 ${session.description ? 'cursor-pointer' : ''}`}
-      onClick={() => session.description && setIsExpanded(!isExpanded)}
+    <motion.article
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={`group relative overflow-hidden rounded-[24px] mb-6 bg-white dark:bg-[#1A1A1A] border border-black/5 dark:border-white/5 shadow-[0_8px_30px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_40px_rgba(200,90,70,0.08)] transition-all duration-500`}
     >
-      <div className="flex items-start gap-4">
-        {/* Avatar */}
-        {profile ? (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              if (currentUser?.id === profile.id) {
-                router.push('/profile');
-              } else {
-                router.push(`/user/${profile.username}`);
-              }
-            }}
-            className="flex-shrink-0 group pt-1"
-          >
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-sage to-[#5a7a5f] text-base font-bold text-white shadow-sm transition-transform group-hover:scale-105">
-              {(profile.display_name || profile.username)[0]?.toUpperCase()}
-            </div>
-          </button>
-        ) : (
-           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-sand-dark text-base font-bold text-brown shadow-sm shrink-0 pt-1">
-             ?
-           </div>
-        )}
-
-        {/* Content */}
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 mb-0.5">
-            {profile ? (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (currentUser?.id === profile.id) {
-                    router.push('/profile');
-                  } else {
-                    router.push(`/user/${profile.username}`);
-                  }
-                }}
-                className="group flex items-baseline gap-x-1.5 text-left"
-              >
-                <span className="truncate text-[15px] font-bold text-brown group-hover:text-terracotta transition-colors">
-                  {profile.display_name || profile.username}
-                </span>
-                <span className="truncate text-[13px] text-brown-muted font-medium">
-                  @{profile.username}
-                </span>
-              </button>
-            ) : (
-              <span className="truncate text-[15px] font-bold text-brown">
-                Unknown User
-              </span>
-            )}
-          </div>
-
-          <h2 className="text-[17px] font-bold text-brown leading-snug mb-1">
-            {session.title || "Focus Session"}
-          </h2>
-          
-          <div className="flex flex-wrap items-center gap-2 text-[13px] text-brown-muted font-medium">
-            <span className="capitalize">{session.category || "other"}</span>
-            <span className="opacity-60">•</span>
-            <span>
-              {formatTimeRange(session.startedAt, session.endedAt)} ({dayLabel(getLogicalDateKey(session.startedAt, session.timezoneOffset))})
-            </span>
-          </div>
-          
-          {session.description && (
-            <div className={`mt-3 text-[14px] leading-relaxed text-brown/90 ${!isExpanded ? 'line-clamp-2' : ''}`}>
-              {session.description}
-            </div>
-          )}
-        </div>
-
-        {/* Actions */}
-        <div className="flex-shrink-0 flex items-start gap-6 ml-4">
-          <div className="flex flex-col items-end pt-1">
-            <span className="text-sage font-bold text-[13px]">
-              {formatDurationShort(session.durationMs)}
-            </span>
-          </div>
-
-          {profile && currentUser && currentUser.id !== profile.id && (
+      {/* Top Gradient Accent */}
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-terracotta/40 via-sage/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      
+      <div className="p-6">
+        <div className="flex items-start gap-4">
+          {/* Avatar */}
+          {profile ? (
             <button
-              onClick={(e) => toggleFollow(profile.id, e)}
-              disabled={loadingFollow.has(profile.id)}
-              className={`mt-0.5 flex items-center justify-center rounded border px-4 py-1.5 text-[13px] font-medium transition-colors duration-200 disabled:opacity-50 ${
-                followingIds.has(profile.id)
-                  ? "border-border bg-transparent text-brown-muted hover:border-terracotta/40 hover:text-terracotta"
-                  : "border-terracotta/40 bg-transparent text-terracotta hover:bg-terracotta/5"
-              }`}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (currentUser?.id === profile.id) {
+                  router.push('/profile');
+                } else {
+                  router.push(`/user/${profile.username}`);
+                }
+              }}
+              className="flex-shrink-0 relative outline-none"
             >
-              {loadingFollow.has(profile.id) ? (
-                <Loader2 className="h-3 w-3 animate-spin" />
-              ) : followingIds.has(profile.id) ? (
-                "Following"
-              ) : (
-                "Follow"
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-sage to-[#5a7a5f] text-lg font-bold text-white shadow-sm ring-4 ring-white dark:ring-[#1A1A1A] transition-transform duration-300 hover:scale-105">
+                {(profile.display_name || profile.username)[0]?.toUpperCase()}
+              </div>
+              {followingIds.has(profile.id) && (
+                <div className="absolute -bottom-1 -right-1 bg-terracotta text-white rounded-full p-0.5 border-2 border-white dark:border-[#1A1A1A]">
+                  <Check className="w-3 h-3" />
+                </div>
               )}
             </button>
+          ) : (
+             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-sand-dark text-lg font-bold text-brown shadow-sm ring-4 ring-white shrink-0">
+               ?
+             </div>
           )}
+
+          {/* Content */}
+          <div className="min-w-0 flex-1 pt-0.5">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2 mb-0.5">
+                  {profile ? (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (currentUser?.id === profile.id) {
+                          router.push('/profile');
+                        } else {
+                          router.push(`/user/${profile.username}`);
+                        }
+                      }}
+                      className="group/name flex items-baseline gap-x-1.5 text-left outline-none"
+                    >
+                      <span className="truncate text-[15px] font-bold text-brown group-hover/name:text-terracotta transition-colors">
+                        {profile.display_name || profile.username}
+                      </span>
+                      <span className="truncate text-[13px] text-brown-muted font-medium">
+                        @{profile.username}
+                      </span>
+                    </button>
+                  ) : (
+                    <span className="truncate text-[15px] font-bold text-brown">
+                      Unknown User
+                    </span>
+                  )}
+                  <span className="text-brown-muted/40 text-[10px]">•</span>
+                  <span className="text-[12px] font-medium text-brown-muted/70">
+                    {dayLabel(getLogicalDateKey(session.startedAt, session.timezoneOffset))}
+                  </span>
+                </div>
+                
+                <h2 className="text-[17px] font-bold text-brown leading-snug mb-2 group-hover:text-terracotta transition-colors">
+                  {session.title || "Focus Session"}
+                </h2>
+                
+                <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold tracking-wide uppercase text-brown-muted/80">
+                  <span className="bg-sand-dark px-2 py-0.5 rounded text-brown/70">{session.category || "other"}</span>
+                  <span>{formatTimeRange(session.startedAt, session.endedAt)}</span>
+                </div>
+              </div>
+
+              {/* Actions & Follow */}
+              <div className="flex flex-col items-end gap-2.5 shrink-0">
+                <div className="bg-sage/10 text-sage px-2.5 py-1 rounded-full font-bold text-[12px] border border-sage/20 shadow-sm">
+                  {formatDurationShort(session.durationMs)}
+                </div>
+
+                {profile && currentUser && currentUser.id !== profile.id && (
+                  <button
+                    onClick={(e) => toggleFollow(profile.id, e)}
+                    disabled={loadingFollow.has(profile.id)}
+                    className={`flex items-center justify-center rounded-full border px-3 py-1 text-[11px] font-bold transition-all duration-200 disabled:opacity-50 ${
+                      followingIds.has(profile.id)
+                        ? "border-border bg-surface text-brown-muted hover:border-terracotta/40 hover:text-terracotta hover:bg-terracotta/5"
+                        : "border-terracotta bg-terracotta text-white hover:bg-terracotta-hover shadow-sm hover:shadow"
+                    }`}
+                  >
+                    {loadingFollow.has(profile.id) ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : followingIds.has(profile.id) ? (
+                      "Following"
+                    ) : (
+                      "Follow"
+                    )}
+                  </button>
+                )}
+              </div>
+            </div>
+            
+            {session.description && (
+              <div 
+                className="mt-3 cursor-pointer"
+                onClick={() => setIsExpanded(!isExpanded)}
+              >
+                <div className={`text-[14px] leading-relaxed text-brown/80 relative transition-all duration-300 ${!isExpanded ? 'line-clamp-2' : ''}`}>
+                  {session.description}
+                  {!isExpanded && (
+                    <div className="absolute bottom-0 right-0 bg-gradient-to-l from-white dark:from-[#1A1A1A] via-white/80 dark:via-[#1A1A1A]/80 to-transparent w-20 h-6 flex justify-end items-end">
+                      <span className="text-terracotta text-xs font-semibold hover:underline">more</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Interaction Bar */}
+            <div className="mt-4 pt-3 border-t border-black/5 flex items-center justify-between">
+              <div className="flex items-center gap-5">
+                <motion.button 
+                  whileTap={{ scale: 0.9 }}
+                  onClick={handleLike}
+                  className={`flex items-center gap-1.5 text-[13px] font-semibold transition-colors ${
+                    isLiked ? "text-terracotta" : "text-brown-muted hover:text-brown"
+                  }`}
+                >
+                  <Heart className={`w-4 h-4 ${isLiked ? "fill-terracotta" : "fill-transparent"}`} />
+                  <span>{likeCount}</span>
+                </motion.button>
+
+                <motion.button 
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => setShowComments(!showComments)}
+                  className={`flex items-center gap-1.5 text-[13px] font-semibold transition-colors ${
+                    showComments || comments.length > 0 ? "text-sage" : "text-brown-muted hover:text-brown"
+                  }`}
+                >
+                  <MessageCircle className={`w-4 h-4 ${showComments || comments.length > 0 ? "fill-sage/20" : "fill-transparent"}`} />
+                  <span>{comments.length}</span>
+                </motion.button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-    </article>
+
+      {/* Comments Section */}
+      <motion.div 
+        initial={false}
+        animate={{ height: showComments ? "auto" : 0, opacity: showComments ? 1 : 0 }}
+        className="overflow-hidden bg-sand-dark/40 dark:bg-black/10"
+      >
+        <div className="p-5 border-t border-black/5">
+          {comments.length > 0 && (
+            <div className="space-y-3 mb-4">
+              {comments.map((c, i) => (
+                <div key={i} className="flex items-start gap-3 text-sm">
+                  <div className="h-7 w-7 rounded-full bg-gradient-to-br from-terracotta/80 to-terracotta flex items-center justify-center text-white text-xs font-bold shrink-0">
+                    {c.user[0]?.toUpperCase()}
+                  </div>
+                  <div className="bg-white dark:bg-[#222] px-3 py-2 rounded-2xl rounded-tl-sm border border-black/5 shadow-sm">
+                    <span className="font-bold text-brown block text-[11px] mb-0.5">{c.user}</span>
+                    <span className="text-brown/90 text-[13px]">{c.text}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          
+          <form onSubmit={handleCommentSubmit} className="flex gap-3 relative">
+            <div className="h-8 w-8 rounded-full bg-sage flex items-center justify-center text-white text-xs font-bold shrink-0">
+              {currentUser?.display_name?.[0]?.toUpperCase() || currentUser?.username?.[0]?.toUpperCase() || "?"}
+            </div>
+            <input 
+              type="text" 
+              placeholder="Add a comment..."
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              className="flex-1 bg-white dark:bg-[#222] border border-border/50 rounded-full px-4 text-[13px] focus:outline-none focus:ring-2 focus:ring-terracotta/30 transition-all shadow-sm"
+            />
+            <button 
+              type="submit"
+              disabled={!comment.trim()}
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 p-1 text-terracotta hover:bg-terracotta/10 rounded-full disabled:opacity-40 transition-colors"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+              </svg>
+            </button>
+          </form>
+        </div>
+      </motion.div>
+    </motion.article>
   );
 }
 
@@ -462,38 +579,40 @@ export function FeedShell() {
         </div>
 
         {/* Filter Row */}
-        <div className="flex items-center justify-between border-b border-border/40 pb-3">
-          <div className="flex items-center gap-6">
-            <button 
-              onClick={() => setSelectedCategory("all")}
-              className={`text-[13px] font-medium transition-colors ${selectedCategory === "all" ? "text-terracotta border border-terracotta/30 bg-terracotta/5 rounded-full px-4 py-1" : "text-brown-muted hover:text-brown"}`}
-            >
-              All
-            </button>
-            <button 
-              onClick={() => setSelectedCategory("coding")}
-              className={`text-[13px] font-medium transition-colors ${selectedCategory === "coding" ? "text-terracotta border border-terracotta/30 bg-terracotta/5 rounded-full px-4 py-1" : "text-brown-muted hover:text-brown"}`}
-            >
-              Coding
-            </button>
-            <button 
-              onClick={() => setSelectedCategory("gaming")}
-              className={`text-[13px] font-medium transition-colors ${selectedCategory === "gaming" ? "text-terracotta border border-terracotta/30 bg-terracotta/5 rounded-full px-4 py-1" : "text-brown-muted hover:text-brown"}`}
-            >
-              Gaming
-            </button>
-            <button 
-              onClick={() => setSelectedCategory("studying")}
-              className={`text-[13px] font-medium transition-colors ${selectedCategory === "studying" ? "text-terracotta border border-terracotta/30 bg-terracotta/5 rounded-full px-4 py-1" : "text-brown-muted hover:text-brown"}`}
-            >
-              Studying
-            </button>
-            <button 
-              onClick={() => setSelectedCategory("other")}
-              className={`text-[13px] font-medium transition-colors ${selectedCategory === "other" ? "text-terracotta border border-terracotta/30 bg-terracotta/5 rounded-full px-4 py-1" : "text-brown-muted hover:text-brown"}`}
-            >
-              Other
-            </button>
+        <div className="flex items-center justify-between border-b border-border/30 pb-4 mt-2">
+          <div className="flex p-1.5 gap-1.5 bg-brown/[0.03] shadow-[inset_0_1px_4px_rgba(0,0,0,0.02)] backdrop-blur-xl rounded-[22px] border border-border/60">
+            {[
+              { id: "all", label: "All" },
+              { id: "coding", label: "Coding" },
+              { id: "gaming", label: "Gaming" },
+              { id: "studying", label: "Studying" },
+              { id: "other", label: "Other" },
+            ].map((category) => {
+              const isActive = selectedCategory === category.id;
+              return (
+                <button
+                  key={category.id}
+                  onClick={() => setSelectedCategory(category.id)}
+                  className={`relative px-5 py-2 text-[13px] font-bold rounded-[18px] transition-colors duration-300 outline-none group ${
+                    isActive
+                      ? "text-terracotta"
+                      : "text-brown/60 hover:text-brown"
+                  }`}
+                >
+                  {isActive && (
+                    <motion.div
+                      layoutId="activeCategoryFeed"
+                      className="absolute inset-0 bg-terracotta/[0.08] rounded-[18px] border border-terracotta/20 shadow-[0_2px_8px_rgba(200,90,70,0.08)]"
+                      transition={{ type: "spring", stiffness: 500, damping: 35 }}
+                    />
+                  )}
+                  {!isActive && (
+                    <div className="absolute inset-0 rounded-[18px] bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  )}
+                  <span className="relative z-10 tracking-wide">{category.label}</span>
+                </button>
+              );
+            })}
           </div>
           
           <div className="flex items-center gap-4">
