@@ -41,15 +41,15 @@ export function ProfileHeader({ productivityScore, joinedLabel, currentStreak, i
         {/* Top Section */}
         <div className="flex flex-col sm:flex-row justify-between items-start gap-6 mb-5">
           {/* Left: Avatar + Details */}
-          <div className="flex items-center gap-5 sm:gap-6 w-full sm:w-auto">
-            <div className="flex h-[76px] w-[76px] sm:h-[88px] sm:w-[88px] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sage to-[#5a7a5f] text-3xl sm:text-4xl font-bold text-white font-serif leading-[0] shadow-sm ring-1 ring-black/5 dark:ring-white/10">
+          <div className="flex items-start gap-5 w-full sm:w-auto flex-1">
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sage to-[#5a7a5f] text-2xl font-bold text-white font-serif leading-[0] shadow-sm">
               {initial}
             </div>
-            <div className="flex flex-col gap-1 min-w-0">
-              <div className="flex flex-wrap items-center gap-2.5">
-                <h1 className="font-serif text-[28px] sm:text-[34px] font-bold text-brown leading-none tracking-tight">{displayName}</h1>
-                <div className="flex items-center justify-center cursor-help mt-1">
-                  <RankBadgeIcon rankId={currentRank.id} className="w-[22px] h-[22px] drop-shadow-sm transition-transform hover:scale-110" />
+            <div className="flex flex-col min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="font-serif text-[24px] font-bold text-brown leading-none">{displayName}</h1>
+                <div className="flex items-center justify-center cursor-help">
+                  <RankBadgeIcon rankId={currentRank.id} className="w-5 h-5 drop-shadow-sm transition-transform hover:scale-110" />
                 </div>
                 {followAction && (
                   <div className="ml-1 mt-1">
@@ -58,10 +58,10 @@ export function ProfileHeader({ productivityScore, joinedLabel, currentStreak, i
                 )}
               </div>
               {username && (
-                <p className="text-[15px] sm:text-[16px] text-brown-muted/90 font-medium tracking-tight">@{username}</p>
+                <p className="mt-1 text-[14px] text-brown-muted/90">@{username}</p>
               )}
               {activeProfile?.bio && (
-                <p className="text-[15px] text-brown/90 leading-relaxed max-w-xl whitespace-pre-wrap mt-2 sm:mt-2.5">
+                <p className="mt-2 text-[14px] text-brown/90 leading-relaxed max-w-xl whitespace-pre-wrap">
                   {activeProfile.bio}
                 </p>
               )}
@@ -69,13 +69,13 @@ export function ProfileHeader({ productivityScore, joinedLabel, currentStreak, i
           </div>
 
           {/* Right: Score & Actions */}
-          <div className="flex flex-col sm:items-end gap-3 mt-4 sm:mt-0 shrink-0">
+          <div className="flex flex-col sm:items-end gap-3 shrink-0">
             <div className="text-left sm:text-right">
-              <p className="text-[11px] font-semibold uppercase tracking-widest text-brown-muted/70 mb-1 sm:mb-1.5">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-brown-muted mb-0.5">
                 Productivity Score
               </p>
               <div className="flex items-baseline sm:justify-end gap-2">
-                <p className="text-[52px] sm:text-[64px] font-serif font-medium text-[#ea580c] dark:text-[#f97316] leading-none tracking-tight drop-shadow-sm">
+                <p className="text-2xl font-serif font-medium text-terracotta leading-none">
                   <CountingNumber value={productivityScore} />
                 </p>
               </div>

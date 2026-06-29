@@ -14,7 +14,6 @@ import {
 } from "@/lib/analytics";
 import { generateWeeklyRecap } from "@/lib/weekly-recap";
 import { getLogicalDateKey } from "@/lib/time";
-import { Users } from "lucide-react";
 
 import { ProfileHeader } from "@/components/profile/profile-header";
 import { calculateProductivityScore } from "@/lib/score";
@@ -83,9 +82,8 @@ export function ProfileShell() {
     <div className="flex flex-wrap items-center gap-x-6 gap-y-3 pt-2">
       <button 
         onClick={() => setModalType("followers")}
-        className="group flex items-center gap-2 text-[14px] hover:opacity-80 transition-opacity focus:outline-none"
+        className="group flex items-center gap-1.5 text-[14px] hover:opacity-80 transition-opacity focus:outline-none"
       >
-        <Users className="w-4 h-4 opacity-60" />
         <span className="font-bold text-brown">{followerCount}</span>
         <span className="text-brown-muted font-medium group-hover:text-brown transition-colors">Followers</span>
       </button>
@@ -94,19 +92,16 @@ export function ProfileShell() {
 
       <button 
         onClick={() => setModalType("following")}
-        className="group flex items-center gap-2 text-[14px] hover:opacity-80 transition-opacity focus:outline-none"
+        className="group flex items-center gap-1.5 text-[14px] hover:opacity-80 transition-opacity focus:outline-none"
       >
-        <svg className="w-4 h-4 opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-           <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-        </svg>
         <span className="font-bold text-brown">{followingCount}</span>
         <span className="text-brown-muted font-medium group-hover:text-brown transition-colors">Following</span>
       </button>
 
       <div className="w-px h-4 bg-black/10 dark:bg-white/10 hidden sm:block" />
 
-      <div className="flex items-center gap-2 text-[14px] text-brown-muted font-medium">
-        <svg className="w-4 h-4 opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <div className="flex items-center gap-1.5 text-[14px] text-brown-muted font-medium">
+        <svg className="w-4 h-4 opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <rect x="3" y="4" width="18" height="18" rx="2" ry="2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           <line x1="16" y1="2" x2="16" y2="6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           <line x1="8" y1="2" x2="8" y2="6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
