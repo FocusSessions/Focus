@@ -90,7 +90,7 @@ export function StopDialog() {
         <div className="mt-6 space-y-5">
           <div>
             <label className="block text-[13px] font-medium text-brown-muted mb-1.5" htmlFor="session-title">
-              Session Name <span className="font-normal opacity-70">(Optional)</span>
+              Session Name
             </label>
             <input
               id="session-title"
@@ -189,7 +189,7 @@ export function StopDialog() {
         </div>
 
         <div className="mt-6 flex flex-col gap-3">
-          <button type="button" className="btn-primary w-full py-2.5 text-base" onClick={handleSave}>
+          <button type="button" className="btn-primary w-full py-2.5 text-base disabled:opacity-50 disabled:cursor-not-allowed transition-opacity" onClick={handleSave} disabled={!title.trim()}>
             Save Session
           </button>
           

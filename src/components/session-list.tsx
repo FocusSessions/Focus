@@ -69,11 +69,12 @@ function SessionRow({
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const saveUpdates = async () => {
+    if (!draftTitle.trim()) return;
     await onUpdate(activity.id, {
-      title: draftTitle,
-      description: draftDescription,
+      title: draftTitle.trim(),
+      description: draftDescription.trim(),
       category: draftCategory,
-      visibility: draftVisibility,
+      visibility: activity.visibility, // Keep existing visibility
     });
     setEditing(false);
   };
@@ -91,7 +92,6 @@ function SessionRow({
     setDraftTitle(activity.title);
     setDraftDescription(activity.description ?? "");
     setDraftCategory(activity.category || "other");
-    setDraftVisibility(activity.visibility || "private");
   };
 
   return (
@@ -99,54 +99,63 @@ function SessionRow({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           {editing ? (
-            <div className="flex flex-col gap-2">
-              <input
-                className="input"
-                value={draftTitle}
-                maxLength={50}
-                onChange={(e) => setDraftTitle(e.target.value)}
-                aria-label="Session title"
-              />
-              <textarea
-                className="input min-h-[60px] resize-none"
-                value={draftDescription}
-                maxLength={200}
-                placeholder="What did you accomplish?"
-                onChange={(e) => setDraftDescription(e.target.value)}
-                aria-label="Session description"
-              />
-              <div className="flex gap-2">
+            <div className="flex flex-col gap-4 w-full bg-surface-dark/10 p-5 rounded-xl border border-border/40 animate-fade-in shadow-sm">
+              <div>
+                <label className="block text-[13px] font-medium text-brown-muted mb-1.5">
+                  Session Name
+                </label>
+                <input
+                  className="input w-full bg-surface font-medium transition-shadow focus:ring-2 focus:ring-terracotta/20"
+                  value={draftTitle}
+                  maxLength={50}
+                  placeholder="e.g. Deep Work"
+                  onChange={(e) => setDraftTitle(e.target.value)}
+                  aria-label="Session title"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-[13px] font-medium text-brown-muted mb-1.5">
+                  Description
+                </label>
+                <textarea
+                  className="input min-h-[100px] w-full resize-y bg-surface text-[14px] leading-relaxed transition-shadow focus:ring-2 focus:ring-terracotta/20"
+                  value={draftDescription}
+                  maxLength={200}
+                  placeholder="What did you accomplish?"
+                  onChange={(e) => setDraftDescription(e.target.value)}
+                  aria-label="Session description"
+                />
+                <p className="mt-1.5 text-right text-[11px] text-brown-muted/60 font-medium">{draftDescription.length}/200</p>
+              </div>
+
+              <div>
+                <label className="block text-[13px] font-medium text-brown-muted mb-1.5">
+                  Category
+                </label>
                 <input
                   value={draftCategory}
                   onChange={(e) => setDraftCategory(e.target.value)}
-                  placeholder="Category..."
+                  placeholder="e.g. Coding"
                   list="edit-category-suggestions"
                   maxLength={30}
-                  className="input flex-1 px-2 py-1 text-sm"
+                  className="input w-full sm:w-1/2 bg-surface px-3 py-2 text-[13px] transition-shadow focus:ring-2 focus:ring-terracotta/20"
                 />
                 <datalist id="edit-category-suggestions">
                   <option value="Work" />
                   <option value="Study" />
                   <option value="Coding" />
                   <option value="Reading" />
-                  <option value="Writing" />
+                  <option value="Gaming" />
                 </datalist>
-                <select
-                  value={draftVisibility}
-                  onChange={(e) => setDraftVisibility(e.target.value as SessionVisibility)}
-                  className="input flex-1 px-2 py-1 text-sm"
-                >
-                  <option value="private">Private</option>
-                  <option value="friends">Friends</option>
-                  <option value="public">Public</option>
-                </select>
               </div>
-              <div className="mt-1 flex gap-2">
-                <button type="button" className="btn-primary flex-1 py-1 text-sm" onClick={saveUpdates}>
-                  <Check className="mr-1 inline-block h-4 w-4" /> Save
+
+              <div className="mt-2 flex justify-end gap-3 pt-2 border-t border-border/40">
+                <button type="button" className="btn-ghost px-5 py-2 text-[13px] font-medium hover:bg-brown/5 text-brown-muted" onClick={cancelEdit}>
+                  Cancel
                 </button>
-                <button type="button" className="btn-secondary flex-1 py-1 text-sm" onClick={cancelEdit}>
-                  <X className="mr-1 inline-block h-4 w-4" /> Cancel
+                <button type="button" disabled={!draftTitle.trim()} className="btn-primary px-6 py-2 text-[13px] font-medium disabled:opacity-50 transition-opacity flex items-center gap-2" onClick={saveUpdates}>
+                  <Check className="h-4 w-4" /> Save Changes
                 </button>
               </div>
             </div>
