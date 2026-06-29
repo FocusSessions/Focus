@@ -121,12 +121,11 @@ function SessionRow({
                 <textarea
                   className="input min-h-[100px] w-full resize-y bg-surface text-[14px] leading-relaxed transition-shadow focus:ring-2 focus:ring-terracotta/20"
                   value={draftDescription}
-                  maxLength={200}
+                  maxLength={20000}
                   placeholder="What did you accomplish?"
                   onChange={(e) => setDraftDescription(e.target.value)}
                   aria-label="Session description"
                 />
-                <p className="mt-1.5 text-right text-[11px] text-brown-muted/60 font-medium">{draftDescription.length}/200</p>
               </div>
 
               <div>

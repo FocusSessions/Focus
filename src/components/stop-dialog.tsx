@@ -112,13 +112,12 @@ export function StopDialog() {
             <textarea
               id="session-description"
               name="description"
-              className="input min-h-[90px] w-full resize-none bg-surface text-[14px] leading-relaxed transition-shadow focus:ring-2 focus:ring-terracotta/20"
+              className="input min-h-[90px] w-full resize-y bg-surface text-[14px] leading-relaxed transition-shadow focus:ring-2 focus:ring-terracotta/20"
               value={description}
-              maxLength={200}
+              maxLength={20000}
               placeholder="Finished chapter 3, solved two problems…"
               onChange={(e) => setDescription(e.target.value)}
             />
-            <p className="mt-1.5 text-right text-[11px] text-brown-muted/60 font-medium">{description.length}/200</p>
           </div>
         </div>
 
