@@ -139,7 +139,7 @@ export function ProfileShell() {
   // Check if there is any focus session today
   const todayKey = getLogicalDateKey(Date.now());
   const isStreakSecuredToday = focusSessions.some(
-    s => getLogicalDateKey(s.startedAt) === todayKey
+    s => getLogicalDateKey(s.startedAt, s.timezoneOffset) === todayKey
   );
 
   return (

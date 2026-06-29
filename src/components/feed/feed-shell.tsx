@@ -107,7 +107,7 @@ function FeedItemCard({
           </h2>
           <p className="mt-1 text-xs text-brown-muted capitalize">
             {session.category || "other"} •{" "}
-            {dayLabel(getLogicalDateKey(session.startedAt))}
+            {dayLabel(getLogicalDateKey(session.startedAt, session.timezoneOffset))}
           </p>
           <p className="mt-0.5 text-xs text-brown-muted">
             {formatTimeRange(session.startedAt, session.endedAt)}

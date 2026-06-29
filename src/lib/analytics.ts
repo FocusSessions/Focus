@@ -35,7 +35,7 @@ export function computeStats(activities: FocusSessionActivity[]): ProfileStats {
   const totalSessions = activities.length;
   const averageSessionMs = totalFocusMs / totalSessions;
 
-  const daySet = new Set(activities.map((a) => getLogicalDateKey(a.startedAt)));
+  const daySet = new Set(activities.map((a) => getLogicalDateKey(a.startedAt, a.timezoneOffset)));
   const sortedDays = Array.from(daySet).sort().reverse();
   const today = getLogicalDateKey(Date.now());
   const yesterday = addDays(today, -1);
@@ -109,7 +109,7 @@ export function buildHeatmapData(
   const dayMap = new Map<string, { totalMs: number; sessionsCount: number; categories: Set<string>; longestSessionMs: number }>();
   
   for (const a of activities) {
-    const dk = getLogicalDateKey(a.startedAt);
+    const dk = getLogicalDateKey(a.startedAt, a.timezoneOffset);
     const existing = dayMap.get(dk) || { totalMs: 0, sessionsCount: 0, categories: new Set(), longestSessionMs: 0 };
     existing.totalMs += a.durationMs;
     existing.sessionsCount += 1;
@@ -144,7 +144,7 @@ export function buildWeeklyChartData(activities: FocusSessionActivity[]): ChartD
   const today = getLogicalDateKey(Date.now());
   const dayMap = new Map<string, number>();
   for (const a of activities) {
-    const dk = getLogicalDateKey(a.startedAt);
+    const dk = getLogicalDateKey(a.startedAt, a.timezoneOffset);
     dayMap.set(dk, (dayMap.get(dk) ?? 0) + a.durationMs);
   }
 
@@ -168,7 +168,7 @@ export function buildMonthlyChartData(activities: FocusSessionActivity[]): Chart
   const today = getLogicalDateKey(Date.now());
   const dayMap = new Map<string, number>();
   for (const a of activities) {
-    const dk = getLogicalDateKey(a.startedAt);
+    const dk = getLogicalDateKey(a.startedAt, a.timezoneOffset);
     dayMap.set(dk, (dayMap.get(dk) ?? 0) + a.durationMs);
   }
 

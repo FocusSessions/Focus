@@ -226,7 +226,7 @@ export default function UserProfilePage() {
 
   const todayKey = getLogicalDateKey(Date.now());
   const isStreakSecuredToday = sessions.some(
-    s => getLogicalDateKey(s.startedAt) === todayKey
+    s => getLogicalDateKey(s.startedAt, s.timezoneOffset) === todayKey
   );
 
   const followersLabel = (

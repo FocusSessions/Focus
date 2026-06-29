@@ -29,7 +29,7 @@ export function OverviewTab({
 
   const selectedDaySessions = useMemo(() => {
     if (!activeDateKey) return [];
-    return allSessions.filter(s => getLogicalDateKey(s.startedAt) === activeDateKey).sort((a, b) => b.startedAt - a.startedAt);
+    return allSessions.filter(s => getLogicalDateKey(s.startedAt, s.timezoneOffset) === activeDateKey).sort((a, b) => b.startedAt - a.startedAt);
   }, [allSessions, activeDateKey]);
 
   // Compute consistency as percentage of active days in the last 30 days

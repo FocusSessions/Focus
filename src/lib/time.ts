@@ -68,8 +68,17 @@ export function dateKey(ts: number): string {
 
 export const WORKDAY_OFFSET_MS = 4 * 60 * 60 * 1000; // 4 AM boundary
 
-export function getLogicalDateKey(ts: number): string {
-  return dateKey(ts - WORKDAY_OFFSET_MS);
+export function getLogicalDateKey(ts: number, timezoneOffset?: number): string {
+  const logicalTs = ts - WORKDAY_OFFSET_MS;
+  if (timezoneOffset === undefined) {
+    return dateKey(logicalTs);
+  }
+  
+  // timezoneOffset is (UTC - Local) in minutes
+  // Local time = UTC time - timezoneOffset * 60 * 1000
+  const localTs = logicalTs - timezoneOffset * 60 * 1000;
+  const d = new Date(localTs);
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
 }
 
 export function dayLabel(key: string): string {
@@ -88,14 +97,14 @@ export function dayLabel(key: string): string {
   });
 }
 
-export function isToday(ts: number): boolean {
-  return getLogicalDateKey(ts) === getLogicalDateKey(Date.now());
+export function isToday(ts: number, timezoneOffset?: number): boolean {
+  return getLogicalDateKey(ts, timezoneOffset) === getLogicalDateKey(Date.now());
 }
 
 export function groupActivitiesByDay(activities: FocusSessionActivity[]): DayGroup[] {
   const map = new Map<string, FocusSessionActivity[]>();
   for (const a of activities) {
-    const key = getLogicalDateKey(a.startedAt);
+    const key = getLogicalDateKey(a.startedAt, a.timezoneOffset);
     const list = map.get(key) ?? [];
     list.push(a);
     map.set(key, list);
@@ -116,7 +125,7 @@ export function groupActivitiesByDay(activities: FocusSessionActivity[]): DayGro
 
 export function todayActivities(activities: FocusSessionActivity[]): FocusSessionActivity[] {
   return activities
-    .filter((a) => isToday(a.startedAt))
+    .filter((a) => isToday(a.startedAt, a.timezoneOffset))
     .sort((a, b) => b.startedAt - a.startedAt);
 }
 

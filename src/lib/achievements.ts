@@ -163,7 +163,7 @@ export function evaluateAchievements(
   // for-of loop — O(n²). Changed to an indexed for-loop so the index is O(1).
   for (let i = 0; i < chronological.length; i++) {
     const session = chronological[i];
-    const dk = getLogicalDateKey(session.startedAt);
+    const dk = getLogicalDateKey(session.startedAt, session.timezoneOffset);
 
     // Day map
     if (!dayMap.has(dk)) dayMap.set(dk, []);
