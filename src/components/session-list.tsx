@@ -107,7 +107,7 @@ function SessionRow({
                 <input
                   className="input w-full bg-surface font-medium transition-shadow focus:ring-2 focus:ring-terracotta/20"
                   value={draftTitle}
-                  maxLength={50}
+                  maxLength={200}
                   placeholder="e.g. Deep Work"
                   onChange={(e) => setDraftTitle(e.target.value)}
                   aria-label="Session title"

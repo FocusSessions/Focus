@@ -98,7 +98,7 @@ export function StopDialog() {
               autoComplete="off"
               className="input w-full bg-surface font-medium transition-shadow focus:ring-2 focus:ring-terracotta/20"
               value={title}
-              maxLength={50}
+              maxLength={200}
               placeholder="e.g. Deep Work"
               onChange={(e) => setTitle(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSave()}
@@ -107,7 +107,7 @@ export function StopDialog() {
 
           <div>
             <label className="block text-[13px] font-medium text-brown-muted mb-1.5" htmlFor="session-description">
-              What did you accomplish?
+              Description
             </label>
             <textarea
               id="session-description"
