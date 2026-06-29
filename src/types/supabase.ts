@@ -75,7 +75,49 @@ export interface Database {
           description?: string | null;
           category?: string;
           visibility?: string;
-          tz_offset?: number | null;
+        };
+      };
+      likes: {
+        Row: {
+          session_id: string;
+          user_id: string;
+          created_at: string;
+        };
+        Insert: {
+          session_id: string;
+          user_id: string;
+          created_at?: string;
+        };
+        Update: {
+          session_id?: string;
+          user_id?: string;
+          created_at?: string;
+        };
+      };
+      comments: {
+        Row: {
+          id: string;
+          session_id: string;
+          user_id: string;
+          content: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          session_id: string;
+          user_id: string;
+          content: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          session_id?: string;
+          user_id?: string;
+          content?: string;
+          created_at?: string;
+          updated_at?: string;
         };
       };
     };
@@ -102,3 +144,6 @@ export type Follow = Database['public']['Tables']['follows']['Row'];
 
 export type CloudSession = Database['public']['Tables']['sessions']['Row'];
 export type CloudSessionInsert = Database['public']['Tables']['sessions']['Insert'];
+
+export type Like = Database['public']['Tables']['likes']['Row'];
+export type Comment = Database['public']['Tables']['comments']['Row'];

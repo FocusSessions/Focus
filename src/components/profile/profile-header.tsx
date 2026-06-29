@@ -38,15 +38,15 @@ export function ProfileHeader({ productivityScore, joinedLabel, currentStreak, i
   return (
     <header className="mb-6 space-y-3">
       <div className="card p-6 flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="flex items-start gap-6 flex-1">
-          <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sage to-[#5a7a5f] text-3xl font-bold text-white font-serif leading-[0] shadow-sm ring-4 ring-white dark:ring-[#1A1A1A]">
+        <div className="flex items-start gap-5 flex-1">
+          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sage to-[#5a7a5f] text-2xl font-bold text-white font-serif leading-[0] shadow-sm">
             {initial}
           </div>
-          <div className="flex-1 min-w-0 pt-1">
-            <div className="flex flex-wrap items-center gap-3">
-              <h1 className="font-serif text-[28px] font-bold text-brown leading-none">{displayName}</h1>
-              <div className="flex items-center justify-center cursor-help mt-1">
-                <RankBadgeIcon rankId={currentRank.id} className="w-6 h-6 drop-shadow-sm transition-transform hover:scale-110" />
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="font-serif text-[24px] font-bold text-brown leading-none">{displayName}</h1>
+              <div className="flex items-center justify-center cursor-help">
+                <RankBadgeIcon rankId={currentRank.id} className="w-5 h-5 drop-shadow-sm transition-transform hover:scale-110" />
               </div>
               {followAction && (
                 <div className="ml-2">
@@ -55,16 +55,16 @@ export function ProfileHeader({ productivityScore, joinedLabel, currentStreak, i
               )}
             </div>
             {username && (
-              <p className="mt-1.5 text-[15px] font-medium text-brown-muted/90">@{username}</p>
+              <p className="mt-1 text-[14px] text-brown-muted/90">@{username}</p>
             )}
             
             {activeProfile?.bio && (
-              <p className="mt-4 text-[15px] text-brown/90 leading-relaxed max-w-xl whitespace-pre-wrap">
+              <p className="mt-2 text-[14px] text-brown/90 leading-relaxed max-w-xl whitespace-pre-wrap">
                 {activeProfile.bio}
               </p>
             )}
             
-            <div className="mt-5 pt-4 border-t border-black/5 w-full">
+            <div className="mt-4 pt-4 border-t border-black/5 w-full">
               {joinedLabel}
             </div>
           </div>

@@ -7,7 +7,7 @@ import { supabase } from "@/lib/supabase";
 import type { FocusSessionActivity } from "@/types";
 import type { Profile, CloudSession } from "@/types/supabase";
 import { formatDurationShort, formatTimeRange, dayLabel, getLogicalDateKey } from "@/lib/time";
-import { Users, Loader2, Plus, Check, Heart, MessageCircle } from "lucide-react";
+import { Users, Loader2, Check } from "lucide-react";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
@@ -15,6 +15,8 @@ import { motion } from "framer-motion";
 interface FeedItem {
   session: FocusSessionActivity;
   profile?: Profile;
+  likes: { user_id: string }[];
+  comments: { id: string }[];
 }
 
 function cloudToLocal(s: CloudSession): FocusSessionActivity {
@@ -46,38 +48,122 @@ function FeedItemCard({
   followingIds: Set<string>;
   loadingFollow: Set<string>;
   toggleFollow: (id: string, e: React.MouseEvent) => void;
+  likes: { user_id: string }[];
+  comments: { id: string }[];
 }) {
   const router = useRouter();
   const [isExpanded, setIsExpanded] = useState(false);
-  const [isLiked, setIsLiked] = useState(false); // UI mock for now
-  const [likeCount, setLikeCount] = useState(Math.floor(Math.random() * 20)); // UI mock for now
-  const [showComments, setShowComments] = useState(false);
-  const [comment, setComment] = useState("");
-  const [comments, setComments] = useState<{user: string, text: string}[]>([]);
 
-  const handleLike = (e: React.MouseEvent) => {
+  const [isLiked, setIsLiked] = useState(() => likes.some(l => l.user_id === currentUser?.id));
+  const [likeCount, setLikeCount] = useState(likes.length);
+  const [likeLoading, setLikeLoading] = useState(false);
+
+  const [showComments, setShowComments] = useState(false);
+  const [commentCount, setCommentCount] = useState(comments.length);
+  const [comment, setComment] = useState("");
+  const [loadedComments, setLoadedComments] = useState<any[]>([]);
+  const [commentsLoading, setCommentsLoading] = useState(false);
+
+  const handleLike = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    setIsLiked(!isLiked);
-    setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
+    if (!currentUser) {
+      router.push('/auth');
+      return;
+    }
+    if (likeLoading) return;
+    setLikeLoading(true);
+
+    const newLikedState = !isLiked;
+    setIsLiked(newLikedState);
+    setLikeCount(prev => newLikedState ? prev + 1 : Math.max(0, prev - 1));
+
+    if (newLikedState) {
+      const { error } = await supabase.from('likes').insert({ session_id: session.id, user_id: currentUser.id });
+      if (error && error.code !== '23505') { // Ignore unique violation if already liked
+        setIsLiked(false);
+        setLikeCount(prev => Math.max(0, prev - 1));
+        toast.error("Failed to like");
+      }
+    } else {
+      const { error } = await supabase.from('likes').delete().match({ session_id: session.id, user_id: currentUser.id });
+      if (error) {
+        setIsLiked(true);
+        setLikeCount(prev => prev + 1);
+        toast.error("Failed to unlike");
+      }
+    }
+    setLikeLoading(false);
   };
 
-  const handleCommentSubmit = (e: React.FormEvent) => {
+  const loadComments = async () => {
+    if (commentsLoading) return;
+    setCommentsLoading(true);
+    const { data, error } = await supabase
+      .from('comments')
+      .select('*, profiles(username, display_name)')
+      .eq('session_id', session.id)
+      .order('created_at', { ascending: true });
+    
+    if (!error && data) {
+      setLoadedComments(data);
+    }
+    setCommentsLoading(false);
+  };
+
+  const toggleComments = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!showComments && loadedComments.length === 0 && commentCount > 0) {
+      loadComments();
+    }
+    setShowComments(!showComments);
+  };
+
+  const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!currentUser) {
+      router.push('/auth');
+      return;
+    }
     if (!comment.trim()) return;
-    setComments([...comments, { user: currentUser?.display_name || currentUser?.username || "You", text: comment }]);
+
+    const newCommentText = comment.trim();
     setComment("");
+    
+    // Optimistic UI update
+    const optimisticComment = {
+      id: "temp-" + Date.now(),
+      session_id: session.id,
+      user_id: currentUser.id,
+      content: newCommentText,
+      created_at: new Date().toISOString(),
+      profiles: {
+        username: currentUser.username,
+        display_name: currentUser.display_name
+      }
+    };
+    setLoadedComments(prev => [...prev, optimisticComment]);
+    setCommentCount(prev => prev + 1);
+
+    const { data, error } = await supabase.from('comments').insert({
+      session_id: session.id,
+      user_id: currentUser.id,
+      content: newCommentText
+    }).select('*, profiles(username, display_name)').single();
+
+    if (error) {
+      toast.error("Failed to post comment");
+      setLoadedComments(prev => prev.filter(c => c.id !== optimisticComment.id));
+      setCommentCount(prev => Math.max(0, prev - 1));
+    } else if (data) {
+      setLoadedComments(prev => prev.map(c => c.id === optimisticComment.id ? data : c));
+    }
   };
 
   return (
-    <motion.article
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      className={`group relative overflow-hidden rounded-[24px] mb-6 bg-white dark:bg-[#1A1A1A] border border-black/5 dark:border-white/5 shadow-[0_8px_30px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_40px_rgba(200,90,70,0.08)] transition-all duration-500`}
+    <article
+      className="group relative overflow-hidden rounded-[16px] mb-5 bg-white dark:bg-[#1A1A1A] border border-black/5 dark:border-white/5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_16px_rgba(0,0,0,0.06)] hover:border-black/10 transition-all duration-300"
     >
-      {/* Top Gradient Accent */}
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-terracotta/40 via-sage/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-      
-      <div className="p-6">
+      <div className="p-5 sm:p-6">
         <div className="flex items-start gap-4">
           {/* Avatar */}
           {profile ? (
@@ -92,7 +178,7 @@ function FeedItemCard({
               }}
               className="flex-shrink-0 relative outline-none"
             >
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-sage to-[#5a7a5f] text-lg font-bold text-white shadow-sm ring-4 ring-white dark:ring-[#1A1A1A] transition-transform duration-300 hover:scale-105">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-sage to-[#5a7a5f] text-lg font-bold text-white shadow-sm transition-transform duration-300 hover:scale-105">
                 {(profile.display_name || profile.username)[0]?.toUpperCase()}
               </div>
               {followingIds.has(profile.id) && (
@@ -102,7 +188,7 @@ function FeedItemCard({
               )}
             </button>
           ) : (
-             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-sand-dark text-lg font-bold text-brown shadow-sm ring-4 ring-white shrink-0">
+             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-sand-dark text-lg font-bold text-brown shadow-sm shrink-0">
                ?
              </div>
           )}
@@ -199,27 +285,29 @@ function FeedItemCard({
             {/* Interaction Bar */}
             <div className="mt-4 pt-3 border-t border-black/5 flex items-center justify-between">
               <div className="flex items-center gap-5">
-                <motion.button 
-                  whileTap={{ scale: 0.9 }}
+                <button 
                   onClick={handleLike}
-                  className={`flex items-center gap-1.5 text-[13px] font-semibold transition-colors ${
+                  className={`flex items-center gap-1.5 text-[13px] font-semibold transition-colors outline-none ${
                     isLiked ? "text-terracotta" : "text-brown-muted hover:text-brown"
                   }`}
                 >
-                  <Heart className={`w-4 h-4 ${isLiked ? "fill-terracotta" : "fill-transparent"}`} />
+                  <svg className={`w-4 h-4 ${isLiked ? "fill-terracotta" : "fill-transparent"}`} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                  </svg>
                   <span>{likeCount}</span>
-                </motion.button>
+                </button>
 
-                <motion.button 
-                  whileTap={{ scale: 0.9 }}
-                  onClick={() => setShowComments(!showComments)}
-                  className={`flex items-center gap-1.5 text-[13px] font-semibold transition-colors ${
-                    showComments || comments.length > 0 ? "text-sage" : "text-brown-muted hover:text-brown"
+                <button 
+                  onClick={toggleComments}
+                  className={`flex items-center gap-1.5 text-[13px] font-semibold transition-colors outline-none ${
+                    showComments || commentCount > 0 ? "text-sage" : "text-brown-muted hover:text-brown"
                   }`}
                 >
-                  <MessageCircle className={`w-4 h-4 ${showComments || comments.length > 0 ? "fill-sage/20" : "fill-transparent"}`} />
-                  <span>{comments.length}</span>
-                </motion.button>
+                  <svg className={`w-4 h-4 ${showComments || commentCount > 0 ? "fill-sage/20" : "fill-transparent"}`} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                  <span>{commentCount}</span>
+                </button>
               </div>
             </div>
           </div>
@@ -227,43 +315,44 @@ function FeedItemCard({
       </div>
 
       {/* Comments Section */}
-      <motion.div 
-        initial={false}
-        animate={{ height: showComments ? "auto" : 0, opacity: showComments ? 1 : 0 }}
-        className="overflow-hidden bg-sand-dark/40 dark:bg-black/10"
-      >
+      <div className={`overflow-hidden transition-all duration-300 ease-in-out bg-sand-dark/30 dark:bg-black/10 ${showComments ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
         <div className="p-5 border-t border-black/5">
-          {comments.length > 0 && (
-            <div className="space-y-3 mb-4">
-              {comments.map((c, i) => (
-                <div key={i} className="flex items-start gap-3 text-sm">
+          {commentsLoading ? (
+            <div className="flex justify-center py-4">
+              <Loader2 className="h-4 w-4 animate-spin text-brown-muted" />
+            </div>
+          ) : loadedComments.length > 0 ? (
+            <div className="space-y-4 mb-5 max-h-[300px] overflow-y-auto scrollbar-thin pr-2">
+              {loadedComments.map((c) => (
+                <div key={c.id} className="flex items-start gap-3 text-sm">
                   <div className="h-7 w-7 rounded-full bg-gradient-to-br from-terracotta/80 to-terracotta flex items-center justify-center text-white text-xs font-bold shrink-0">
-                    {c.user[0]?.toUpperCase()}
+                    {(c.profiles?.display_name || c.profiles?.username || "?")[0]?.toUpperCase()}
                   </div>
-                  <div className="bg-white dark:bg-[#222] px-3 py-2 rounded-2xl rounded-tl-sm border border-black/5 shadow-sm">
-                    <span className="font-bold text-brown block text-[11px] mb-0.5">{c.user}</span>
-                    <span className="text-brown/90 text-[13px]">{c.text}</span>
+                  <div className="bg-white dark:bg-[#222] px-3 py-2.5 rounded-[14px] rounded-tl-sm border border-black/5 shadow-sm">
+                    <span className="font-bold text-brown block text-[11px] mb-0.5">{c.profiles?.display_name || c.profiles?.username || "Unknown"}</span>
+                    <span className="text-brown/90 text-[13px] leading-relaxed block">{c.content}</span>
                   </div>
                 </div>
               ))}
             </div>
-          )}
+          ) : null}
           
           <form onSubmit={handleCommentSubmit} className="flex gap-3 relative">
-            <div className="h-8 w-8 rounded-full bg-sage flex items-center justify-center text-white text-xs font-bold shrink-0">
+            <div className="h-9 w-9 rounded-full bg-sage flex items-center justify-center text-white text-xs font-bold shrink-0">
               {currentUser?.display_name?.[0]?.toUpperCase() || currentUser?.username?.[0]?.toUpperCase() || "?"}
             </div>
             <input 
               type="text" 
-              placeholder="Add a comment..."
+              placeholder={currentUser ? "Add a comment..." : "Sign in to comment..."}
+              disabled={!currentUser}
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              className="flex-1 bg-white dark:bg-[#222] border border-border/50 rounded-full px-4 text-[13px] focus:outline-none focus:ring-2 focus:ring-terracotta/30 transition-all shadow-sm"
+              className="flex-1 bg-white dark:bg-[#222] border border-border/50 rounded-full pl-4 pr-10 text-[13px] focus:outline-none focus:ring-2 focus:ring-terracotta/30 transition-all shadow-sm"
             />
             <button 
               type="submit"
               disabled={!comment.trim()}
-              className="absolute right-1.5 top-1/2 -translate-y-1/2 p-1 text-terracotta hover:bg-terracotta/10 rounded-full disabled:opacity-40 transition-colors"
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 p-1.5 text-terracotta hover:bg-terracotta/10 rounded-full disabled:opacity-40 transition-colors"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
@@ -271,8 +360,7 @@ function FeedItemCard({
             </button>
           </form>
         </div>
-      </motion.div>
-    </motion.article>
+      </div>
   );
 }
 
@@ -334,7 +422,7 @@ export function FeedShell() {
         if (useGlobal) {
           let query = supabase
             .from("sessions")
-            .select("*")
+            .select("*, likes(user_id), comments(id)")
             .eq("visibility", "public")
             .order("started_at", { ascending: false })
             .limit(50);
@@ -353,7 +441,7 @@ export function FeedShell() {
         } else {
           let query = supabase
             .from("sessions")
-            .select("*")
+            .select("*, likes(user_id), comments(id)")
             .in("user_id", fIds)
             .eq("visibility", "public")
             .order("started_at", { ascending: false })
@@ -375,7 +463,7 @@ export function FeedShell() {
           if (!sessionData || sessionData.length === 0) {
             let globalQuery = supabase
               .from("sessions")
-              .select("*")
+              .select("*, likes(user_id), comments(id)")
               .eq("visibility", "public")
               .order("started_at", { ascending: false })
               .limit(50);
@@ -418,9 +506,11 @@ export function FeedShell() {
 
         if (mounted) {
           setFeedItems(
-            sessionData.map((s) => ({
-              session: cloudToLocal(s as CloudSession),
+            sessionData.map((s: any) => ({
+              session: cloudToLocal(s),
               profile: profileMap.get(s.user_id),
+              likes: s.likes || [],
+              comments: s.comments || []
             }))
           );
           setFeedLoading(false);
@@ -667,7 +757,7 @@ export function FeedShell() {
 
       {showSocialFeed && (
         <div className="flex flex-col space-y-4">
-          {feedItems.map(({ session, profile }) => (
+          {feedItems.map(({ session, profile, likes, comments }) => (
             <FeedItemCard
               key={session.id}
               session={session}
@@ -676,6 +766,8 @@ export function FeedShell() {
               followingIds={followingIds}
               loadingFollow={loadingFollow}
               toggleFollow={toggleFollow}
+              likes={likes}
+              comments={comments}
             />
           ))}
         </div>
