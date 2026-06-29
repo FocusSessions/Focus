@@ -171,6 +171,7 @@ export function FeedShell() {
   const [isRecommendingGlobal, setIsRecommendingGlobal] = useState(false);
   const [feedRefetch, triggerFeedRefetch] = useReducer((n: number) => n + 1, 0);
 
+  const isGlobalFeed = isGuest || followingIds.size === 0 || userForcedGlobal || isRecommendingGlobal;
   const [feedError, setFeedError] = useState<string | null>(null);
   
   // Category filter state
