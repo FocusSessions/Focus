@@ -135,7 +135,7 @@ export default function UserProfilePage() {
 
     load();
     return () => { mounted = false; };
-  }, [username, user]);
+  }, [username, user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const toggleFollow = useCallback(async () => {
     if (!user || !profile || followLoading) return;

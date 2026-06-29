@@ -47,6 +47,8 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 // ---- Dedup lock for ensureProfileExists ----
 // Prevents concurrent calls from racing each other and creating duplicate rows.
+// Keyed by user ID so that rapid sign-out → sign-in won't return the wrong profile.
+let profileLockUserId: string | null = null;
 let profileLockPromise: Promise<Profile | null> | null = null;
 
 async function fetchProfile(userId: string): Promise<Profile | null> {
@@ -144,16 +146,19 @@ async function ensureProfileExistsInner(user: User): Promise<Profile | null> {
 }
 
 /**
- * Deduplicated wrapper: if a call is already in-flight for the same user,
+ * Deduplicated wrapper: if a call is already in-flight for the SAME user,
  * return the existing promise instead of starting a parallel one.
+ * If a different user triggers this, start a fresh call.
  */
 async function ensureProfileExists(user: User): Promise<Profile | null> {
-  if (profileLockPromise) return profileLockPromise;
+  if (profileLockPromise && profileLockUserId === user.id) return profileLockPromise;
+  profileLockUserId = user.id;
   profileLockPromise = ensureProfileExistsInner(user);
   try {
     return await profileLockPromise;
   } finally {
     profileLockPromise = null;
+    profileLockUserId = null;
   }
 }
 
@@ -211,10 +216,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else if (event === "SIGNED_OUT") {
           setUser(null);
           setProfile(null);
+
+          // Clear ALL local user data before navigating.
+          // Wrapped in try/catch so navigation always happens even if IDB fails.
+          try {
+            const { clearUserData } = await import("@/lib/storage");
+            await clearUserData();
+          } catch (err) {
+            console.error("[auth] Failed to clear user data on sign-out:", (err as any)?.message || err);
+          }
+
           if (typeof window !== "undefined") {
             const path = window.location.pathname;
             if (path !== "/" && path !== "/auth") {
               window.location.href = "/";
+            } else {
+              window.location.reload();
             }
           }
         }
@@ -376,6 +393,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       if (sanitizedUpdates.display_name) {
         sanitizedUpdates.display_name = sanitizedUpdates.display_name.trim();
+      }
+      if (typeof sanitizedUpdates.bio === "string") {
+        // Trim, strip control characters (keep newlines/tabs), cap at 200 chars
+        sanitizedUpdates.bio = sanitizedUpdates.bio
+          .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "")
+          .trim()
+          .slice(0, 200);
       }
 
       const { error } = await supabase

@@ -70,6 +70,7 @@ export default function SearchPage() {
         const { data, error } = await supabase
           .from("profiles")
           .select("*")
+          .eq("is_public", true)
           .or(`username.ilike.%${sanitizedQuery}%,display_name.ilike.%${sanitizedQuery}%`)
           .limit(20);
 

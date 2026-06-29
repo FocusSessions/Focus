@@ -72,22 +72,26 @@ export function SideNav() {
         })}
       </div>
 
-      {/* Auth section at bottom (hidden on mobile) */}
-      <div className="hidden md:block mt-auto border-t border-border/40 pt-4 w-full">
-        {isLoading ? (
-          <div className="px-3 py-2">
-            <div className="h-4 w-24 animate-pulse rounded bg-border/30" />
-          </div>
-        ) : isGuest ? (
-          <Link
-            href="/auth"
-            className="flex items-center gap-3 rounded-cozy px-3 py-2.5 text-sm font-medium text-brown-muted transition-all duration-cozy hover:bg-cream/60 hover:text-brown"
-          >
-            <LogIn className="h-4 w-4 shrink-0" />
-            Sign In
-          </Link>
-        ) : null}
-      </div>
+      {/* Auth section — visible on both mobile and desktop */}
+      {!isLoading && isGuest && (
+        <Link
+          href="/auth"
+          className="hidden md:flex items-center gap-3 rounded-cozy mt-auto border-t border-border/40 pt-4 w-full px-3 py-2.5 text-sm font-medium text-brown-muted transition-all duration-cozy hover:bg-cream/60 hover:text-brown"
+        >
+          <LogIn className="h-4 w-4 shrink-0" />
+          Sign In
+        </Link>
+      )}
+      {/* Mobile: compact sign-in icon in the nav bar */}
+      {!isLoading && isGuest && (
+        <Link
+          href="/auth"
+          className="flex md:hidden flex-col items-center justify-center gap-1 rounded-xl p-2 text-sm font-medium text-brown-muted hover:bg-cream/40 hover:text-brown transition-all duration-cozy"
+        >
+          <LogIn className="h-5 w-5 shrink-0" aria-hidden="true" />
+          <span className="text-xs font-medium">Sign In</span>
+        </Link>
+      )}
     </nav>
   );
 }

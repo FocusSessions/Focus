@@ -144,7 +144,7 @@ export function FocusProvider({ children }: { children: ReactNode }) {
   const [userPreferences, setUserPreferences] = useState<UserPreferences>({
     dailyGoalMinutes: DEFAULT_DAILY_GOAL_MINUTES,
     sessionGoalMinutes: DEFAULT_SESSION_GOAL_MINUTES,
-    showMilliseconds: true,
+    showMilliseconds: false,
     timerDirection: 'up',
   });
   const [plannedCategory, setPlannedCategory] = useState<SessionCategory>("studying");
@@ -199,9 +199,57 @@ export function FocusProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // Guard against StrictMode double-mount running boot() twice
+  const bootedRef = useRef(false);
   useEffect(() => {
+    if (bootedRef.current) return;
+    bootedRef.current = true;
     boot();
   }, [boot]);
+
+  // BUG-3 fix: When the signed-in user changes (sign-out, or switch accounts),
+  // reset ALL in-memory state to clean defaults before re-booting from storage.
+  // This prevents User A's data from being visible to User B even if IDB clear was slow.
+  const prevUserIdRef = useRef<string | null | undefined>(undefined);
+  useEffect(() => {
+    const currentUserId = user?.id ?? null;
+    // Skip the very first render (undefined → initial value)
+    if (prevUserIdRef.current === undefined) {
+      prevUserIdRef.current = currentUserId;
+      return;
+    }
+    // Only act when the identity actually changes
+    if (prevUserIdRef.current === currentUserId) return;
+    prevUserIdRef.current = currentUserId;
+
+    // Reset all state to clean defaults
+    setActivities([]);
+    setActiveTimer(null);
+    setShowRecovery(false);
+    setPendingStop(null);
+    setMusicSettings({ volume: 0.6, loop: true, lastTrackId: null });
+    setUserPreferences({
+      dailyGoalMinutes: DEFAULT_DAILY_GOAL_MINUTES,
+      sessionGoalMinutes: DEFAULT_SESSION_GOAL_MINUTES,
+      showMilliseconds: false,
+      timerDirection: 'up',
+    });
+    setPlannedCategory("studying");
+    setUploads([]);
+    setIsPlaying(false);
+    setPlaybackError(null);
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.src = "";
+    }
+    revokeObjectUrl(uploadObjectUrl);
+    setUploadObjectUrl(null);
+    syncInFlightRef.current = false;
+
+    // Re-load fresh data from storage (which should be clean after clearUserData)
+    bootedRef.current = false; // Allow boot() to run again past the StrictMode guard
+    boot();
+  }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Sync cloud sessions down to local, and local up to cloud
   useEffect(() => {
@@ -235,8 +283,11 @@ export function FocusProvider({ children }: { children: ReactNode }) {
         }
 
         // 2. Upload local sessions to cloud (idempotent via upsert)
-        // This ensures guest-mode sessions get persisted when user signs in
-        await syncLocalToCloud(user.id);
+        // This ensures guest-mode sessions get persisted when user signs in.
+        // Guard: only upload if this effect is still mounted (user hasn't changed mid-sync)
+        if (mounted) {
+          await syncLocalToCloud(user.id);
+        }
       } catch (err) {
         console.error("[CloudSync] Failed to sync sessions:", (err as any)?.message || err);
       } finally {
@@ -398,11 +449,15 @@ export function FocusProvider({ children }: { children: ReactNode }) {
     if (pendingStop?.timerSnapshot) {
       const snap = pendingStop.timerSnapshot;
       if (snap.isPaused) {
+        // Timer was paused when stop was requested — restore as-is
         setActiveTimer(snap);
       } else {
+        // Timer was running — add time spent in the stop dialog to accumulated
+        const dialogTimeMs = Date.now() - snap.startedAt;
         setActiveTimer({
           ...snap,
           startedAt: Date.now(),
+          accumulatedMs: snap.accumulatedMs + dialogTimeMs,
         });
       }
     }

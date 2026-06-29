@@ -19,7 +19,7 @@ const GOAL_PRESETS = [
 
 export default function SettingsPage() {
   const { dailyGoalMinutes, setDailyGoalMinutes, sessionGoalMinutes, setSessionGoalMinutes, showMilliseconds, setShowMilliseconds, timerDirection, setTimerDirection } = useFocus();
-  const { user, profile, setupProfile, updateProfile, signOut } = useAuth();
+  const { user, profile, setupProfile, updateProfile, signOut, isGuest } = useAuth();
   
   const [draftMinutes, setDraftMinutes] = useState(String(dailyGoalMinutes));
   const [saved, setSaved] = useState(false);
@@ -96,10 +96,17 @@ export default function SettingsPage() {
     if (!user) return;
     setIsSavingProfile(true);
     setProfileError("");
+
+    // Validate username minimum length
+    const cleanUsername = usernameDraft.toLowerCase().replace(/[^a-z0-9_]/g, "_").slice(0, 20);
+    if (cleanUsername.length < 3) {
+      setProfileError("Username must be at least 3 characters.");
+      setIsSavingProfile(false);
+      return;
+    }
     
     if (hasEditedProfile) {
       // User already completed setup — allow username and display name updates
-      const cleanUsername = usernameDraft.toLowerCase().replace(/[^a-z0-9_]/g, "_").slice(0, 20);
       const { error } = await updateProfile({ username: cleanUsername, display_name: displayNameDraft.trim() });
       if (error) {
         setProfileError(error);
@@ -132,7 +139,10 @@ export default function SettingsPage() {
       setDraftMinutes(String(dailyGoalMinutes));
       return;
     }
-    void applyGoal(val);
+    // Clamp to 15–1440 range
+    const clamped = Math.min(1440, Math.max(15, val));
+    setDraftMinutes(String(clamped));
+    void applyGoal(clamped);
   };
 
   const presetMatches = (minutes: number) => dailyGoalMinutes === minutes;
@@ -145,6 +155,21 @@ export default function SettingsPage() {
       </header>
 
       <div className="space-y-6">
+        {/* Guest banner */}
+        {isGuest && (
+          <div className="card flex items-center gap-4 p-5 border-l-4 border-l-terracotta/60">
+            <div className="flex-1">
+              <p className="text-sm font-medium text-brown">Sign in to save your settings</p>
+              <p className="text-xs text-brown-muted mt-0.5">
+                Your preferences will reset when you close this tab.
+              </p>
+            </div>
+            <a href="/auth" className="btn-primary text-xs px-4 py-2 shrink-0">
+              Sign In
+            </a>
+          </div>
+        )}
+
         {user && (
           <section id="account-details" className="card p-6 space-y-8">
             {profile && (
@@ -210,7 +235,7 @@ export default function SettingsPage() {
                     <button
                       type="button"
                       onClick={handleSaveProfile}
-                      disabled={isSavingProfile || !usernameDraft.trim() || !displayNameDraft.trim()}
+                      disabled={isSavingProfile || usernameDraft.trim().length < 3 || !displayNameDraft.trim()}
                       className="btn-primary mt-2"
                     >
                       {isSavingProfile ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Profile Details"}
@@ -230,18 +255,21 @@ export default function SettingsPage() {
                       <button
                         key={level}
                         type="button"
+                        disabled={isSavingProfile}
                         onClick={async () => {
                           const previousLevel = privacyLevel;
                           setPrivacyLevel(level);
+                          setIsSavingProfile(true);
                           const isPublic = level === 'public';
                           const { error } = await updateProfile({ privacy_level: level, is_public: isPublic });
+                          setIsSavingProfile(false);
                           if (error) {
                             // Revert optimistic update on failure
                             setPrivacyLevel(previousLevel);
                             toast.error(error);
                           }
                         }}
-                        className={`rounded-2xl border px-4 py-2 text-sm font-medium transition-all duration-cozy capitalize ${
+                        className={`rounded-2xl border px-4 py-2 text-sm font-medium transition-all duration-cozy capitalize disabled:opacity-50 ${
                           privacyLevel === level
                             ? "border-sage bg-sage text-white"
                             : "border-border bg-surface text-brown-muted hover:border-sage/40 hover:text-brown"
@@ -422,13 +450,13 @@ export default function SettingsPage() {
                   onChange={(e) => {
                     const raw = e.target.value;
                     if (raw === "" || /^\d+$/.test(raw)) {
-                      setSessionGoalMinutes(Number(raw) || 0);
+                      setSessionGoalMinutes(raw === "" ? 0 : Number(raw));
                     }
                   }}
                   onBlur={() => {
-                    if (!sessionGoalMinutes || sessionGoalMinutes < 5) {
-                      setSessionGoalMinutes(25);
-                    }
+                    // Clamp to 5–480 range, default 25
+                    const clamped = Math.min(480, Math.max(5, sessionGoalMinutes || 25));
+                    setSessionGoalMinutes(clamped);
                   }}
                   onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
                   className="input max-w-[140px]"

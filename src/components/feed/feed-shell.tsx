@@ -425,7 +425,7 @@ export function FeedShell() {
       )}
 
       {showSocialFeed && (
-        <div className="columns-1 sm:columns-2 gap-4 space-y-4 sm:space-y-0">
+        <div className="columns-1 sm:columns-2 gap-4">
           {feedItems.map(({ session, profile }) => (
             <FeedItemCard
               key={session.id}

@@ -113,7 +113,10 @@ export default function AuthPage() {
             // Check if we actually got signed in (session exists)
             const { data: { session } } = await supabase.auth.getSession();
             if (session) {
-              router.push("/profile");
+              // Brief delay to let auth context process the new session
+              // and ensure profile creation completes before the profile page loads
+              await new Promise((r) => setTimeout(r, 500));
+              router.replace("/profile");
             } else {
               // Email confirmation required
               setSuccessMsg("Account created! Check your email to confirm your account, then sign in.");

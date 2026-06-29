@@ -11,8 +11,8 @@ export function computeElapsedMs(
 
 export function formatDuration(ms: number): string {
   if (isNaN(ms) || ms < 0) ms = 0;
-  const totalSec = Math.max(0, Math.floor(ms / 1000));
-  const cs = Math.floor(Math.abs(ms) % 1000 / 10);
+  const totalSec = Math.floor(ms / 1000);
+  const cs = Math.floor((ms % 1000) / 10);
   const h = Math.floor(totalSec / 3600);
   const m = Math.floor((totalSec % 3600) / 60);
   const s = totalSec % 60;
@@ -21,8 +21,8 @@ export function formatDuration(ms: number): string {
 
 export function formatFocusClock(ms: number, showMs: boolean = true): string {
   if (isNaN(ms) || ms < 0) ms = 0;
-  const totalSec = Math.max(0, Math.floor(ms / 1000));
-  const cs = Math.floor(Math.abs(ms) % 1000 / 10);
+  const totalSec = Math.floor(ms / 1000);
+  const cs = Math.floor((ms % 1000) / 10);
   const h = Math.floor(totalSec / 3600);
   const m = Math.floor((totalSec % 3600) / 60);
   const s = totalSec % 60;

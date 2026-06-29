@@ -485,3 +485,26 @@ export async function renameUpload(id: string, name: string): Promise<void> {
   if (!row) return;
   await idbPut("uploads", { ...row, name });
 }
+
+export async function clearUserData(): Promise<void> {
+  // Clear ALL user-related localStorage keys — not just activities
+  localStorage.removeItem(LS_ACTIVITIES);
+  localStorage.removeItem(LS_SESSIONS);
+  localStorage.removeItem(LS_KV); // Clears preferences, music, activeTimer — everything
+
+  // Clear ALL IDB stores: activities, kv (preferences/music/timer), and uploads
+  const ok = await ensureDb();
+  if (!ok) return;
+
+  const db = await openDb();
+  return new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(["activities", "kv", "uploads"], "readwrite");
+    tx.objectStore("activities").clear();
+    tx.objectStore("kv").clear();       // Clears preferences, music, activeTimer
+    tx.objectStore("uploads").clear();  // Clears uploaded audio files
+
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error || new Error("Transaction aborted"));
+  });
+}
