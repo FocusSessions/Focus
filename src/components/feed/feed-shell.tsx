@@ -41,6 +41,8 @@ function FeedItemCard({
   followingIds,
   loadingFollow,
   toggleFollow,
+  likes = [],
+  comments = [],
 }: {
   session: FocusSessionActivity;
   profile?: Profile;
@@ -361,6 +363,7 @@ function FeedItemCard({
           </form>
         </div>
       </div>
+    </article>
   );
 }
 
