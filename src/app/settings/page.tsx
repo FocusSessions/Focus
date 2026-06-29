@@ -28,6 +28,7 @@ export default function SettingsPage() {
   // Profile Form State
   const [usernameDraft, setUsernameDraft] = useState("");
   const [displayNameDraft, setDisplayNameDraft] = useState("");
+  const [bioDraft, setBioDraft] = useState("");
   const [profileSaved, setProfileSaved] = useState(false);
   const [profileError, setProfileError] = useState("");
   const [isSavingProfile, setIsSavingProfile] = useState(false);
@@ -88,6 +89,7 @@ export default function SettingsPage() {
       const meta = user?.user_metadata;
       setUsernameDraft(profile.username || meta?.username || "");
       setDisplayNameDraft(profile.display_name || meta?.display_name || meta?.full_name || meta?.name || "");
+      setBioDraft(profile.bio || "");
       if (profile.privacy_level) setPrivacyLevel(profile.privacy_level);
     }
   }, [profile, user]);
@@ -107,7 +109,7 @@ export default function SettingsPage() {
     
     if (hasEditedProfile) {
       // User already completed setup — allow username and display name updates
-      const { error } = await updateProfile({ username: cleanUsername, display_name: displayNameDraft.trim() });
+      const { error } = await updateProfile({ username: cleanUsername, display_name: displayNameDraft.trim(), bio: bioDraft.trim() });
       if (error) {
         setProfileError(error);
       } else {
@@ -229,6 +231,20 @@ export default function SettingsPage() {
                         placeholder="e.g. John Doe"
                         maxLength={50}
                         autoComplete="off"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="bio" className="mb-1.5 block text-sm font-medium text-brown">
+                        Bio
+                      </label>
+                      <textarea
+                        id="bio"
+                        value={bioDraft}
+                        onChange={(e) => setBioDraft(e.target.value)}
+                        disabled={isSavingProfile}
+                        className="input max-w-sm w-full min-h-[80px]"
+                        placeholder="Tell us about yourself..."
+                        maxLength={200}
                       />
                     </div>
 

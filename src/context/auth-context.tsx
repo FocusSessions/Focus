@@ -411,8 +411,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (error.code === "23505") {
           return { error: "That username is already taken." };
         }
-        console.error("[auth] Profile update failed:", error.message);
-        return { error: "Failed to update profile." };
+        console.error("[auth] Profile update failed:", error.message, error);
+        return { error: `Failed to update profile: ${error.message} (Code: ${error.code})` };
       }
 
       // Fetch fresh profile directly — ensureProfileExists may return stale data

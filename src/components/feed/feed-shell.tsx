@@ -51,83 +51,106 @@ function FeedItemCard({
 
   return (
     <article
-      className={`card rounded-cozy p-5 break-inside-avoid mb-4 transition-all duration-300 ${session.description ? 'cursor-pointer hover:bg-brown/5' : ''}`}
+      className={`card rounded-xl p-4 sm:p-5 mb-4 transition-all duration-300 hover:bg-brown/[0.02] border border-border/50 ${session.description ? 'cursor-pointer' : ''}`}
       onClick={() => session.description && setIsExpanded(!isExpanded)}
     >
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0 flex-1">
-          {profile && (
-            <div className="mb-2 flex flex-wrap items-center gap-2">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (currentUser?.id === profile.id) {
-                    router.push('/profile');
-                  } else {
-                    router.push(`/user/${profile.username}`);
-                  }
-                }}
-                className="flex min-w-0 items-center gap-2 group"
-              >
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sage to-[#5a7a5f] text-[12px] font-bold text-white">
-                  {(profile.display_name || profile.username)[0]?.toUpperCase()}
-                </div>
-                <span className="truncate text-xs font-medium text-brown group-hover:text-terracotta transition-colors">
-                  {profile.display_name || profile.username}
-                </span>
-                <span className="truncate text-[10px] text-brown-muted">
-                  @{profile.username}
-                </span>
-              </button>
+      <div className="flex items-start gap-3 sm:gap-4">
+        {/* Avatar */}
+        {profile ? (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              if (currentUser?.id === profile.id) {
+                router.push('/profile');
+              } else {
+                router.push(`/user/${profile.username}`);
+              }
+            }}
+            className="flex-shrink-0 group"
+          >
+            <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-gradient-to-br from-sage to-[#5a7a5f] text-sm sm:text-base font-bold text-white shadow-sm transition-transform group-hover:scale-105">
+              {(profile.display_name || profile.username)[0]?.toUpperCase()}
+            </div>
+          </button>
+        ) : (
+           <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-sand-dark text-sm sm:text-base font-bold text-brown shadow-sm shrink-0">
+             ?
+           </div>
+        )}
 
-              {currentUser && currentUser.id !== profile.id && (
+        <div className="min-w-0 flex-1">
+          {/* Header row: Name + Follow Button */}
+          <div className="flex items-center justify-between gap-2 mb-1">
+            <div className="flex flex-wrap items-baseline gap-x-1.5 min-w-0">
+              {profile ? (
                 <button
-                  onClick={(e) => toggleFollow(profile.id, e)}
-                  disabled={loadingFollow.has(profile.id)}
-                  className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium transition-all duration-300 disabled:opacity-50 ${
-                    followingIds.has(profile.id)
-                      ? "border border-border bg-surface text-brown-muted hover:border-terracotta/40 hover:text-terracotta"
-                      : "bg-terracotta/10 text-terracotta hover:bg-terracotta hover:text-white"
-                  }`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (currentUser?.id === profile.id) {
+                      router.push('/profile');
+                    } else {
+                      router.push(`/user/${profile.username}`);
+                    }
+                  }}
+                  className="group flex flex-wrap items-baseline gap-x-1.5 min-w-0 text-left"
                 >
-                  {loadingFollow.has(profile.id) ? (
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                  ) : followingIds.has(profile.id) ? (
-                    <><Check className="h-3 w-3" />Following</>
-                  ) : (
-                    <><Plus className="h-3 w-3" />Follow</>
-                  )}
+                  <span className="truncate text-[15px] font-bold text-brown group-hover:text-terracotta transition-colors">
+                    {profile.display_name || profile.username}
+                  </span>
+                  <span className="truncate text-xs text-brown-muted font-medium">
+                    @{profile.username}
+                  </span>
                 </button>
+              ) : (
+                <span className="truncate text-[15px] font-bold text-brown">
+                  Unknown User
+                </span>
               )}
             </div>
-          )}
 
-          <h2 className="truncate font-medium text-brown">
-            {session.title || "Untitled Session"}
-          </h2>
-          <p className="mt-1 text-xs text-brown-muted capitalize">
-            {session.category || "other"} •{" "}
-            {dayLabel(getLogicalDateKey(session.startedAt, session.timezoneOffset))}
-          </p>
-          <p className="mt-0.5 text-xs text-brown-muted">
-            {formatTimeRange(session.startedAt, session.endedAt)}
-          </p>
-        </div>
-        <div className="flex shrink-0 flex-col items-end gap-1">
-          <span className="text-sm font-medium text-sage">
-            {formatDurationShort(session.durationMs)}
-          </span>
-          <span className="rounded-md border border-border bg-cream px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-brown-muted">
-            {session.visibility}
-          </span>
+            {profile && currentUser && currentUser.id !== profile.id && (
+              <button
+                onClick={(e) => toggleFollow(profile.id, e)}
+                disabled={loadingFollow.has(profile.id)}
+                className={`shrink-0 flex items-center justify-center rounded-full px-3 py-1 text-[11px] font-bold transition-all duration-200 disabled:opacity-50 ${
+                  followingIds.has(profile.id)
+                    ? "border border-border bg-transparent text-brown-muted hover:border-terracotta/40 hover:text-terracotta hover:bg-terracotta/5"
+                    : "border border-terracotta/30 bg-terracotta/10 text-terracotta hover:bg-terracotta hover:text-white hover:border-terracotta"
+                }`}
+              >
+                {loadingFollow.has(profile.id) ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : followingIds.has(profile.id) ? (
+                  "Following"
+                ) : (
+                  "Follow"
+                )}
+              </button>
+            )}
+          </div>
+
+          {/* Title & Metadata */}
+          <div className="mt-1">
+            <h2 className="text-base sm:text-lg font-semibold text-brown leading-snug">
+              {session.title || "Focus Session"}
+            </h2>
+            <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-brown-muted">
+              <span className="capitalize font-medium">{session.category || "other"}</span>
+              <span>•</span>
+              <span>{formatDurationShort(session.durationMs)}</span>
+              <span>•</span>
+              <span>{dayLabel(getLogicalDateKey(session.startedAt, session.timezoneOffset))}</span>
+            </div>
+          </div>
+          
+          {/* Description */}
+          {session.description && (
+            <div className={`mt-3 text-[14px] leading-relaxed text-brown/90 ${!isExpanded ? 'line-clamp-3' : ''}`}>
+              {session.description}
+            </div>
+          )}
         </div>
       </div>
-      
-      {isExpanded && session.description && (
-        <div className="mt-4 pt-4 border-t border-border/50 animate-in fade-in slide-in-from-top-2 text-sm text-brown-muted">
-          {session.description}
-        </div>
-      )}
     </article>
   );
 }
@@ -328,24 +351,25 @@ export function FeedShell() {
 
   if (authLoading || (feedLoading && feedItems.length === 0)) {
     return (
-      <div className="mx-auto max-w-[720px] px-4 pb-28 pt-10">
+      <div className="mx-auto max-w-[600px] px-4 pb-28 pt-10">
         <header className="mb-8">
           <Skeleton className="h-10 w-48 mb-2" />
           <Skeleton className="h-4 w-72" />
         </header>
-        <div className="columns-1 sm:columns-2 gap-4 space-y-4 sm:space-y-0">
+        <div className="flex flex-col space-y-4">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="card rounded-cozy p-5 break-inside-avoid mb-4">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Skeleton className="h-8 w-8 rounded-full" />
-                    <Skeleton className="h-4 w-24" />
+            <div key={i} className="card rounded-xl p-5 mb-4 border border-border/50">
+              <div className="flex items-start gap-4">
+                <Skeleton className="h-12 w-12 rounded-full shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-6 w-20 rounded-full" />
                   </div>
-                  <Skeleton className="h-5 w-40 mb-2" />
-                  <Skeleton className="h-3 w-32" />
+                  <Skeleton className="h-6 w-48 mb-2" />
+                  <Skeleton className="h-3 w-36 mb-4" />
+                  <Skeleton className="h-16 w-full rounded-md" />
                 </div>
-                <Skeleton className="h-6 w-16" />
               </div>
             </div>
           ))}
@@ -369,7 +393,7 @@ export function FeedShell() {
   const showSocialFeed = feedItems.length > 0;
 
   return (
-    <div className="mx-auto max-w-[720px] px-4 pb-28 pt-10">
+    <div className="mx-auto max-w-[600px] px-4 pb-28 pt-10">
       <header className="mb-8 flex justify-between items-end">
         <div>
           <h1 className="font-serif text-3xl text-brown">
@@ -425,7 +449,7 @@ export function FeedShell() {
       )}
 
       {showSocialFeed && (
-        <div className="columns-1 sm:columns-2 gap-4">
+        <div className="flex flex-col space-y-4">
           {feedItems.map(({ session, profile }) => (
             <FeedItemCard
               key={session.id}

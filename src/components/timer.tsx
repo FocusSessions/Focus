@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo, useEffect, useState } from "react";
+import { useMemo, useEffect, useState, useRef } from "react";
 import { formatFocusClock, formatDurationShort } from "@/lib/time";
 import { useFocus } from "@/context/focus-app";
-import { Pause, Play, Square } from "lucide-react";
+import { Pause, Play, Square, Plus, X } from "lucide-react";
 import { motion } from "framer-motion";
 import { computeStats } from "@/lib/analytics";
 import type { FocusSessionActivity } from "@/types";
@@ -31,9 +31,34 @@ export function Timer({ focusMode = false }: TimerProps) {
     setPlannedCategory,
     sessionGoalMinutes,
     setSessionGoalMinutes,
+    customCategories,
+    addCustomCategory,
   } = useFocus();
 
   const [isFullscreen, setIsFullscreen] = useState(true);
+  const [showCustomInput, setShowCustomInput] = useState(false);
+  const [customCategoryInput, setCustomCategoryInput] = useState("");
+  const customInputRef = useRef<HTMLInputElement>(null);
+
+  const DEFAULT_CATEGORIES = ['Work', 'Study', 'Coding', 'Reading', 'Gaming'];
+  const allCategories = [...DEFAULT_CATEGORIES, ...customCategories];
+
+  const handleAddCustom = () => {
+    const trimmed = customCategoryInput.trim();
+    if (!trimmed) return;
+    if (!allCategories.some(c => c.toLowerCase() === trimmed.toLowerCase())) {
+      addCustomCategory(trimmed);
+    }
+    setPlannedCategory(trimmed);
+    setCustomCategoryInput("");
+    setShowCustomInput(false);
+  };
+
+  useEffect(() => {
+    if (showCustomInput && customInputRef.current) {
+      customInputRef.current.focus();
+    }
+  }, [showCustomInput]);
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -240,7 +265,7 @@ export function Timer({ focusMode = false }: TimerProps) {
                 Category
               </span>
               <div className="flex flex-wrap justify-center gap-2">
-                {['Work', 'Study', 'Coding', 'Reading', 'Gaming'].map(c => (
+                {allCategories.map(c => (
                   <button
                     key={c}
                     type="button"
@@ -250,6 +275,52 @@ export function Timer({ focusMode = false }: TimerProps) {
                     {c}
                   </button>
                 ))}
+
+                {/* Add custom category */}
+                {showCustomInput ? (
+                  <div className="flex items-center gap-1 animate-fade-in">
+                    <input
+                      ref={customInputRef}
+                      type="text"
+                      value={customCategoryInput}
+                      onChange={(e) => setCustomCategoryInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") handleAddCustom();
+                        if (e.key === "Escape") {
+                          setShowCustomInput(false);
+                          setCustomCategoryInput("");
+                        }
+                      }}
+                      maxLength={20}
+                      placeholder="e.g. Music"
+                      className="input text-[11px] px-2.5 py-1 w-24 bg-surface rounded-full"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddCustom}
+                      disabled={!customCategoryInput.trim()}
+                      className="flex h-6 w-6 items-center justify-center rounded-full bg-sage text-white text-xs disabled:opacity-40 transition-opacity"
+                    >
+                      ✓
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setShowCustomInput(false); setCustomCategoryInput(""); }}
+                      className="flex h-6 w-6 items-center justify-center rounded-full text-brown-muted hover:text-brown transition-colors"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    className="rounded-full px-2.5 py-1 text-[11px] font-medium border border-dashed border-border text-brown-muted hover:border-terracotta/50 hover:text-terracotta transition-colors flex items-center gap-1"
+                    onClick={() => setShowCustomInput(true)}
+                  >
+                    <Plus className="h-3 w-3" />
+                    Custom
+                  </button>
+                )}
               </div>
             </div>
           </div>

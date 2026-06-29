@@ -58,6 +58,11 @@ export function ProfileHeader({ productivityScore, joinedLabel, currentStreak, i
               <p className="text-sm text-brown-muted">@{username}</p>
             )}
             <div className="mt-1 text-sm text-brown-muted">{joinedLabel}</div>
+            {activeProfile?.bio && (
+              <p className="mt-2 text-[14px] text-brown/90 leading-relaxed max-w-md whitespace-pre-wrap">
+                {activeProfile.bio}
+              </p>
+            )}
           </div>
         </div>
 

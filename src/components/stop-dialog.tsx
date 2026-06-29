@@ -87,39 +87,42 @@ export function StopDialog() {
           {formatDurationShort(pendingStop.durationMs)} focused
         </p>
 
-        <div className="mt-6">
-          <label className="block text-sm font-medium text-brown-muted" htmlFor="session-description">
-            What did you accomplish?
-          </label>
-          <textarea
-            id="session-description"
-            name="description"
-            className="input mt-1.5 min-h-[80px] w-full resize-none bg-surface"
-            value={description}
-            maxLength={200}
-            placeholder="Finished chapter 3, solved two problems…"
-            onChange={(e) => setDescription(e.target.value)}
-          />
-          <p className="mt-1 text-right text-[10px] text-brown-muted/60">{description.length}/200</p>
-        </div>
-
-        <div className="mt-4 space-y-4 border-t border-border/50 pt-4">
+        <div className="mt-6 space-y-4">
           <div>
-            <label className="block text-sm text-brown-muted" htmlFor="session-title">
+            <label className="block text-sm font-medium text-brown-muted" htmlFor="session-title">
               Session Name (Optional)
             </label>
             <input
               id="session-title"
               name="title"
               autoComplete="off"
-              className="input mt-1.5 w-full bg-surface"
+              className="input mt-1.5 w-full bg-surface font-semibold"
               value={title}
               maxLength={50}
-              placeholder="Operating Systems, LeetCode…"
+              placeholder="e.g. Focus Session"
               onChange={(e) => setTitle(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSave()}
             />
           </div>
+
+          <div>
+            <label className="block text-sm font-medium text-brown-muted" htmlFor="session-description">
+              What did you accomplish?
+            </label>
+            <textarea
+              id="session-description"
+              name="description"
+              className="input mt-1.5 min-h-[80px] w-full resize-none bg-surface text-sm"
+              value={description}
+              maxLength={200}
+              placeholder="Finished chapter 3, solved two problems…"
+              onChange={(e) => setDescription(e.target.value)}
+            />
+            <p className="mt-1 text-right text-[10px] text-brown-muted/60">{description.length}/200</p>
+          </div>
+        </div>
+
+        <div className="mt-4 space-y-4 border-t border-border/50 pt-4">
 
           <div>
             <label className="block text-sm text-brown-muted">Category</label>
