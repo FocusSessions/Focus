@@ -87,51 +87,50 @@ export function StopDialog() {
           {formatDurationShort(pendingStop.durationMs)} focused
         </p>
 
-        <div className="mt-6 space-y-4">
+        <div className="mt-6 space-y-5">
           <div>
-            <label className="block text-sm font-medium text-brown-muted" htmlFor="session-title">
-              Session Name (Optional)
+            <label className="block text-[13px] font-medium text-brown-muted mb-1.5" htmlFor="session-title">
+              Session Name <span className="font-normal opacity-70">(Optional)</span>
             </label>
             <input
               id="session-title"
               name="title"
               autoComplete="off"
-              className="input mt-1.5 w-full bg-surface font-semibold"
+              className="input w-full bg-surface font-medium transition-shadow focus:ring-2 focus:ring-terracotta/20"
               value={title}
               maxLength={50}
-              placeholder="e.g. Focus Session"
+              placeholder="e.g. Deep Work"
               onChange={(e) => setTitle(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSave()}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-brown-muted" htmlFor="session-description">
+            <label className="block text-[13px] font-medium text-brown-muted mb-1.5" htmlFor="session-description">
               What did you accomplish?
             </label>
             <textarea
               id="session-description"
               name="description"
-              className="input mt-1.5 min-h-[80px] w-full resize-none bg-surface text-sm"
+              className="input min-h-[90px] w-full resize-none bg-surface text-[14px] leading-relaxed transition-shadow focus:ring-2 focus:ring-terracotta/20"
               value={description}
               maxLength={200}
               placeholder="Finished chapter 3, solved two problems…"
               onChange={(e) => setDescription(e.target.value)}
             />
-            <p className="mt-1 text-right text-[10px] text-brown-muted/60">{description.length}/200</p>
+            <p className="mt-1.5 text-right text-[11px] text-brown-muted/60 font-medium">{description.length}/200</p>
           </div>
         </div>
 
-        <div className="mt-4 space-y-4 border-t border-border/50 pt-4">
-
+        <div className="mt-4 border-t border-border/50 pt-5">
           <div>
-            <label className="block text-sm text-brown-muted">Category</label>
-            <div className="mt-1.5 flex flex-wrap gap-1.5">
+            <label className="block text-[13px] font-medium text-brown-muted mb-2">Category</label>
+            <div className="flex flex-wrap gap-2">
               {allCategories.map(c => (
                 <button
                   key={c}
                   type="button"
-                  className={`rounded-full px-3 py-1 text-[11px] font-medium border transition-colors ${category.toLowerCase() === c.toLowerCase() ? 'bg-terracotta text-white border-terracotta' : 'bg-surface text-brown-muted border-border hover:bg-brown/5'}`}
+                  className={`rounded-full px-3.5 py-1.5 text-[12px] font-medium border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terracotta/50 ${category.toLowerCase() === c.toLowerCase() ? 'bg-terracotta text-white border-terracotta' : 'bg-surface text-brown-muted border-border hover:bg-brown/5 hover:border-brown/20'}`}
                   onClick={() => setCategory(c)}
                 >
                   {c}
@@ -140,7 +139,7 @@ export function StopDialog() {
 
               {/* Add custom category */}
               {showCustomInput ? (
-                <div className="flex items-center gap-1 animate-fade-in">
+                <div className="flex items-center gap-1.5 animate-fade-in">
                   <input
                     ref={customInputRef}
                     type="text"
@@ -155,51 +154,37 @@ export function StopDialog() {
                     }}
                     maxLength={20}
                     placeholder="e.g. Music"
-                    className="input text-[11px] px-2.5 py-1 w-24 bg-surface rounded-full"
+                    className="input text-[12px] px-3 py-1.5 w-28 bg-surface rounded-full focus:ring-2 focus:ring-terracotta/20"
                   />
                   <button
                     type="button"
                     onClick={handleAddCustom}
                     disabled={!customCategoryInput.trim()}
-                    className="flex h-6 w-6 items-center justify-center rounded-full bg-sage text-white text-xs disabled:opacity-40 transition-opacity"
+                    className="flex h-7 w-7 items-center justify-center rounded-full bg-sage text-white text-xs disabled:opacity-40 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage"
+                    aria-label="Save custom category"
                   >
                     ✓
                   </button>
                   <button
                     type="button"
                     onClick={() => { setShowCustomInput(false); setCustomCategoryInput(""); }}
-                    className="flex h-6 w-6 items-center justify-center rounded-full text-brown-muted hover:text-brown transition-colors"
+                    className="flex h-7 w-7 items-center justify-center rounded-full text-brown-muted hover:text-brown hover:bg-brown/5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brown-muted"
+                    aria-label="Cancel custom category"
                   >
-                    <X className="h-3 w-3" />
+                    <X className="h-3.5 w-3.5" />
                   </button>
                 </div>
               ) : (
                 <button
                   type="button"
-                  className="rounded-full px-2.5 py-1 text-[11px] font-medium border border-dashed border-border text-brown-muted hover:border-terracotta/50 hover:text-terracotta transition-colors flex items-center gap-1"
+                  className="rounded-full px-3 py-1.5 text-[12px] font-medium border border-dashed border-border text-brown-muted hover:border-terracotta/50 hover:text-terracotta hover:bg-terracotta/5 transition-colors flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terracotta/50"
                   onClick={() => setShowCustomInput(true)}
                 >
-                  <Plus className="h-3 w-3" />
+                  <Plus className="h-3.5 w-3.5" />
                   Custom
                 </button>
               )}
             </div>
-          </div>
-
-          <div>
-            <label className="block text-sm text-brown-muted" htmlFor="session-visibility">
-              Visibility
-            </label>
-            <select
-              id="session-visibility"
-              className="input mt-1.5 w-full bg-surface"
-              value={visibility}
-              onChange={(e) => setVisibility(e.target.value as SessionVisibility)}
-            >
-              <option value="private">Private</option>
-              <option value="friends">Friends</option>
-              <option value="public">Public</option>
-            </select>
           </div>
         </div>
 
