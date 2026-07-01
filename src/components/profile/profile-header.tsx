@@ -69,8 +69,8 @@ export function ProfileHeader({ productivityScore, joinedLabel, currentStreak, i
           </div>
 
           {/* Right: Score & Actions */}
-          <div className="flex flex-col sm:items-end gap-3 shrink-0">
-            <div className="text-left sm:text-right">
+          <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto mt-4 sm:mt-0 pt-4 sm:pt-0 border-t border-border/40 sm:border-none shrink-0 gap-4">
+            <div className="text-left sm:text-right flex-1 sm:flex-none">
               <p className="text-[10px] font-semibold uppercase tracking-wider text-brown-muted mb-0.5">
                 Productivity Score
               </p>
@@ -80,14 +80,15 @@ export function ProfileHeader({ productivityScore, joinedLabel, currentStreak, i
                 </p>
               </div>
             </div>
-            <div className="flex flex-wrap gap-2 mt-1 sm:mt-2">
+            <div className="flex flex-wrap justify-end gap-2">
               {!isGuest && isOwnProfile && needsSetup && (
                 <button
                   onClick={() => setIsEditDialogOpen(true)}
-                  className="btn-secondary text-xs px-3 py-1.5 flex items-center gap-2"
+                  className="btn-secondary text-xs px-3 py-1.5 flex items-center gap-1.5"
                 >
                   <Settings2 className="w-3.5 h-3.5" />
-                  Complete Profile Setup
+                  <span className="hidden sm:inline">Complete Profile Setup</span>
+                  <span className="sm:hidden">Setup</span>
                 </button>
               )}
               {isGuest && isOwnProfile && (
@@ -95,7 +96,7 @@ export function ProfileHeader({ productivityScore, joinedLabel, currentStreak, i
                   href="/auth"
                   className="btn-secondary text-xs px-3 py-1.5"
                 >
-                  Sign up to save progress
+                  Sign up <span className="hidden sm:inline">to save progress</span>
                 </Link>
               )}
             </div>

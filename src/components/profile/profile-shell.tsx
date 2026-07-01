@@ -79,24 +79,26 @@ export function ProfileShell() {
   }, [joinedAt]);
 
   const followersLabel = (
-    <div className="flex flex-wrap items-center gap-x-6 gap-y-3 pt-2">
-      <button 
-        onClick={() => setModalType("followers")}
-        className="group flex items-center gap-1.5 text-[14px] hover:opacity-80 transition-opacity focus:outline-none"
-      >
-        <span className="font-bold text-brown">{followerCount}</span>
-        <span className="text-brown-muted font-medium group-hover:text-brown transition-colors">Followers</span>
-      </button>
+    <div className="flex flex-col sm:flex-row sm:items-center gap-y-3 sm:gap-y-0 gap-x-6 pt-2">
+      <div className="flex items-center gap-4 sm:gap-6">
+        <button 
+          onClick={() => setModalType("followers")}
+          className="group flex items-center gap-1.5 text-[14px] hover:opacity-80 transition-opacity focus:outline-none"
+        >
+          <span className="font-bold text-brown">{followerCount}</span>
+          <span className="text-brown-muted font-medium group-hover:text-brown transition-colors">Followers</span>
+        </button>
 
-      <div className="w-px h-4 bg-black/10 dark:bg-white/10 hidden sm:block" />
+        <div className="w-px h-4 bg-black/10 dark:bg-white/10" />
 
-      <button 
-        onClick={() => setModalType("following")}
-        className="group flex items-center gap-1.5 text-[14px] hover:opacity-80 transition-opacity focus:outline-none"
-      >
-        <span className="font-bold text-brown">{followingCount}</span>
-        <span className="text-brown-muted font-medium group-hover:text-brown transition-colors">Following</span>
-      </button>
+        <button 
+          onClick={() => setModalType("following")}
+          className="group flex items-center gap-1.5 text-[14px] hover:opacity-80 transition-opacity focus:outline-none"
+        >
+          <span className="font-bold text-brown">{followingCount}</span>
+          <span className="text-brown-muted font-medium group-hover:text-brown transition-colors">Following</span>
+        </button>
+      </div>
 
       <div className="w-px h-4 bg-black/10 dark:bg-white/10 hidden sm:block" />
 
