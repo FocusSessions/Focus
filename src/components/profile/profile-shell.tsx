@@ -79,7 +79,7 @@ export function ProfileShell() {
   }, [joinedAt]);
 
   const followersLabel = (
-    <div className="flex flex-col sm:flex-row sm:items-center gap-y-3 sm:gap-y-0 gap-x-6 pt-2">
+    <div className="flex flex-col sm:flex-row sm:items-center gap-y-2 sm:gap-y-0 gap-x-6 pt-2">
       <div className="flex items-center gap-4 sm:gap-6">
         <button 
           onClick={() => setModalType("followers")}

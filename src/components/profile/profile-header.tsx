@@ -39,7 +39,7 @@ export function ProfileHeader({ productivityScore, joinedLabel, currentStreak, i
     <header className="mb-6 space-y-3">
       <div className="card p-5 sm:p-7 flex flex-col">
         {/* Top Section */}
-        <div className="flex flex-col sm:flex-row justify-between items-start gap-6 mb-5">
+        <div className="flex flex-col sm:flex-row justify-between items-start gap-4 sm:gap-6 mb-3 sm:mb-5">
           {/* Left: Avatar + Details */}
           <div className="flex items-start gap-5 w-full sm:w-auto flex-1">
             <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sage to-[#5a7a5f] text-2xl font-bold text-white font-serif leading-[0] shadow-sm">
@@ -75,7 +75,7 @@ export function ProfileHeader({ productivityScore, joinedLabel, currentStreak, i
           </div>
 
           {/* Right: Score & Actions */}
-          <div className="flex flex-col items-end shrink-0 gap-3 w-full sm:w-auto">
+          <div className={`${isOwnProfile && (needsSetup || isGuest) ? 'flex' : 'hidden sm:flex'} flex-col items-end shrink-0 gap-3 w-full sm:w-auto`}>
             <div className="hidden sm:block text-right">
               <p className="text-[10px] font-semibold uppercase tracking-wider text-brown-muted mb-0.5">
                 Productivity Score
