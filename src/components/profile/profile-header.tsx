@@ -46,16 +46,22 @@ export function ProfileHeader({ productivityScore, joinedLabel, currentStreak, i
               {initial}
             </div>
             <div className="flex flex-col min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="font-serif text-[24px] md:text-[32px] font-bold text-brown leading-none">{displayName}</h1>
-                <div className="flex items-center justify-center cursor-help">
-                  <RankBadgeIcon rankId={currentRank.id} className="w-5 h-5 drop-shadow-sm transition-transform hover:scale-110" />
-                </div>
-                {followAction && (
-                  <div className="ml-1 mt-1">
-                    {followAction}
+              <div className="flex flex-wrap items-center justify-between gap-2 w-full pr-1 sm:pr-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h1 className="font-serif text-[24px] md:text-[32px] font-bold text-brown leading-none">{displayName}</h1>
+                  <div className="flex items-center justify-center cursor-help">
+                    <RankBadgeIcon rankId={currentRank.id} className="w-5 h-5 drop-shadow-sm transition-transform hover:scale-110" />
                   </div>
-                )}
+                  {followAction && (
+                    <div className="ml-1 mt-1">
+                      {followAction}
+                    </div>
+                  )}
+                </div>
+                {/* Mobile Score */}
+                <div className="sm:hidden text-2xl font-serif font-medium text-terracotta leading-none shrink-0">
+                  <CountingNumber value={productivityScore} />
+                </div>
               </div>
               {username && (
                 <p className="mt-1 text-[14px] text-brown-muted/90">@{username}</p>
@@ -69,37 +75,39 @@ export function ProfileHeader({ productivityScore, joinedLabel, currentStreak, i
           </div>
 
           {/* Right: Score & Actions */}
-          <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto mt-4 sm:mt-0 pt-4 sm:pt-0 border-t border-border/40 sm:border-none shrink-0 gap-4">
-            <div className="text-left sm:text-right flex-1 sm:flex-none">
-              <p className="hidden sm:block text-[10px] font-semibold uppercase tracking-wider text-brown-muted mb-0.5">
+          <div className="flex flex-col items-end shrink-0 gap-3 w-full sm:w-auto">
+            <div className="hidden sm:block text-right">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-brown-muted mb-0.5">
                 Productivity Score
               </p>
-              <div className="flex items-baseline sm:justify-end gap-2">
-                <p className="text-2xl md:text-3xl font-serif font-medium text-terracotta leading-none">
+              <div className="flex items-baseline justify-end gap-2">
+                <p className="text-3xl font-serif font-medium text-terracotta leading-none">
                   <CountingNumber value={productivityScore} />
                 </p>
               </div>
             </div>
-            <div className="flex flex-wrap justify-end gap-2">
-              {!isGuest && isOwnProfile && needsSetup && (
-                <button
-                  onClick={() => setIsEditDialogOpen(true)}
-                  className="btn-secondary text-xs px-3 py-1.5 flex items-center gap-1.5"
-                >
-                  <Settings2 className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Complete Profile Setup</span>
-                  <span className="sm:hidden">Setup</span>
-                </button>
-              )}
-              {isGuest && isOwnProfile && (
-                <Link
-                  href="/auth"
-                  className="btn-secondary text-xs px-3 py-1.5"
-                >
-                  Sign up <span className="hidden sm:inline">to save progress</span>
-                </Link>
-              )}
-            </div>
+            {isOwnProfile && (needsSetup || isGuest) && (
+              <div className="flex flex-wrap justify-end gap-2 w-full sm:w-auto mt-3 sm:mt-0 pt-4 sm:pt-0 border-t border-border/40 sm:border-none">
+                {!isGuest && needsSetup && (
+                  <button
+                    onClick={() => setIsEditDialogOpen(true)}
+                    className="btn-secondary text-xs px-3 py-1.5 flex items-center gap-1.5"
+                  >
+                    <Settings2 className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Complete Profile Setup</span>
+                    <span className="sm:hidden">Setup</span>
+                  </button>
+                )}
+                {isGuest && (
+                  <Link
+                    href="/auth"
+                    className="btn-secondary text-xs px-3 py-1.5"
+                  >
+                    Sign up <span className="hidden sm:inline">to save progress</span>
+                  </Link>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
