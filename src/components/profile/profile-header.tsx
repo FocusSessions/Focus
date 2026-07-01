@@ -71,7 +71,7 @@ export function ProfileHeader({ productivityScore, joinedLabel, currentStreak, i
           {/* Right: Score & Actions */}
           <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto mt-4 sm:mt-0 pt-4 sm:pt-0 border-t border-border/40 sm:border-none shrink-0 gap-4">
             <div className="text-left sm:text-right flex-1 sm:flex-none">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-brown-muted mb-0.5">
+              <p className="hidden sm:block text-[10px] font-semibold uppercase tracking-wider text-brown-muted mb-0.5">
                 Productivity Score
               </p>
               <div className="flex items-baseline sm:justify-end gap-2">
