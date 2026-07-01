@@ -194,7 +194,7 @@ function FeedItemCard({
           <div className="min-w-0 flex-1 pt-0.5">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <div className="flex items-center gap-2 mb-0.5">
+                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-0.5">
                   {profile ? (
                     <button
                       onClick={(e) => {
@@ -205,12 +205,12 @@ function FeedItemCard({
                           router.push(`/user/${profile.username}`);
                         }
                       }}
-                      className="group/name flex items-baseline gap-x-1.5 text-left outline-none"
+                      className="group/name flex flex-wrap items-baseline gap-x-1.5 text-left outline-none"
                     >
-                      <span className="truncate text-[15px] font-bold text-brown group-hover/name:text-terracotta transition-colors">
+                      <span className="truncate max-w-[120px] sm:max-w-[200px] text-[15px] font-bold text-brown group-hover/name:text-terracotta transition-colors">
                         {profile.display_name || profile.username}
                       </span>
-                      <span className="truncate text-[13px] text-brown-muted font-medium">
+                      <span className="truncate max-w-[100px] sm:max-w-[150px] text-[13px] text-brown-muted font-medium">
                         @{profile.username}
                       </span>
                     </button>
@@ -219,8 +219,8 @@ function FeedItemCard({
                       Unknown User
                     </span>
                   )}
-                  <span className="text-brown-muted/40 text-[10px]">•</span>
-                  <span className="text-[12px] font-medium text-brown-muted/70">
+                  <span className="text-brown-muted/40 text-[10px] hidden sm:inline">•</span>
+                  <span className="text-[12px] font-medium text-brown-muted/70 whitespace-nowrap">
                     {dayLabel(getLogicalDateKey(session.startedAt, session.timezoneOffset))}
                   </span>
                 </div>
@@ -232,16 +232,14 @@ function FeedItemCard({
                 <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold tracking-wide uppercase text-brown-muted/80">
                   <span className="bg-sand-dark px-2 py-0.5 rounded text-brown/70">{session.category || "other"}</span>
                   <span>{formatTimeRange(session.startedAt, session.endedAt)}</span>
+                  <span className="text-brown-muted/40 text-[10px] hidden sm:inline">•</span>
+                  <span className="text-sage bg-sage/10 px-2 py-0.5 rounded-full border border-sage/20 shadow-sm">{formatDurationShort(session.durationMs)}</span>
                 </div>
               </div>
 
               {/* Actions & Follow */}
-              <div className="flex items-center gap-2.5 shrink-0">
-                <div className="bg-sage/10 text-sage px-2.5 py-1 rounded-full font-bold text-[12px] border border-sage/20 shadow-sm">
-                  {formatDurationShort(session.durationMs)}
-                </div>
-
-                {profile && currentUser && currentUser.id !== profile.id && (
+              {profile && currentUser && currentUser.id !== profile.id && (
+                <div className="flex items-center gap-2.5 shrink-0 mt-1 sm:mt-0">
                   <button
                     onClick={(e) => toggleFollow(profile.id, e)}
                     disabled={loadingFollow.has(profile.id)}
@@ -259,8 +257,8 @@ function FeedItemCard({
                       "Follow"
                     )}
                   </button>
-                )}
-              </div>
+                </div>
+              )}
             </div>
             
             {session.description && (
@@ -271,8 +269,8 @@ function FeedItemCard({
                 <div className={`text-[14px] leading-relaxed text-brown/80 relative transition-all duration-300 ${!isExpanded && session.description.length > 100 ? 'line-clamp-2' : ''}`}>
                   {session.description}
                   {!isExpanded && session.description.length > 100 && (
-                    <div className="absolute bottom-0 right-0 bg-gradient-to-l from-white dark:from-[#1A1A1A] via-white/80 dark:via-[#1A1A1A]/80 to-transparent w-20 h-6 flex justify-end items-end">
-                      <span className="text-terracotta text-xs font-semibold hover:underline">more</span>
+                    <div className="absolute bottom-0 right-0 bg-gradient-to-l from-white via-white dark:from-[#1A1A1A] dark:via-[#1A1A1A] to-transparent w-24 h-6 flex justify-end items-end pl-8">
+                      <span className="text-terracotta text-xs font-semibold hover:underline bg-white dark:bg-[#1A1A1A] pl-1">more</span>
                     </div>
                   )}
                 </div>
@@ -659,7 +657,7 @@ export function FeedShell() {
             </p>
           </div>
           
-          <div className="flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-4">
             <div className="relative group">
               <input 
                 type="text" 
@@ -680,7 +678,8 @@ export function FeedShell() {
 
         {/* Filter Row */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-border/30 pb-4 mt-2">
-          <div className="flex flex-wrap p-1.5 gap-1.5 bg-brown/[0.03] shadow-[inset_0_1px_4px_rgba(0,0,0,0.02)] backdrop-blur-xl rounded-[22px] border border-border/60">
+          <div className="w-full sm:w-auto overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
+            <div className="flex flex-nowrap w-max p-1.5 gap-1.5 bg-brown/[0.03] shadow-[inset_0_1px_4px_rgba(0,0,0,0.02)] backdrop-blur-xl rounded-[22px] border border-border/60">
             {[
               { id: "all", label: "All" },
               { id: "coding", label: "Coding" },
@@ -713,6 +712,7 @@ export function FeedShell() {
                 </button>
               );
             })}
+            </div>
           </div>
           
           <div className="flex items-center gap-4">

@@ -37,10 +37,13 @@ const nextConfig = {
           {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=()',
-          },
         ],
       },
     ];
+  },
+  compress: true,
+  compiler: {
+    removeConsole: process.env.NODE_ENV === "production",
   },
 };
 
