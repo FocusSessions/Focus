@@ -163,193 +163,224 @@ function FeedItemCard({
 
   return (
     <article
-      className="group relative overflow-hidden rounded-[16px] mb-5 bg-white dark:bg-[#1A1A1A] border border-black/5 dark:border-white/5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_16px_rgba(0,0,0,0.06)] hover:border-black/10 transition-all duration-300"
+      className="group relative overflow-hidden rounded-[16px] mb-5 bg-white dark:bg-[#1C1E21] border border-black/5 dark:border-white/5 shadow-sm hover:border-black/10 transition-all duration-300"
     >
-      <div className="p-5 sm:p-6">
-        <div className="flex items-start gap-4">
-          {/* Avatar */}
-          {profile ? (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                if (currentUser?.id === profile.id) {
-                  router.push('/profile');
-                } else {
-                  router.push(`/user/${profile.username}`);
-                }
-              }}
-              className="flex-shrink-0 relative outline-none"
-            >
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-sage to-[#5a7a5f] text-lg font-bold text-white shadow-sm transition-transform duration-300 hover:scale-105">
-                {(profile.display_name || profile.username)[0]?.toUpperCase()}
-              </div>
-            </button>
-          ) : (
-             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-sand-dark text-lg font-bold text-brown shadow-sm shrink-0">
-               ?
-             </div>
-          )}
-
-          {/* Content */}
-          <div className="min-w-0 flex-1 pt-0.5">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-0.5">
-                  {profile ? (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (currentUser?.id === profile.id) {
-                          router.push('/profile');
-                        } else {
-                          router.push(`/user/${profile.username}`);
-                        }
-                      }}
-                      className="group/name flex flex-wrap items-baseline gap-x-1.5 text-left outline-none"
-                    >
-                      <span className="truncate max-w-[120px] sm:max-w-[200px] text-[15px] font-bold text-brown group-hover/name:text-terracotta transition-colors">
-                        {profile.display_name || profile.username}
-                      </span>
-                      <span className="truncate max-w-[100px] sm:max-w-[150px] text-[13px] text-brown-muted font-medium">
-                        @{profile.username}
-                      </span>
-                    </button>
-                  ) : (
-                    <span className="truncate text-[15px] font-bold text-brown">
-                      Unknown User
-                    </span>
-                  )}
-                  <span className="text-brown-muted/40 text-[10px] hidden sm:inline">•</span>
-                  <span className="text-[12px] font-medium text-brown-muted/70 whitespace-nowrap">
-                    {dayLabel(getLogicalDateKey(session.startedAt, session.timezoneOffset))}
-                  </span>
-                </div>
-                
-                <h2 className="text-[17px] font-bold text-brown leading-snug mb-2 group-hover:text-terracotta transition-colors">
-                  {session.title || "Focus Session"}
-                </h2>
-                
-                <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold tracking-wide uppercase text-brown-muted/80">
-                  <span className="bg-sand-dark px-2 py-0.5 rounded text-brown/70">{session.category || "other"}</span>
-                  <span>{formatTimeRange(session.startedAt, session.endedAt)}</span>
-                  <span className="text-brown-muted/40 text-[10px] hidden sm:inline">•</span>
-                  <span className="text-sage bg-sage/10 px-2 py-0.5 rounded-full border border-sage/20 shadow-sm">{formatDurationShort(session.durationMs)}</span>
-                </div>
-              </div>
-
-              {/* Actions & Follow */}
-              {profile && currentUser && currentUser.id !== profile.id && (
-                <div className="flex items-center gap-2.5 shrink-0 mt-1 sm:mt-0">
-                  <button
-                    onClick={(e) => toggleFollow(profile.id, e)}
-                    disabled={loadingFollow.has(profile.id)}
-                    className={`flex items-center justify-center rounded-full border px-3 py-1 text-[11px] font-bold transition-all duration-200 disabled:opacity-50 ${
-                      followingIds.has(profile.id)
-                        ? "border-border bg-surface text-brown-muted hover:border-terracotta/40 hover:text-terracotta hover:bg-terracotta/5"
-                        : "border-terracotta bg-terracotta text-white hover:bg-terracotta-hover shadow-sm hover:shadow"
-                    }`}
-                  >
-                    {loadingFollow.has(profile.id) ? (
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                    ) : followingIds.has(profile.id) ? (
-                      "Following"
-                    ) : (
-                      "Follow"
-                    )}
-                  </button>
-                </div>
-              )}
-            </div>
-            
-            {session.description && (
-              <div 
-                className={`mt-3 ${session.description.length > 100 ? 'cursor-pointer' : ''}`}
-                onClick={() => session.description!.length > 100 && setIsExpanded(!isExpanded)}
+      <div className="p-5">
+        <div className="flex items-start justify-between">
+          <div className="flex items-start gap-3">
+            {/* Avatar */}
+            {profile ? (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (currentUser?.id === profile.id) {
+                    router.push('/profile');
+                  } else {
+                    router.push(`/user/${profile.username}`);
+                  }
+                }}
+                className="flex-shrink-0 relative outline-none"
               >
-                <div className={`text-[14px] leading-relaxed text-brown/80 relative transition-all duration-300 ${!isExpanded && session.description.length > 100 ? 'line-clamp-2' : ''}`}>
-                  {session.description}
-                  {!isExpanded && session.description.length > 100 && (
-                    <div className="absolute bottom-0 right-0 bg-gradient-to-l from-white via-white dark:from-[#1A1A1A] dark:via-[#1A1A1A] to-transparent w-24 h-6 flex justify-end items-end pl-8">
-                      <span className="text-terracotta text-xs font-semibold hover:underline bg-white dark:bg-[#1A1A1A] pl-1">more</span>
-                    </div>
-                  )}
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#54865B] text-lg font-bold text-white shadow-sm transition-transform duration-300 hover:scale-105">
+                  {(profile.display_name || profile.username)[0]?.toUpperCase()}
                 </div>
-              </div>
+              </button>
+            ) : (
+               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-zinc-200 dark:bg-zinc-800 text-lg font-bold text-zinc-500 dark:text-zinc-400 shadow-sm shrink-0">
+                 ?
+               </div>
             )}
 
-            {/* Interaction Bar */}
-            <div className="mt-4 pt-3 border-t border-black/5 flex items-center justify-between">
-              <div className="flex items-center gap-5">
-                <button 
-                  onClick={handleLike}
-                  className={`flex items-center gap-1.5 text-[13px] font-semibold transition-colors outline-none ${
-                    isLiked ? "text-terracotta" : "text-brown-muted hover:text-brown"
-                  }`}
+            {/* User Info */}
+            <div className="flex flex-col">
+              {profile ? (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (currentUser?.id === profile.id) {
+                      router.push('/profile');
+                    } else {
+                      router.push(`/user/${profile.username}`);
+                    }
+                  }}
+                  className="flex flex-col text-left outline-none group/name"
                 >
-                  <svg className={`w-4 h-4 ${isLiked ? "fill-terracotta" : "fill-transparent"}`} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                  </svg>
-                  <span>{likeCount}</span>
+                  <span className="text-[15px] font-bold text-zinc-900 dark:text-zinc-100 group-hover/name:text-terracotta dark:group-hover/name:text-white transition-colors">
+                    {profile.display_name || profile.username}
+                  </span>
+                  <span className="text-[13px] text-zinc-500 dark:text-zinc-400 font-medium leading-tight">
+                    @{profile.username}
+                  </span>
                 </button>
-
-                <button 
-                  onClick={toggleComments}
-                  className={`flex items-center gap-1.5 text-[13px] font-semibold transition-colors outline-none ${
-                    showComments || commentCount > 0 ? "text-sage" : "text-brown-muted hover:text-brown"
-                  }`}
-                >
-                  <svg className={`w-4 h-4 ${showComments || commentCount > 0 ? "fill-sage/20" : "fill-transparent"}`} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                  </svg>
-                  <span>{commentCount}</span>
-                </button>
-              </div>
+              ) : (
+                <span className="text-[15px] font-bold text-zinc-900 dark:text-zinc-100">
+                  Unknown User
+                </span>
+              )}
+              <span className="text-[13px] font-medium text-zinc-500 dark:text-zinc-400 mt-0.5">
+                {dayLabel(getLogicalDateKey(session.startedAt, session.timezoneOffset))}
+              </span>
             </div>
           </div>
+
+          {/* Follow Button */}
+          {profile && currentUser && currentUser.id !== profile.id && (
+            <button
+              onClick={(e) => toggleFollow(profile.id, e)}
+              disabled={loadingFollow.has(profile.id)}
+              className={`flex items-center justify-center rounded-full px-4 py-1.5 text-[13px] font-bold transition-all duration-200 disabled:opacity-50 ${
+                followingIds.has(profile.id)
+                  ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700"
+                  : "bg-[#C7573B] text-white hover:bg-[#b04a30]"
+              }`}
+            >
+              {loadingFollow.has(profile.id) ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : followingIds.has(profile.id) ? (
+                "Following"
+              ) : (
+                "Follow"
+              )}
+            </button>
+          )}
+        </div>
+
+        {/* Content */}
+        <div className="mt-4">
+          <h2 className="text-[17px] font-normal text-zinc-800 dark:text-zinc-100 leading-snug mb-3 break-words">
+            {session.title || "Focus Session"}
+          </h2>
+          
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="bg-teal-50 dark:bg-[#183D39] text-teal-600 dark:text-[#36B198] px-3 py-1 rounded-full text-[13px] font-medium tracking-wide capitalize">
+              {session.category || "Gaming"}
+            </span>
+            <span className="bg-orange-50 dark:bg-[#472F1F] text-orange-600 dark:text-[#CC8648] px-3 py-1 rounded-full text-[13px] font-medium tracking-wide uppercase">
+              {formatDurationShort(session.durationMs)}
+            </span>
+          </div>
+          
+          {session.description && (
+            <div 
+              className={`mt-3 ${session.description.length > 100 ? 'cursor-pointer' : ''}`}
+              onClick={() => session.description!.length > 100 && setIsExpanded(!isExpanded)}
+            >
+              <div className={`text-[14px] leading-relaxed text-zinc-600 dark:text-zinc-300 relative transition-all duration-300 ${!isExpanded && session.description.length > 100 ? 'line-clamp-2' : ''}`}>
+                {session.description}
+                {!isExpanded && session.description.length > 100 && (
+                  <div className="absolute bottom-0 right-0 bg-gradient-to-l from-white via-white dark:from-[#1C1E21] dark:via-[#1C1E21] to-transparent w-24 h-6 flex justify-end items-end pl-8">
+                    <span className="text-[#C7573B] text-xs font-semibold hover:underline bg-white dark:bg-[#1C1E21] pl-1">more</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Interaction Bar */}
+        <div className="mt-5 pt-4 border-t border-black/5 dark:border-white/5 flex items-center justify-between">
+          <div className="flex items-center gap-6">
+            <button 
+              onClick={handleLike}
+              className={`flex items-center gap-2 text-[14px] font-medium transition-colors outline-none ${
+                isLiked ? "text-pink-500" : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"
+              }`}
+            >
+              <svg className={`w-[22px] h-[22px] ${isLiked ? "fill-pink-500" : "fill-transparent"}`} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+              <span>{likeCount} {likeCount === 1 ? 'Like' : 'Likes'}</span>
+            </button>
+
+            <button 
+              onClick={toggleComments}
+              className={`flex items-center gap-2 text-[14px] font-medium transition-colors outline-none ${
+                showComments || commentCount > 0 ? "text-zinc-800 dark:text-zinc-200" : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"
+              }`}
+            >
+              <svg className={`w-[22px] h-[22px] fill-transparent`} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+              <span>{commentCount} {commentCount === 1 ? 'Comment' : 'Comments'}</span>
+            </button>
+          </div>
+          
+          <button className="text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors">
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+            </svg>
+          </button>
         </div>
       </div>
 
       {/* Comments Section */}
-      <div className={`overflow-hidden transition-all duration-300 ease-in-out bg-sand-dark/30 dark:bg-black/10 ${showComments ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
-        <div className="p-5 border-t border-black/5">
+      <div className={`overflow-hidden transition-all duration-300 ease-in-out bg-zinc-50 dark:bg-[#1A1C1F] ${showComments ? 'max-h-[800px] opacity-100 border-t border-black/5 dark:border-white/5' : 'max-h-0 opacity-0'}`}>
+        <div className="p-5">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-zinc-800 dark:text-zinc-100 font-semibold text-[15px]">Comments</h3>
+          </div>
+          
+          {/* Comments List */}
           {commentsLoading ? (
-            <div className="flex justify-center py-4">
-              <Loader2 className="h-4 w-4 animate-spin text-brown-muted" />
+            <div className="flex justify-center py-6">
+              <Loader2 className="h-5 w-5 animate-spin text-zinc-500" />
             </div>
           ) : loadedComments.length > 0 ? (
-            <div className="space-y-4 mb-5 max-h-[300px] overflow-y-auto scrollbar-thin pr-2">
-              {loadedComments.map((c) => (
-                <div key={c.id} className="flex items-start gap-3 text-sm">
-                  <div className="h-7 w-7 rounded-full bg-gradient-to-br from-terracotta/80 to-terracotta flex items-center justify-center text-white text-xs font-bold shrink-0">
-                    {(c.profiles?.display_name || c.profiles?.username || "?")[0]?.toUpperCase()}
+            <div className="space-y-5 mb-6 max-h-[400px] overflow-y-auto scrollbar-thin pr-2">
+              {loadedComments.map((c, i) => {
+                const colors = [
+                  "from-[#8E52A4] to-[#633973]", // Purple
+                  "from-[#38A169] to-[#276749]", // Green
+                  "from-[#D69E2E] to-[#975A16]", // Yellow
+                  "from-[#3182CE] to-[#2B6CB0]", // Blue
+                ];
+                const colorClass = colors[i % colors.length];
+                return (
+                  <div key={c.id} className="flex items-start gap-3">
+                    <div className={`h-10 w-10 rounded-full bg-gradient-to-br ${colorClass} flex items-center justify-center text-white text-[15px] font-medium shrink-0`}>
+                      {(c.profiles?.display_name || c.profiles?.username || "?")[0]?.toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0 pt-0.5">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className="font-semibold text-zinc-800 dark:text-zinc-200 text-[14px]">
+                          {c.profiles?.display_name || c.profiles?.username || "Unknown"}
+                        </span>
+                        <span className="text-zinc-500 dark:text-zinc-500 text-[12px]">
+                           {dayLabel(getLogicalDateKey(new Date(c.created_at).getTime(), 0))}
+                        </span>
+                      </div>
+                      <p className="text-zinc-700 dark:text-zinc-300 text-[14px] leading-relaxed break-words">{c.content}</p>
+                    </div>
+                    <button className="text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 pt-1 shrink-0">
+                      <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                      </svg>
+                    </button>
                   </div>
-                  <div className="bg-white dark:bg-[#222] px-3 py-2.5 rounded-[14px] rounded-tl-sm border border-black/5 shadow-sm">
-                    <span className="font-bold text-brown block text-[11px] mb-0.5">{c.profiles?.display_name || c.profiles?.username || "Unknown"}</span>
-                    <span className="text-brown/90 text-[13px] leading-relaxed block">{c.content}</span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
-          ) : null}
+          ) : (
+            <div className="text-center text-zinc-500 text-[14px] py-4 mb-4">No comments yet.</div>
+          )}
           
-          <form onSubmit={handleCommentSubmit} className="flex gap-3 relative">
-            <div className="h-9 w-9 rounded-full bg-sage flex items-center justify-center text-white text-xs font-bold shrink-0">
-              {currentUser?.display_name?.[0]?.toUpperCase() || currentUser?.username?.[0]?.toUpperCase() || "?"}
-            </div>
+          {/* Input Area */}
+          <form onSubmit={handleCommentSubmit} className="flex gap-3 relative border-t border-black/5 dark:border-white/5 pt-4">
             <input 
               type="text" 
-              placeholder={currentUser ? "Add a comment..." : "Sign in to comment..."}
+              placeholder={currentUser ? "Write a comment..." : "Sign in to comment..."}
               disabled={!currentUser}
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              className="flex-1 bg-white dark:bg-[#222] border border-border/50 rounded-full pl-4 pr-10 text-[13px] focus:outline-none focus:ring-2 focus:ring-terracotta/30 transition-all shadow-sm"
+              className="flex-1 bg-white dark:bg-[#2C3034] border border-zinc-200 dark:border-transparent rounded-full pl-5 pr-12 py-2.5 text-[14px] text-zinc-800 dark:text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-zinc-300 dark:focus:border-zinc-500 transition-all shadow-sm dark:shadow-none"
             />
             <button 
               type="submit"
               disabled={!comment.trim()}
-              className="absolute right-1.5 top-1/2 -translate-y-1/2 p-1.5 text-terracotta hover:bg-terracotta/10 rounded-full disabled:opacity-40 transition-colors"
+              className="absolute right-2 top-[24px] -translate-y-1/2 h-[34px] w-[34px] bg-[#C7573B] hover:bg-[#b04a30] flex items-center justify-center rounded-full disabled:opacity-50 transition-colors shadow-sm"
             >
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <svg className="w-4 h-4 text-white ml-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
               </svg>
             </button>
