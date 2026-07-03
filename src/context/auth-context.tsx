@@ -185,12 +185,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (session?.user) {
           setUser(session.user);
           const p = await ensureProfileExists(session.user);
-          if (mounted) setProfile(p);
+          if (mounted) {
+            setProfile(p);
+            setIsLoading(false);
+          }
           initHandledRef.current = true;
+        } else {
+          // No session — guest mode, loading is done
+          if (mounted) setIsLoading(false);
         }
       } catch (err) {
         console.error("[auth] Session initialization failed:", (err as any)?.message || err);
-      } finally {
         if (mounted) setIsLoading(false);
       }
     };

@@ -411,7 +411,10 @@ export function FeedShell() {
 
   // Load social feed (global for guests, personal for signed-in users)
   useEffect(() => {
-    if (authLoading) return;
+    if (authLoading) {
+      setFeedLoading(true);
+      return;
+    }
 
     let mounted = true;
 

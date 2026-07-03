@@ -128,7 +128,7 @@ function newId(): string {
 }
 
 export function FocusProvider({ children }: { children: ReactNode }) {
-  const { user, isGuest } = useAuth();
+  const { user, isGuest, isLoading: authLoading } = useAuth();
   const [loadState, setLoadState] = useState<LoadState>("loading");
   const [loadError, setLoadError] = useState<string | null>(null);
   const [activities, setActivities] = useState<Activity[]>([]);
@@ -220,6 +220,8 @@ export function FocusProvider({ children }: { children: ReactNode }) {
     }
     // Only act when the identity actually changes
     if (prevUserIdRef.current === currentUserId) return;
+    // Don't reboot while auth is still resolving
+    if (authLoading) return;
     prevUserIdRef.current = currentUserId;
 
     // Reset all state to clean defaults
@@ -249,7 +251,7 @@ export function FocusProvider({ children }: { children: ReactNode }) {
     // Re-load fresh data from storage (which should be clean after clearUserData)
     bootedRef.current = false; // Allow boot() to run again past the StrictMode guard
     boot();
-  }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [user?.id, authLoading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Sync cloud sessions down to local, and local up to cloud
   useEffect(() => {
