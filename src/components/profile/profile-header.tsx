@@ -42,7 +42,7 @@ export function ProfileHeader({ productivityScore, joinedLabel, currentStreak, i
         <div className="flex flex-col sm:flex-row justify-between items-start gap-4 sm:gap-6 mb-3 sm:mb-5">
           {/* Left: Avatar + Details */}
           <div className="flex items-start gap-5 w-full sm:w-auto flex-1">
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sage to-[#5a7a5f] text-2xl font-bold text-white font-serif leading-[0] shadow-sm">
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sage to-[#5a7a5f] text-2xl font-bold text-white font-serif shadow-sm">
               {initial}
             </div>
             <div className="flex flex-col min-w-0 flex-1">

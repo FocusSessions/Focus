@@ -166,13 +166,14 @@ export function FocusProvider({ children }: { children: ReactNode }) {
     setLoadState("loading");
     setLoadError(null);
     try {
-      const [loadedActivities, savedTimer, music, loadedUploads] = await Promise.all([
+      // Parallelize ALL IDB reads — loadUserPreferences was previously sequential
+      const [loadedActivities, savedTimer, music, loadedUploads, prefs] = await Promise.all([
         loadActivities(),
         loadActiveTimer(),
         loadMusicSettings(),
         loadUploads(),
+        loadUserPreferences(),
       ]);
-      const prefs = await loadUserPreferences();
       
       // Ensure joinedAt is populated from existing activities if missing
       if (!prefs.joinedAt) {
@@ -316,9 +317,12 @@ export function FocusProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!activeTimer || activeTimer.isPaused) return;
-    const id = window.setInterval(() => tick(), 50);
+    // Use 200ms tick when milliseconds are hidden (display only changes every second)
+    // Use 50ms tick when milliseconds are shown for smooth display
+    const interval = userPreferences.showMilliseconds ? 50 : 200;
+    const id = window.setInterval(() => tick(), interval);
     return () => clearInterval(id);
-  }, [activeTimer]);
+  }, [activeTimer, userPreferences.showMilliseconds]);
 
   useEffect(() => {
     if (!activeTimer) return;
@@ -630,6 +634,23 @@ export function FocusProvider({ children }: { children: ReactNode }) {
     return activities.filter((a): a is FocusSessionActivity => a.type === 'focus_session');
   }, [activities]);
 
+  // Memoize derived data — previously recomputed on every 50ms tick (20×/sec)
+  const todayList = useMemo(() => todayActivities(focusSessions), [focusSessions]);
+  const todayTotal = useMemo(() => todayTotalMs(focusSessions), [focusSessions]);
+  const history = useMemo(() => historyDays(focusSessions), [focusSessions]);
+
+  const addCustomCategory = useCallback((cat: string) => {
+    const trimmed = cat.trim();
+    if (!trimmed) return;
+    setUserPreferences(prev => {
+      const existing = prev.customCategories ?? [];
+      if (existing.some(c => c.toLowerCase() === trimmed.toLowerCase())) return prev;
+      const next = { ...prev, customCategories: [...existing, trimmed] };
+      void saveUserPreferences(next);
+      return next;
+    });
+  }, []);
+
   const value: FocusState & FocusActions = {
     loadState,
     loadError,
@@ -666,9 +687,9 @@ export function FocusProvider({ children }: { children: ReactNode }) {
     elapsedMs,
     isRunning,
     isPaused,
-    todayList: todayActivities(focusSessions),
-    todayTotal: todayTotalMs(focusSessions),
-    history: historyDays(focusSessions),
+    todayList,
+    todayTotal,
+    history,
     dailyGoalMinutes: userPreferences.dailyGoalMinutes,
     setDailyGoalMinutes,
     sessionGoalMinutes: userPreferences.sessionGoalMinutes,
@@ -681,17 +702,7 @@ export function FocusProvider({ children }: { children: ReactNode }) {
     setTimerDirection,
     joinedAt: userPreferences.joinedAt,
     customCategories: userPreferences.customCategories ?? [],
-    addCustomCategory: useCallback((cat: string) => {
-      const trimmed = cat.trim();
-      if (!trimmed) return;
-      setUserPreferences(prev => {
-        const existing = prev.customCategories ?? [];
-        if (existing.some(c => c.toLowerCase() === trimmed.toLowerCase())) return prev;
-        const next = { ...prev, customCategories: [...existing, trimmed] };
-        void saveUserPreferences(next);
-        return next;
-      });
-    }, []),
+    addCustomCategory,
   };
 
   return (

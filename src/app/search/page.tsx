@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, startTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useDebounce } from "@/hooks/use-debounce";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/auth-context";
 import type { Profile } from "@/types/supabase";
@@ -19,6 +20,8 @@ export default function SearchPage() {
   const [searching, setSearching] = useState(false);
   const [followingIds, setFollowingIds] = useState<Set<string>>(new Set());
   const [loadingFollows, setLoadingFollows] = useState<Set<string>>(new Set());
+
+  const debouncedQuery = useDebounce(query, 300);
 
   // Load who the current user follows
   useEffect(() => {
@@ -38,7 +41,7 @@ export default function SearchPage() {
   useEffect(() => {
     let active = true;
 
-    if (!query.trim()) {
+    if (!debouncedQuery.trim()) {
       setResults([]);
       setSearching(false);
       return;
@@ -46,12 +49,12 @@ export default function SearchPage() {
 
     setSearching(true);
 
-    const timeoutId = setTimeout(async () => {
+    const performSearch = async () => {
       // Escape special Postgres ilike characters:
       // 1. Escape backslashes first (\ → \\)
       // 2. Then escape % and _ with backslash
       // 3. Strip other problematic chars
-      const sanitizedQuery = query
+      const sanitizedQuery = debouncedQuery
         .replace(/\\/g, "\\\\")         // escape backslashes first
         .replace(/%/g, "\\%")           // escape % for ilike
         .replace(/_/g, "\\_")           // escape _ for ilike
@@ -94,13 +97,14 @@ export default function SearchPage() {
           setSearching(false);
         }
       }
-    }, 400);
+    };
+
+    performSearch();
 
     return () => {
       active = false;
-      clearTimeout(timeoutId);
     };
-  }, [query]);
+  }, [debouncedQuery]);
 
   const toggleFollow = useCallback(
     async (targetId: string) => {
@@ -169,7 +173,12 @@ export default function SearchPage() {
           type="text"
           placeholder="Search by username or name…"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            const val = e.target.value;
+            startTransition(() => {
+              setQuery(val);
+            });
+          }}
           className="input pl-11 pr-10"
           autoFocus
         />

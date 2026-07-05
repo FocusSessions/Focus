@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { useFocus } from "@/context/focus-app";
 import { useAuth } from "@/context/auth-context";
 import { supabase } from "@/lib/supabase";
@@ -17,18 +18,20 @@ import { getLogicalDateKey } from "@/lib/time";
 
 import { ProfileHeader } from "@/components/profile/profile-header";
 import { calculateProductivityScore } from "@/lib/score";
-import { OverviewTab } from "@/components/profile/overview-tab";
-import { ActivityTab } from "@/components/profile/activity-tab";
-import { ProgressTab } from "@/components/profile/progress-tab";
-import { AchievementsTab } from "@/components/profile/achievements-tab";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { FollowListModal } from "@/components/profile/follow-list-modal";
+
+// Lazy-load tab panels — user only sees one at a time, no need to bundle all 4
+const OverviewTab = dynamic(() => import("@/components/profile/overview-tab").then(m => ({ default: m.OverviewTab })));
+const ActivityTab = dynamic(() => import("@/components/profile/activity-tab").then(m => ({ default: m.ActivityTab })));
+const ProgressTab = dynamic(() => import("@/components/profile/progress-tab").then(m => ({ default: m.ProgressTab })));
+const AchievementsTab = dynamic(() => import("@/components/profile/achievements-tab").then(m => ({ default: m.AchievementsTab })));
 
 type TabId = "overview" | "activity" | "progress" | "achievements";
 
 export function ProfileShell() {
   const { activities, loadState, loadError, retryLoad, joinedAt } = useFocus();
-  const { profile, isLoading: authLoading } = useAuth();
+  const { profile, profileLoading } = useAuth();
   
   const [activeTab, setActiveTab] = useState<TabId>("overview");
   const [granularity, setGranularity] = useState<HeatmapGranularity>("month");
@@ -124,10 +127,68 @@ export function ProfileShell() {
   const weeklyChartData = useMemo(() => buildWeeklyChartData(focusSessions), [focusSessions]);
   const monthlyChartData = useMemo(() => buildMonthlyChartData(focusSessions), [focusSessions]);
 
-  if (loadState === "loading" || authLoading) {
+  if (loadState === "loading" || profileLoading) {
     return (
-      <div className="mx-auto max-w-[720px] px-4 py-16 text-center">
-        <p className="text-brown-muted">Loading your profile…</p>
+      <div className="mx-auto max-w-[720px] px-4 md:px-8 pb-24 md:pb-10 pt-6 md:pt-10" aria-busy="true" aria-label="Loading profile">
+        {/* Profile header skeleton */}
+        <header className="mb-6 space-y-3">
+          <div className="card p-5 sm:p-7 flex flex-col">
+            {/* Top section */}
+            <div className="flex flex-col sm:flex-row justify-between items-start gap-4 sm:gap-6 mb-3 sm:mb-5">
+              <div className="flex items-start gap-5 w-full sm:w-auto flex-1">
+                {/* Avatar skeleton */}
+                <div className="skeleton h-16 w-16 shrink-0 !rounded-full" />
+                <div className="flex flex-col min-w-0 flex-1 gap-2.5">
+                  {/* Name skeleton — matches LCP h1 dimensions */}
+                  <div className="skeleton h-7 md:h-9 w-40" />
+                  {/* Username skeleton */}
+                  <div className="skeleton h-4 w-24" />
+                </div>
+              </div>
+              {/* Score skeleton (desktop) */}
+              <div className="hidden sm:flex flex-col items-end shrink-0 gap-1.5">
+                <div className="skeleton h-3 w-28" />
+                <div className="skeleton h-8 w-16" />
+              </div>
+            </div>
+            {/* Divider */}
+            <div className="w-full h-px bg-black/5 dark:bg-white/5 mb-4" />
+            {/* Bottom section — followers / joined */}
+            <div className="flex items-center gap-6 pt-2">
+              <div className="skeleton h-4 w-20" />
+              <div className="skeleton h-4 w-20" />
+              <div className="skeleton h-4 w-32" />
+            </div>
+          </div>
+
+          {/* Streak card skeleton */}
+          <div className="card px-5 py-3.5 flex items-center gap-4">
+            <div className="skeleton h-10 w-10 shrink-0 !rounded-full" />
+            <div className="flex flex-col gap-1.5 flex-1">
+              <div className="skeleton h-4 w-56" />
+              <div className="skeleton h-3 w-32" />
+            </div>
+          </div>
+        </header>
+
+        {/* Tab bar skeleton */}
+        <div className="mb-4">
+          <div className="flex w-max items-center rounded-full border border-border/50 bg-surface/80 p-1 gap-1">
+            <div className="skeleton h-9 w-24 !rounded-full" />
+            <div className="skeleton h-9 w-20 !rounded-full" />
+            <div className="skeleton h-9 w-22 !rounded-full" />
+            <div className="skeleton h-9 w-28 !rounded-full" />
+          </div>
+        </div>
+
+        {/* Content area skeleton */}
+        <div className="space-y-4">
+          <div className="card p-5 space-y-3">
+            <div className="skeleton h-5 w-36" />
+            <div className="skeleton h-4 w-full" />
+            <div className="skeleton h-4 w-3/4" />
+          </div>
+        </div>
       </div>
     );
   }

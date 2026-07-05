@@ -46,6 +46,14 @@ const nextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === "production",
   },
+  experimental: {
+    // Tree-shake heavy icon/chart/animation libraries to only bundle what's used
+    optimizePackageImports: ['lucide-react', 'recharts', 'framer-motion'],
+  },
+  images: {
+    formats: ['image/avif', 'image/webp'],
+  },
 };
 
 module.exports = nextConfig;
+

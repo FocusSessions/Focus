@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useReducer } from "react";
+import { useEffect, useState, useCallback, useReducer, startTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { supabase } from "@/lib/supabase";
@@ -372,7 +372,12 @@ function FeedItemCard({
               placeholder={currentUser ? "Write a comment..." : "Sign in to comment..."}
               disabled={!currentUser}
               value={comment}
-              onChange={(e) => setComment(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                startTransition(() => {
+                  setComment(val);
+                });
+              }}
               className="flex-1 bg-white dark:bg-[#2C3034] border border-zinc-200 dark:border-transparent rounded-full pl-5 pr-12 py-2.5 text-[14px] text-zinc-800 dark:text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-zinc-300 dark:focus:border-zinc-500 transition-all shadow-sm dark:shadow-none"
             />
             <button 
@@ -409,6 +414,19 @@ export function FeedShell() {
   // Category filter state
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
+  // Helper: build a sessions query with category filter and profile join
+  const buildSessionQuery = useCallback((baseQuery: any) => {
+    let query = baseQuery;
+    if (selectedCategory !== "all") {
+      if (selectedCategory === "other") {
+        query = query.or('category.eq.other,category.is.null');
+      } else {
+        query = query.eq("category", selectedCategory);
+      }
+    }
+    return query;
+  }, [selectedCategory]);
+
   // Load social feed (global for guests, personal for signed-in users)
   useEffect(() => {
     if (authLoading) {
@@ -424,103 +442,93 @@ export function FeedShell() {
 
       try {
         let fIds: string[] = [];
+        let sessionData: any[] | null = null;
+        let didFallbackToGlobal = false;
 
         if (!isGuest && user) {
-          // Get IDs of users we follow
-          const { data: followData, error: followError } = await supabase
+          // Parallelize: fetch follows + global sessions at the same time
+          const followsPromise = supabase
             .from("follows")
             .select("following_id")
             .eq("follower_id", user.id);
 
-          if (followError) {
-            console.error("[feed] Failed to load follows:", followError.message || followError);
+          // Always pre-fetch global feed in parallel as fallback
+          const globalQuery = buildSessionQuery(
+            supabase
+              .from("sessions")
+              // Join profiles via foreign key — eliminates separate profiles fetch
+              .select("*, profiles(*), likes(user_id), comments(id)")
+              .eq("visibility", "public")
+              .order("started_at", { ascending: false })
+              .limit(25)
+          );
+
+          const [followResult, globalResult] = await Promise.all([followsPromise, globalQuery]);
+
+          if (followResult.error) {
+            console.error("[feed] Failed to load follows:", followResult.error.message || followResult.error);
           }
 
-          fIds = followData?.map((f) => f.following_id) ?? [];
+          fIds = followResult.data?.map((f) => f.following_id) ?? [];
 
           if (mounted) {
             setFollowingIds(new Set(fIds));
           }
-        }
 
-        let sessionData;
-        let didFallbackToGlobal = false;
+          const useGlobal = fIds.length === 0 || userForcedGlobal;
 
-        // Only fetch 'public' sessions to prevent friends-only leaks
-        const useGlobal = fIds.length === 0 || userForcedGlobal;
+          if (useGlobal) {
+            if (globalResult.error) {
+              console.error("[feed] Global fetch failed:", globalResult.error.message || globalResult.error);
+              if (mounted) setFeedError("Failed to load feed. Try again.");
+            }
+            sessionData = globalResult.data;
+          } else {
+            // Fetch following feed
+            const followingQuery = buildSessionQuery(
+              supabase
+                .from("sessions")
+                .select("*, profiles(*), likes(user_id), comments(id)")
+                .in("user_id", fIds)
+                .eq("visibility", "public")
+                .order("started_at", { ascending: false })
+                .limit(25)
+            );
 
-        if (useGlobal) {
-          let query = supabase
-            .from("sessions")
-            .select("*, likes(user_id), comments(id)")
-            .eq("visibility", "public")
-            .order("started_at", { ascending: false })
-            .limit(50);
-            
-          if (selectedCategory !== "all") {
-            if (selectedCategory === "other") {
-              query = query.or('category.eq.other,category.is.null');
-            } else {
-              query = query.eq("category", selectedCategory);
+            const { data, error } = await followingQuery;
+
+            if (error) {
+              console.error("[feed] Following fetch failed:", error.message || error);
+              if (mounted) setFeedError("Failed to load feed. Try again.");
+            }
+            sessionData = data;
+
+            // Fallback to already-fetched global if following feed is empty
+            if (!sessionData || sessionData.length === 0) {
+              if (!globalResult.error && globalResult.data && globalResult.data.length > 0) {
+                sessionData = globalResult.data;
+                didFallbackToGlobal = true;
+              }
             }
           }
-            
+        } else {
+          // Guest: simple global fetch with profile join
+          const query = buildSessionQuery(
+            supabase
+              .from("sessions")
+              .select("*, profiles(*), likes(user_id), comments(id)")
+              .eq("visibility", "public")
+              .order("started_at", { ascending: false })
+              .limit(25)
+          );
+
           const { data, error } = await query;
-            
+
           if (error) {
             console.error("[feed] Global fetch failed:", error.message || error);
             if (mounted) setFeedError("Failed to load feed. Try again.");
           }
           sessionData = data;
-        } else {
-          let query = supabase
-            .from("sessions")
-            .select("*, likes(user_id), comments(id)")
-            .in("user_id", fIds)
-            .eq("visibility", "public")
-            .order("started_at", { ascending: false })
-            .limit(50);
-            
-          if (selectedCategory !== "all") {
-            if (selectedCategory === "other") {
-              query = query.or('category.eq.other,category.is.null');
-            } else {
-              query = query.eq("category", selectedCategory);
-            }
-          }
-            
-          const { data, error } = await query;
-            
-          if (error) {
-            console.error("[feed] Following fetch failed:", error.message || error);
-            if (mounted) setFeedError("Failed to load feed. Try again.");
-          }
-          sessionData = data;
-          
-          // Fallback to global if following feed is empty
-          if (!sessionData || sessionData.length === 0) {
-            let globalQuery = supabase
-              .from("sessions")
-              .select("*, likes(user_id), comments(id)")
-              .eq("visibility", "public")
-              .order("started_at", { ascending: false })
-              .limit(50);
-              
-            if (selectedCategory !== "all") {
-              if (selectedCategory === "other") {
-                globalQuery = globalQuery.or('category.eq.other,category.is.null');
-              } else {
-                globalQuery = globalQuery.eq("category", selectedCategory);
-              }
-            }
-              
-            const { data: globalData, error: globalError } = await globalQuery;
-              
-            if (!globalError && globalData && globalData.length > 0) {
-              sessionData = globalData;
-              didFallbackToGlobal = true;
-            }
-          }
         }
 
         if (mounted) {
@@ -535,22 +543,12 @@ export function FeedShell() {
           return;
         }
 
-        // Fetch profiles for those users
-        const userIds = Array.from(new Set(sessionData.map((s: CloudSession) => s.user_id)));
-        const { data: profileData } = await supabase
-          .from("profiles")
-          .select("*")
-          .in("id", userIds);
-
-        const profileMap = new Map(
-          (profileData as Profile[] | null)?.map((p) => [p.id, p]) ?? []
-        );
-
+        // Profiles are already joined — no separate fetch needed
         if (mounted) {
           setFeedItems(
             sessionData.map((s: any) => ({
               session: cloudToLocal(s),
-              profile: profileMap.get(s.user_id),
+              profile: s.profiles as Profile | undefined,
               likes: s.likes || [],
               comments: s.comments || []
             }))
@@ -568,7 +566,8 @@ export function FeedShell() {
 
     loadFeed();
     return () => { mounted = false; };
-  }, [user, isGuest, authLoading, userForcedGlobal, feedRefetch, selectedCategory]);
+  }, [user, isGuest, authLoading, userForcedGlobal, feedRefetch, buildSessionQuery]);
+
 
   const toggleFollow = async (targetId: string, e: React.MouseEvent) => {
     e.preventDefault();
@@ -725,7 +724,11 @@ export function FeedShell() {
               return (
                 <button
                   key={category.id}
-                  onClick={() => setSelectedCategory(category.id)}
+                  onClick={() => {
+                    startTransition(() => {
+                      setSelectedCategory(category.id);
+                    });
+                  }}
                   className={`relative px-5 py-2 text-[13px] font-bold rounded-[18px] transition-colors duration-300 outline-none group ${
                     isActive
                       ? "text-terracotta"

@@ -11,6 +11,7 @@ const lora = Lora({
   subsets: ["latin"],
   variable: "--font-serif",
   display: "swap",
+  preload: true,
 });
 
 const inter = Inter({
@@ -49,6 +50,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        {/* Preconnect to critical third-party origins to reduce connection latency */}
+        <link rel="preconnect" href="https://rsuyuamariidfaelptnz.supabase.co" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* DNS-prefetch fallback for browsers without preconnect support */}
+        <link rel="dns-prefetch" href="https://rsuyuamariidfaelptnz.supabase.co" />
+        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+        <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
         <script
           dangerouslySetInnerHTML={{
             __html: `

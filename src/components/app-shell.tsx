@@ -1,18 +1,20 @@
 "use client";
 
 import { useMemo } from "react";
+import dynamic from "next/dynamic";
 import { useFocus } from "@/context/focus-app";
 import { Timer } from "@/components/timer";
-import { SessionList } from "@/components/session-list";
-import { HistoryView } from "@/components/history-view";
 import { HistoryDay } from "@/components/history-day";
-import { MusicPlayer } from "@/components/music-player";
-import { StopDialog } from "@/components/stop-dialog";
-import { RecoveryPrompt } from "@/components/recovery-prompt";
 import { formatDurationShort } from "@/lib/time";
 import { computeStats } from "@/lib/analytics";
 import type { FocusSessionActivity } from "@/types";
 import { Flame } from "lucide-react";
+
+// Lazy-load below-the-fold and modal components to reduce initial bundle
+const HistoryView = dynamic(() => import("@/components/history-view").then(m => ({ default: m.HistoryView })), { ssr: false });
+const MusicPlayer = dynamic(() => import("@/components/music-player").then(m => ({ default: m.MusicPlayer })), { ssr: false });
+const StopDialog = dynamic(() => import("@/components/stop-dialog").then(m => ({ default: m.StopDialog })), { ssr: false });
+const RecoveryPrompt = dynamic(() => import("@/components/recovery-prompt").then(m => ({ default: m.RecoveryPrompt })), { ssr: false });
 
 export function AppShell() {
   const {

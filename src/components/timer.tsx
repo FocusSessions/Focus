@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useEffect, useState, useRef } from "react";
+import { useMemo, useEffect, useState, useRef, startTransition } from "react";
 import { formatFocusClock, formatDurationShort } from "@/lib/time";
 import { useFocus } from "@/context/focus-app";
 import { Pause, Play, Square, Plus, X } from "lucide-react";
@@ -246,7 +246,11 @@ export function Timer({ focusMode = false }: TimerProps) {
                   {[15, 25, 45, 90].map((mins) => (
                     <button
                       key={mins}
-                      onClick={() => setSessionGoalMinutes(mins)}
+                      onClick={() => {
+                        startTransition(() => {
+                          setSessionGoalMinutes(mins);
+                        });
+                      }}
                       className={`rounded-xl px-3 py-1.5 text-xs font-medium transition-colors ${
                         sessionGoalMinutes === mins
                           ? 'bg-sage text-white'
@@ -270,7 +274,11 @@ export function Timer({ focusMode = false }: TimerProps) {
                     key={c}
                     type="button"
                     className={`rounded-full px-3 py-1 text-[11px] font-medium border transition-colors ${plannedCategory.toLowerCase() === c.toLowerCase() ? 'bg-terracotta text-white border-terracotta' : 'bg-surface text-brown-muted border-border hover:bg-brown/5'}`}
-                    onClick={() => setPlannedCategory(c)}
+                    onClick={() => {
+                      startTransition(() => {
+                        setPlannedCategory(c);
+                      });
+                    }}
                   >
                     {c}
                   </button>

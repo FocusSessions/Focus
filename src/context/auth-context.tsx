@@ -18,6 +18,7 @@ interface AuthState {
   user: User | null;
   profile: Profile | null;
   isLoading: boolean;
+  profileLoading: boolean;
   isGuest: boolean;
 }
 
@@ -166,6 +167,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(true);
 
   const isGuest = !user;
 
@@ -184,19 +186,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         if (session?.user) {
           setUser(session.user);
+          // Unblock app rendering immediately — profile loads in background
+          setIsLoading(false);
+          initHandledRef.current = true;
+
+          // Profile fetch happens after isLoading is cleared
           const p = await ensureProfileExists(session.user);
           if (mounted) {
             setProfile(p);
-            setIsLoading(false);
+            setProfileLoading(false);
           }
-          initHandledRef.current = true;
         } else {
           // No session — guest mode, loading is done
-          if (mounted) setIsLoading(false);
+          if (mounted) {
+            setIsLoading(false);
+            setProfileLoading(false);
+          }
         }
       } catch (err) {
         console.error("[auth] Session initialization failed:", (err as any)?.message || err);
-        if (mounted) setIsLoading(false);
+        if (mounted) {
+          setIsLoading(false);
+          setProfileLoading(false);
+        }
       }
     };
 
@@ -212,15 +224,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (event === "INITIAL_SESSION") {
             // Skip if initSession() already handled this
             if (initHandledRef.current) return;
+            setIsLoading(false);
             const p = await ensureProfileExists(session.user);
-            if (mounted) setProfile(p);
+            if (mounted) {
+              setProfile(p);
+              setProfileLoading(false);
+            }
           } else if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "USER_UPDATED") {
             const p = await ensureProfileExists(session.user);
-            if (mounted) setProfile(p);
+            if (mounted) {
+              setProfile(p);
+              setProfileLoading(false);
+            }
           }
         } else if (event === "SIGNED_OUT") {
           setUser(null);
           setProfile(null);
+          setProfileLoading(true);
 
           // Clear ALL local user data before navigating.
           // Wrapped in try/catch so navigation always happens even if IDB fails.
@@ -488,6 +508,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user,
     profile,
     isLoading,
+    profileLoading,
     isGuest,
     signUp,
     signIn,

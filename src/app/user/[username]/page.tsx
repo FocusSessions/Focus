@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
+import dynamic from "next/dynamic";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/auth-context";
@@ -20,11 +21,13 @@ import type { HeatmapGranularity } from "@/types/analytics";
 import { toast } from "sonner";
 
 import { ProfileHeader } from "@/components/profile/profile-header";
-import { OverviewTab } from "@/components/profile/overview-tab";
-import { ActivityTab } from "@/components/profile/activity-tab";
-import { ProgressTab } from "@/components/profile/progress-tab";
-import { AchievementsTab } from "@/components/profile/achievements-tab";
 import { FollowListModal } from "@/components/profile/follow-list-modal";
+
+// Lazy-load tab panels — user only sees one at a time
+const OverviewTab = dynamic(() => import("@/components/profile/overview-tab").then(m => ({ default: m.OverviewTab })));
+const ActivityTab = dynamic(() => import("@/components/profile/activity-tab").then(m => ({ default: m.ActivityTab })));
+const ProgressTab = dynamic(() => import("@/components/profile/progress-tab").then(m => ({ default: m.ProgressTab })));
+const AchievementsTab = dynamic(() => import("@/components/profile/achievements-tab").then(m => ({ default: m.AchievementsTab })));
 
 import { UserPlus, UserCheck, Loader2 } from "lucide-react";
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, startTransition } from "react";
 import type { FocusSessionActivity, SessionCategory, SessionVisibility } from "@/types";
 import { formatDurationShort, formatTimeRange } from "@/lib/time";
 import { useFocus } from "@/context/focus-app";
@@ -109,7 +109,12 @@ function SessionRow({
                   value={draftTitle}
                   maxLength={200}
                   placeholder="e.g. Deep Work"
-                  onChange={(e) => setDraftTitle(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    startTransition(() => {
+                      setDraftTitle(val);
+                    });
+                  }}
                   aria-label="Session title"
                 />
               </div>
@@ -123,7 +128,12 @@ function SessionRow({
                   value={draftDescription}
                   maxLength={20000}
                   placeholder="What did you accomplish?"
-                  onChange={(e) => setDraftDescription(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    startTransition(() => {
+                      setDraftDescription(val);
+                    });
+                  }}
                   aria-label="Session description"
                 />
               </div>
@@ -134,7 +144,12 @@ function SessionRow({
                 </label>
                 <input
                   value={draftCategory}
-                  onChange={(e) => setDraftCategory(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value as SessionCategory;
+                    startTransition(() => {
+                      setDraftCategory(val);
+                    });
+                  }}
                   placeholder="e.g. Coding"
                   list="edit-category-suggestions"
                   maxLength={30}
