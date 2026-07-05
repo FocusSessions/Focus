@@ -21,7 +21,8 @@ import type { HeatmapGranularity } from "@/types/analytics";
 import { toast } from "sonner";
 
 import { ProfileHeader } from "@/components/profile/profile-header";
-import { FollowListModal } from "@/components/profile/follow-list-modal";
+// Lazy-load modal — only appears when user clicks followers/following
+const FollowListModal = dynamic(() => import("@/components/profile/follow-list-modal").then(m => ({ default: m.FollowListModal })), { ssr: false });
 
 // Lazy-load tab panels — user only sees one at a time
 const OverviewTab = dynamic(() => import("@/components/profile/overview-tab").then(m => ({ default: m.OverviewTab })));

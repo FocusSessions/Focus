@@ -10,7 +10,6 @@ import { formatDurationShort, formatTimeRange, dayLabel, getLogicalDateKey } fro
 import { Users, Loader2, Check, Newspaper } from "lucide-react";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
-import { motion } from "framer-motion";
 
 interface FeedItem {
   session: FocusSessionActivity;
@@ -745,10 +744,8 @@ export function FeedShell() {
                   }`}
                 >
                   {isActive && (
-                    <motion.div
-                      layoutId="activeCategoryFeed"
-                      className="absolute inset-0 bg-terracotta/[0.08] rounded-[18px] border border-terracotta/20 shadow-[0_2px_8px_rgba(200,90,70,0.08)]"
-                      transition={{ type: "spring", stiffness: 500, damping: 35 }}
+                    <div
+                      className="absolute inset-0 bg-terracotta/[0.08] rounded-[18px] border border-terracotta/20 shadow-[0_2px_8px_rgba(200,90,70,0.08)] animate-in fade-in duration-200"
                     />
                   )}
                   {!isActive && (

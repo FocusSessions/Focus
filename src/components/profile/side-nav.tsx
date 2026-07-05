@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { User, Target, Newspaper, Settings, Search, LogIn, LogOut } from "lucide-react";
 import { useFocus } from "@/context/focus-app";
 import { useAuth } from "@/context/auth-context";
@@ -9,6 +9,7 @@ import { useEffect, useState, useRef } from "react";
 
 export function SideNav() {
   const pathname = usePathname();
+  const router = useRouter();
   const { isRunning } = useFocus();
   const { isGuest, profile, signOut, isLoading } = useAuth();
   
@@ -29,6 +30,17 @@ export function SideNav() {
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Prefetch all routes after first paint so navigation feels instant
+  useEffect(() => {
+    const idle = typeof requestIdleCallback === "function" ? requestIdleCallback : (cb: () => void) => setTimeout(cb, 300);
+    idle(() => {
+      router.prefetch("/profile");
+      router.prefetch("/feed");
+      router.prefetch("/search");
+      router.prefetch("/settings");
+    });
+  }, [router]);
 
   if (isRunning) return null;
 

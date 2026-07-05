@@ -19,7 +19,9 @@ import { getLogicalDateKey } from "@/lib/time";
 import { ProfileHeader } from "@/components/profile/profile-header";
 import { calculateProductivityScore } from "@/lib/score";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
-import { FollowListModal } from "@/components/profile/follow-list-modal";
+
+// Lazy-load modal — only appears when user clicks followers/following
+const FollowListModal = dynamic(() => import("@/components/profile/follow-list-modal").then(m => ({ default: m.FollowListModal })), { ssr: false });
 
 // Lazy-load tab panels — user only sees one at a time, no need to bundle all 4
 const OverviewTab = dynamic(() => import("@/components/profile/overview-tab").then(m => ({ default: m.OverviewTab })));

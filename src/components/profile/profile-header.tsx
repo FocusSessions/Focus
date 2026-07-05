@@ -1,3 +1,4 @@
+import dynamic from "next/dynamic";
 import { Flame } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
 import { determineRank } from "@/lib/ranks";
@@ -5,7 +6,8 @@ import { RankBadgeIcon } from "@/components/profile/rank-icons";
 import Link from "next/link";
 import type { Profile } from "@/types/supabase";
 import { useState } from "react";
-import { EditProfileDialog } from "@/components/profile/edit-profile-dialog";
+// Lazy-load dialog — only rendered when user clicks 'Complete Profile Setup'
+const EditProfileDialog = dynamic(() => import("@/components/profile/edit-profile-dialog").then(m => ({ default: m.EditProfileDialog })), { ssr: false });
 import { Settings2 } from "lucide-react";
 import { CountingNumber } from "@/components/ui/counting-number";
 

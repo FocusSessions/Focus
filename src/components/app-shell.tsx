@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { useFocus } from "@/context/focus-app";
 import { Timer } from "@/components/timer";
@@ -16,6 +16,17 @@ const MusicPlayer = dynamic(() => import("@/components/music-player").then(m => 
 const StopDialog = dynamic(() => import("@/components/stop-dialog").then(m => ({ default: m.StopDialog })), { ssr: false });
 const RecoveryPrompt = dynamic(() => import("@/components/recovery-prompt").then(m => ({ default: m.RecoveryPrompt })), { ssr: false });
 
+// Prefetch lazy-loaded components in background after first paint
+function prefetchHomeComponents() {
+  const idle = typeof requestIdleCallback === "function" ? requestIdleCallback : (cb: () => void) => setTimeout(cb, 200);
+  idle(() => {
+    import("@/components/history-view").catch(() => {});
+    import("@/components/music-player").catch(() => {});
+    import("@/components/stop-dialog").catch(() => {});
+    import("@/components/recovery-prompt").catch(() => {});
+  });
+}
+
 export function AppShell() {
   const {
     loadState,
@@ -26,6 +37,9 @@ export function AppShell() {
     isRunning,
     activities,
   } = useFocus();
+
+  // After first paint, prefetch modals + below-fold components in background
+  useEffect(() => { prefetchHomeComponents(); }, []);
 
   const focusSessions = useMemo(() => {
     return activities.filter((a): a is FocusSessionActivity => a.type === 'focus_session');

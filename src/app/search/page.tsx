@@ -8,8 +8,6 @@ import { useAuth } from "@/context/auth-context";
 import type { Profile } from "@/types/supabase";
 import { Search as SearchIcon, Loader2, UserPlus, UserCheck, Users } from "lucide-react";
 import { toast } from "sonner";
-import { determineRank } from "@/lib/ranks";
-import { RankBadgeIcon } from "@/components/profile/rank-icons";
 
 export default function SearchPage() {
   const { user, isGuest } = useAuth();

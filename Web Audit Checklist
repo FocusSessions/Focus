@@ -1,0 +1,2093 @@
+The HTML5 doctype declaration must be the very first line of every HTML document. It switches browsers into standards-compliant rendering mode.
+## Code Examples
+
+```html
+<!-- ✅ Correct: HTML5 doctype as the first line -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Page Title</title>
+</head>
+<body>
+  <!-- content -->
+</body>
+</html>
+```
+
+```html
+<!-- ❌ Incorrect: missing doctype -->
+<html lang="en">
+<head>
+  <title>Page Title</title>
+</head>
+
+<!-- ❌ Incorrect: old XHTML 1.0 doctype -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<!-- ❌ Incorrect: HTML 4.01 Strict doctype -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+  "http://www.w3.org/TR/html4/strict.dtd">
+```
+
+## Why It Matters
+
+- **Box Model**: In Quirks Mode, `width` and `height` include padding and border (like the old IE box model), breaking CSS layouts.
+- **CSS Features**: Many modern CSS properties behave differently or are ignored in Quirks Mode.
+- **JavaScript APIs**: Some DOM APIs behave differently in Quirks Mode.
+- **Validation**: HTML5 documents without the doctype fail W3C validation.
+
+## Rendering Modes
+
+| Mode | Triggered by | Behavior |
+|---|---|---|
+| Standards Mode | `<!DOCTYPE html>` present | CSS/HTML behaves per W3C specifications |
+| Almost Standards Mode | Some HTML4 doctypes | Minor table rendering quirks |
+| Quirks Mode | Missing or unrecognized doctype | Emulates IE5/Netscape 4 behavior |
+
+## Framework Notes
+
+Most modern frameworks handle the doctype automatically:
+
+- **Next.js**: Included automatically in the rendered HTML output
+- **Vite / Vue CLI**: Present in `index.html` template
+- **Create React App**: Present in `public/index.html`
+- **Astro**: Included automatically
+- **Ruby on Rails**: Present in `application.html.erb`
+
+Always verify in the **rendered HTML source** (browser: View Source), not just the template file, as SSR configurations can sometimes omit or move elements.
+
+## Standards
+
+- Use HTML Living Standard: The DOCTYPE as the standard for the final rendered HTML and browser-facing behavior.
+- Use MDN: DOCTYPE as the standard for the final rendered HTML and browser-facing behavior.
+- Use MDN: Quirks Mode and Standards Mode as the standard for the final rendered HTML and browser-facing behavior.
+
+## Verification
+
+### Automated Checks
+
+- Inspect the final rendered HTML in the browser or page source to confirm the rule is satisfied.
+- Validate the affected markup with browser tooling or an HTML validator where appropriate.
+- Test one representative route or template that uses the pattern.
+- Re-check shared components that emit the same markup so the fix is consistent.
+
+### Manual Checks
+
+- Verify the rendered browser behavior manually on representative routes and supported browsers so the user-facing outcome matches the rule.
+
+----------------------------------------------
+
+The UTF-8 character set must be declared early in the HTML head to ensure proper character rendering across all languages and symbols.
+
+## Code Example
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Page Title</title>
+</head>
+<body>
+    <!-- Content with international characters: Café, 北京, العربية -->
+</body>
+</html>
+```
+
+## Why It Matters
+
+- **International Support**: Enables proper display of all Unicode characters
+- **Security**: Prevents character encoding attacks
+- **Early Declaration**: Must be within first 1024 bytes of document
+- **Consistency**: Ensures same rendering across all browsers and platforms
+
+## Framework Examples
+
+
+#### HTML
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Front-End Checklist</title>
+  </head>
+</html>
+```
+
+  
+#### Vite
+
+```html
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vite App</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+```
+
+  
+#### Next.js
+
+```tsx
+// app/layout.tsx
+import type { ReactNode } from 'react'
+
+export default function RootLayout({ children }: { children: ReactNode }) {
+  return (
+    <html lang="en">
+      <body>{children}</body>
+    </html>
+  )
+}
+```
+```
+// Next.js emits UTF-8 automatically in the document head.
+// Verify the rendered HTML rather than adding a duplicate meta charset tag.
+```
+
+  
+#### React
+
+```tsx
+import { Helmet } from 'react-helmet'
+
+function App() {
+  return (
+    <>
+      <Helmet>
+        <meta charSet="UTF-8" />
+      </Helmet>
+      <div>Your app content</div>
+    </>
+  )
+}
+```
+
+
+## Best Practices
+
+✅ **Position Early**: Place as first meta tag
+```html
+<head>
+    <meta charset="UTF-8">
+    <!-- Other meta tags follow -->
+</head>
+```
+
+✅ **Use UTF-8**: Universal character support
+```html
+<meta charset="UTF-8">
+```
+
+❌ **Avoid Old Syntax**: Don't use verbose XHTML syntax
+```html
+<!-- Don't use this -->
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+```
+
+## Tools & Validation
+
+- [W3C Markup Validator](https://validator.w3.org/)
+- [HTML5 Validator](https://html5.validator.nu/)
+- Browser DevTools Network tab to check response headers
+
+## Standards
+
+- Use MDN: HTML as the standard for the final rendered HTML and browser-facing behavior.
+- Use WHATWG HTML Living Standard as the standard for the final rendered HTML and browser-facing behavior.
+
+## Verification
+
+### Automated Checks
+
+- Inspect the final rendered HTML in the browser or page source to confirm the rule is satisfied.
+- Validate the affected markup with browser tooling or an HTML validator where appropriate.
+- Test one representative route or template that uses the pattern.
+- Re-check shared components that emit the same markup so the fix is consistent.
+
+### Manual Checks
+
+- Verify the rendered browser behavior manually on representative routes and supported browsers so the user-facing outcome matches the rule.
+
+-------------------------
+
+The viewport meta tag is essential for responsive web design, controlling how web pages are displayed on mobile devices.
+
+## Code Example
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Responsive Page</title>
+</head>
+<body>
+    <!-- Your responsive content -->
+</body>
+</html>
+```
+
+## Why It Matters
+
+- **Mobile Experience**: Ensures proper rendering on mobile devices
+- **Responsive Design**: Enables CSS media queries to work correctly
+- **Touch Interface**: Optimizes touch target sizes and interactions
+- **Performance**: Prevents unnecessary horizontal scrolling
+- **SEO**: Google considers mobile-friendliness as a ranking factor
+
+## Viewport Options
+
+#
+
+## Standard Responsive Design
+```html
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+```
+
+### Advanced Configuration
+```html
+<!-- Prevent zooming (use carefully - can harm accessibility) -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<!-- Allow limited zooming -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, minimum-scale=0.5">
+
+<!-- Fixed width (rarely recommended) -->
+<meta name="viewport" content="width=375">
+```
+
+## Framework Examples
+
+### Next.js (App Router)
+```jsx
+// app/layout.js
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  viewport: 'width=device-width, initial-scale=1.0'
+}
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <body>{children}</body>
+    </html>
+  )
+}
+```
+
+### Next.js (Pages Router)
+```jsx
+// pages/_document.js
+import Document, { Html, Head, Main, NextScript } from 'next/document'
+
+export default class MyDocument extends Document {
+  render() {
+    return (
+      <Html lang="en">
+        <Head>
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        </Head>
+        <body>
+          
+          
+        </body>
+      </Html>
+    )
+  }
+}
+```
+
+### React (Helmet)
+```jsx
+import { Helmet } from 'react-helmet'
+
+function App() {
+  return (
+    <>
+      <Helmet>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      </Helmet>
+      <div>Your responsive content</div>
+    </>
+  )
+}
+```
+
+### Vue.js (Nuxt)
+```javascript
+// nuxt.config.js
+export default {
+  head: {
+    meta: [
+      { name: 'viewport', content: 'width=device-width, initial-scale=1.0' }
+    ]
+  }
+}
+```
+
+## Common Viewport Properties
+
+| Property | Description | Example |
+|----------|-------------|---------|
+| `width` | Sets viewport width | `width=device-width` |
+| `initial-scale` | Initial zoom level | `initial-scale=1.0` |
+| `maximum-scale` | Maximum zoom level | `maximum-scale=3.0` |
+| `minimum-scale` | Minimum zoom level | `minimum-scale=0.5` |
+| `user-scalable` | Allow user zooming | `user-scalable=yes` |
+
+## Best Practices
+
+✅ **Use Standard Settings**: For most responsive sites
+```html
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+```
+
+✅ **Allow Zooming**: Don't disable user-scalable unless absolutely necessary
+```html
+<!-- Good - allows accessibility zooming -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+```
+
+❌ **Don't Disable Zooming**: Harms accessibility
+```html
+<!-- Bad - prevents users from zooming for accessibility -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+```
+
+❌ **Don't Omit**: Missing viewport tag breaks mobile experience
+```html
+<!-- This will cause mobile display issues -->
+<!-- No viewport meta tag -->
+```
+
+## CSS Integration
+
+The viewport meta tag works with CSS media queries:
+
+```css
+/* Mobile-first responsive design */
+.container {
+  width: 100%;
+  padding: 1rem;
+}
+
+@media (min-width: 768px) {
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+}
+```
+
+## Accessibility Considerations
+
+- **Don't disable zooming**: Users with visual impairments need zoom functionality
+- **Test with screen readers**: Ensure responsive design works with assistive technology
+- **Touch targets**: Ensure interactive elements are properly sized for touch
+
+## Verification
+
+- **Chrome DevTools**: Device simulation mode
+- **Firefox DevTools**: Responsive design mode
+- **Mobile-Friendly Test**: [Google's Mobile-Friendly Test](https://search.google.com/test/mobile-friendly)
+- **Real Device Testing**: Always test on actual devices
+
+---------------
+
+Every form control must have a label that is programmatically associated with it to ensure it is accessible to all users. [MDN's `<label>` reference](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/label) and WCAG form guidance both treat this as a baseline requirement, not an enhancement.
+## Code Examples
+
+### Correct Implementation
+```html
+<label for="email-address">Email Address</label>
+<input type="email" id="email-address" name="email">
+
+<!-- Or wrapping the input -->
+<label>
+  Email Address
+  <input type="email" name="email">
+</label>
+```
+
+### Incorrect Implementation
+```html
+<span>Email Address</span>
+<input type="email" name="email">
+```
+
+## Why It Matters
+
+- **Assistive Technology**: Screen readers announce the label when the user focuses on the input.
+- **Usability**: Clicking the label moves focus to the input, providing a larger hit area for users with motor impairments or those on mobile devices.
+- **Form Validation**: Browsers and tools can better associate error messages with the correct fields.
+
+## Best Practices
+
+✅ **Use `for` and `id`**: This is the most robust way to associate labels.
+```html
+<label for="first-name">First Name</label>
+<input type="text" id="first-name">
+```
+
+✅ **Nested Labels**: Alternatively, you can nest the input inside the label.
+```html
+<label>
+  Last Name
+  <input type="text">
+</label>
+```
+
+❌ **Avoid Placeholder-only labels**: Placeholders disappear when the user types and are not a substitute for labels.
+```html
+<!-- Avoid this -->
+<input type="text" placeholder="First Name">
+```
+
+✅ **Use `<fieldset>` and `<legend>` for grouped controls**: Radio buttons and related checkboxes need a programmatic group label, not just bold text above them.
+```html
+<fieldset>
+  <legend>Preferred contact method</legend>
+
+  <label>
+    <input type="radio" name="contact" value="email">
+    Email
+  </label>
+
+  <label>
+    <input type="radio" name="contact" value="phone">
+    Phone
+  </label>
+</fieldset>
+```
+
+## Exceptions
+
+- Evaluate the rendered experience before treating a static-code smell as a blocker; interaction timing, browser behavior, and assistive technology output often determine severity.
+- Not every secondary accessibility issue deserves equal weight; prioritize the issue that most directly blocks perception, operation, or understanding.
+- Avoid adding redundant markup or ARIA solely to satisfy a rule when a simpler semantic implementation would eliminate the issue entirely.
+
+## Standards
+
+- Align the implementation with W3C WAI: WCAG Overview and verify the rendered experience, not only the source code.
+- Align the implementation with MDN: Accessibility and verify the rendered experience, not only the source code.
+
+## Verification
+
+### Automated Checks
+
+- Inspect the browser accessibility tree or accessibility pane for the relevant element, role, or accessible name.
+- Run an automated accessibility checker such as axe or Lighthouse where applicable.
+
+### Manual Checks
+
+- Test the affected UI with keyboard-only navigation and confirm the rule holds in the rendered experience.
+- Re-test one representative user flow with a screen reader if this rule affects a key interaction.
+- Confirm every field still has a visible label after the user starts typing and after browser autofill runs.
+- For radio groups and checkbox groups, confirm the shared question is announced before the individual control labels.
+
+------------------
+
+Largest Contentful Paint is the best single metric for whether the page feels ready. A good score usually depends on getting one important element discovered, transferred, and rendered without delay.
+## Code Examples
+
+#
+
+## Discover the LCP Resource Early
+
+```html
+<head>
+  <link
+    rel="preload"
+    href="/hero.webp"
+    as="image"
+    type="image/webp"
+    fetchpriority="high"
+  >
+</head>
+```
+
+```tsx
+import Image from 'next/image'
+
+function Hero() {
+  return (
+    <Image
+      src="/hero.jpg"
+      alt="Hero image"
+      width={1200}
+      height={600}
+      priority
+      sizes="100vw"
+    />
+  )
+}
+```
+
+### Avoid Client-Rendered LCP Delays
+
+```tsx
+// Bad: no LCP candidate until client fetch completes
+function BadPage() {
+  const [data, setData] = useState(null)
+
+  useEffect(() => {
+    fetch('/api/hero').then((response) => response.json()).then(setData)
+  }, [])
+
+  if (!data) return null
+  return <img src={data.heroImage} alt="Hero" />
+}
+
+// Better: route renders the LCP content from the server
+async function GoodPage() {
+  const data = await getHeroData()
+
+  return (
+    <Image
+      src={data.heroImage}
+      alt="Hero"
+      priority
+      width={1200}
+      height={600}
+    />
+  )
+}
+```
+
+### Text LCP Needs Fast Fonts and Minimal Blocking CSS
+
+```tsx
+import { Inter } from 'next/font/google'
+
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  preload: true,
+})
+```
+
+## Why It Matters
+
+LCP is the most important Core Web Vital for perceived load speed—it measures when the main content becomes visible, directly impacting user perception and SEO rankings.
+
+## LCP Score Thresholds
+
+| Score | Rating | User perception |
+|-------|--------|-----------------|
+| `<= 2.5s` | Good | The page feels ready quickly |
+| `2.5s-4s` | Needs improvement | The main content arrives late |
+| `> 4s` | Poor | The page feels slow |
+
+## Common LCP Candidates
+
+- Hero image
+- Hero heading or text block
+- Video poster
+- Large background image
+
+## Troubleshooting Flow
+
+When LCP is slow, identify the LCP element first and then classify the delay:
+
+1. **Slow TTFB**: the HTML itself arrives late.
+2. **Late discovery**: the browser does not learn about the LCP resource early enough.
+3. **Heavy transfer**: the image, font, or CSS is simply too large.
+4. **Render delay**: the asset arrives, but CSS, JavaScript, or client rendering prevents paint.
+5. **Incorrect prioritization**: the LCP candidate is lazy-loaded or competing with too many other "important" assets.
+
+## Common Causes and Fixes
+
+| Cause | Fix |
+|-------|-----|
+| Slow HTML response | cache more aggressively, reduce origin work, use edge delivery where appropriate |
+| Late-discovered hero media | preload the current-route LCP asset and avoid lazy loading |
+| Oversized images or posters | serve responsive formats and sizes, compress appropriately |
+| Background-image LCP | preload the image and avoid burying discovery behind non-critical CSS |
+| Client-side rendering delays | render the LCP candidate on the server where possible |
+| Too many competing priorities | avoid over-preloading fonts, scripts, and secondary images |
+
+## Anti-Patterns
+
+- **Lazy-loading the LCP candidate**
+- **Preloading the wrong asset variant**
+- **Marking multiple images `fetchpriority="high"`**
+- **Rendering the hero only after client-side fetches or hydration**
+- **Hiding the LCP candidate behind heavy CSS or blocking JavaScript**
+
+## Verification
+
+Start with [PageSpeed Insights](https://pagespeed.web.dev/) or a field trace to identify the real LCP candidate, because the wrong fix is easy to apply when the largest element is not the one you expected.
+
+### Automated Checks
+
+- Run Lighthouse or PageSpeed Insights and confirm `Largest Contentful Paint <= 2.5s` on the target route.
+- Use the Performance panel or `web-vitals` instrumentation to identify the actual LCP element and confirm it matches your expectation.
+- Inspect the waterfall and confirm the LCP resource is discovered early, requested with the right priority, and not lazy-loaded.
+
+### Manual Checks
+
+- Re-test on a throttled mobile profile after each fix so you can tell whether the bottleneck was TTFB, discovery, transfer, or render delay.
+- If the LCP candidate is text, verify fonts and critical CSS do not delay paint; if it is media, verify bytes and sizing are appropriate.
+
+-------------------------
+
+[HTTPS](https://web.dev/articles/why-https-matters) (HTTP over TLS) encrypts all traffic between the browser and your server, providing confidentiality, integrity, and authentication. [MDN's transport security guidance](https://developer.mozilla.org/en-US/docs/Web/Security/Transport_Layer_Security) and the [OWASP transport cheat sheet](https://cheatsheetseries.owasp.org/cheatsheets/Transport_Layer_Protection_Cheat_Sheet.html) both treat site-wide HTTPS as the baseline, not an optional hardening step.
+
+## Code Example
+
+#
+
+## Let's Encrypt (Free)
+
+```bash
+# Install Certbot
+sudo apt install certbot python3-certbot-nginx  # Debian/Ubuntu
+sudo yum install certbot python3-certbot-nginx  # RHEL/CentOS
+
+# Obtain and auto-configure certificate for Nginx
+sudo certbot --nginx -d example.com -d www.example.com
+
+# Certbot automatically sets up renewal
+# Test renewal with:
+sudo certbot renew --dry-run
+```
+
+### Hosted / Managed TLS
+
+Most platforms handle TLS automatically:
+- **Vercel**: Automatic — certificates provisioned for all deployments
+- **Netlify**: Automatic — one-click HTTPS via Let's Encrypt
+- **AWS CloudFront**: Use AWS Certificate Manager (free for CloudFront)
+- **Cloudflare**: Managed TLS included on all plans
+
+## Why It Matters
+
+Plain HTTP exposes every request and response to anyone on the network path — ISPs, Wi-Fi operators, and MITM attackers can read passwords, session tokens, and personal data without any warning to the user.
+
+## What HTTPS Provides
+
+- **Confidentiality**: Data cannot be read by third parties on the network path
+- **Integrity**: Data cannot be modified in transit (prevents content injection by ISPs or MITM attackers)
+- **Authentication**: The certificate proves the server is who it claims to be, preventing impersonation
+
+## HTTP-to-HTTPS Redirect
+
+### Nginx
+
+```nginx
+# Redirect all HTTP to HTTPS
+server {
+    listen 80;
+    server_name example.com www.example.com;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name example.com www.example.com;
+
+    ssl_certificate     /etc/letsencrypt/live/example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem;
+
+    # ...
+}
+```
+
+### Apache
+
+```apache
+<VirtualHost *:80>
+    ServerName example.com
+    Redirect permanent / https://example.com/
+</VirtualHost>
+```
+
+### Cloudflare
+
+In the Cloudflare dashboard → SSL/TLS → Edge Certificates → enable **Always Use HTTPS** and set **Minimum TLS Version** to 1.2.
+
+## Modern Features Requiring HTTPS
+
+Both [MDN](https://developer.mozilla.org/en-US/docs/Web/Security/Transport_Layer_Security) and [web.dev](https://web.dev/articles/why-https-matters) treat these as secure-context features, so they are a practical way to spot pages that still rely on insecure origins.
+
+Browsers block these APIs on non-secure origins:
+
+| Feature | Why It Requires HTTPS |
+|---------|----------------------|
+| Service Workers | Prevent network interception of cached resources |
+| Push Notifications | Authentication required |
+| Geolocation API | Privacy protection |
+| getUserMedia (camera/mic) | Privacy protection |
+| Web Crypto API | Security requirement |
+| Payment Request API | Financial data protection |
+| HSTS, HTTP/2, HTTP/3 | Protocol requirements |
+
+> **⚠️ Mixed Content Breaks HTTPS:** If your HTTPS page loads any resource over HTTP, the page is considered mixed content. Active mixed content such as scripts and iframes is blocked outright, so audit resource URLs and ensure they use HTTPS.
+
+## Common Pitfalls
+
+| Mistake | Impact | Fix |
+|---------|--------|-----|
+| Expired certificate | Browser blocks the page with a security warning | Configure auto-renewal (e.g., `certbot renew` via cron) |
+| Certificate missing `www` | `www.example.com` shows a security error | Use a SAN certificate covering both `example.com` and `www.example.com` |
+| HTTP redirect uses 302 | Browsers may not cache the redirect, slowing future requests | Use 301 (permanent) redirect |
+| HTTPS only on login pages | Data on all other pages exposed in transit | Enable HTTPS site-wide |
+
+## Exceptions
+
+- Local development or internal-only environments can differ, but production user-facing traffic should still satisfy the transport requirement strictly.
+- A redirect or HTTPS control that fails on one hostname, subdomain, or CDN edge path is still a real failure for users and crawlers reaching that surface.
+- Fix the strongest transport weakness first instead of treating every downstream symptom as a separate primary issue.
+
+## Support Notes
+
+- Verify HTTPS behavior in a production-like environment with the real certificate chain, redirects, proxies, and CDN path in place.
+- Modern secure-context features may appear to work locally while still failing or degrading on real production hosts.
+
+## Verification
+
+### Automated Checks
+
+- Run an automated security check, scripted probe, or log-based validation against a representative live flow.
+
+### Manual Checks
+
+- Verify the browser or user-facing behavior manually in a production-like flow and confirm there is no stronger conflicting security signal.
+
+-----------------------
+
+
+The `lang` attribute on the `<html>` element identifies the primary language of a web page. It is used by screen readers, browsers, search engines, and translation services to process content correctly.
+## Code Example
+
+```html
+<!-- ✅ Correct: English page -->
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- ✅ Correct: American English -->
+<!DOCTYPE html>
+<html lang="en-US">
+
+<!-- ✅ Correct: French -->
+<!DOCTYPE html>
+<html lang="fr">
+
+<!-- ✅ Correct: Arabic (right-to-left) -->
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<!-- ❌ Incorrect: missing lang attribute -->
+<html>
+
+<!-- ❌ Incorrect: full language name (not a BCP 47 code) -->
+<html lang="english">
+
+<!-- ❌ Incorrect: empty lang attribute -->
+<html lang="">
+```
+
+## Why It Matters
+
+- **Screen Readers**: VoiceOver and NVDA use `lang` to select the speech synthesis engine — wrong language means incomprehensible pronunciation.
+- **Browser Translation**: Chrome's auto-translate uses `lang` to detect the source language and offer translation.
+- **CSS Hyphenation**: `hyphens: auto` in CSS relies on the `lang` attribute to apply correct hyphenation rules.
+- **Spell Checking**: Browser spell check and tools like Grammarly use `lang` to select the dictionary.
+- **Search Engines**: Google uses `lang` to target content to the correct regional audience in search results.
+
+## Language Changes Within a Page
+
+When a page contains content in multiple languages, mark each language change with `lang` on the containing element:
+
+```html
+<html lang="en">
+<body>
+  <p>The French say <span lang="fr">bonjour</span> as a greeting.</p>
+
+  <!-- Block-level language change -->
+  <blockquote lang="de">
+    <p>Ich denke, also bin ich. — René Descartes</p>
+  </blockquote>
+</body>
+</html>
+```
+
+## Common BCP 47 Language Codes
+
+| Language | Code |
+|---|---|
+| English | `en` |
+| English (US) | `en-US` |
+| English (UK) | `en-GB` |
+| French | `fr` |
+| Spanish | `es` |
+| German | `de` |
+| Japanese | `ja` |
+| Korean | `ko` |
+| Simplified Chinese | `zh-Hans` |
+| Traditional Chinese | `zh-Hant` |
+| Arabic | `ar` |
+| Portuguese (Brazil) | `pt-BR` |
+| Hindi | `hi` |
+
+## Framework Examples
+
+```tsx
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <body>{children}</body>
+    </html>
+  )
+}
+```
+
+```tsx
+const rtlLocales = new Set(['ar', 'fa', 'he', 'ur'])
+
+export function LocaleLayout({
+  locale,
+  children,
+}: {
+  locale: string
+  children: React.ReactNode
+}) {
+  return (
+    <html lang={locale} dir={rtlLocales.has(locale) ? 'rtl' : 'ltr'}>
+      <body>{children}</body>
+    </html>
+  )
+}
+```
+
+## Best Practices
+
+- Set the language on the root `<html>` element even when the whole site uses one locale.
+- Prefer region or script subtags such as `en-GB` or `zh-Hant` when they materially affect pronunciation, spelling, or font selection.
+- Add nested `lang` attributes only where the language actually changes.
+- Validate the final rendered HTML rather than assuming framework metadata APIs emitted the correct root attribute.
+
+## Standards
+
+- Use WCAG 2.1 SC 3.1.1: Language of Page as the standard for the final rendered HTML and browser-facing behavior.
+- Use WCAG 2.1 SC 3.1.2: Language of Parts as the standard for the final rendered HTML and browser-facing behavior.
+- Use HTML Living Standard: The lang attribute as the standard for the final rendered HTML and browser-facing behavior.
+
+## Verification
+
+### Automated Checks
+
+- Inspect the final rendered HTML in the browser or page source to confirm the rule is satisfied.
+- Validate the affected markup with browser tooling or an HTML validator where appropriate.
+- Test one representative route or template that uses the pattern.
+- Re-check shared components that emit the same markup so the fix is consistent.
+
+### Manual Checks
+
+- Verify the rendered browser behavior manually on representative routes and supported browsers so the user-facing outcome matches the rule.
+
+------------------
+
+Text must have sufficient contrast against its background to ensure it is readable by as many people as possible, including those with low vision or color vision deficiencies.
+
+## Code Example
+
+```css
+/* ✅ Good: Dark text on white — 21:1 ratio */
+.body-text {
+  color: #000000;
+  background-color: #ffffff;
+}
+
+/* ✅ Good: #595959 on white meets 4.5:1 for normal text */
+.secondary-text {
+  color: #595959;
+  background-color: #ffffff;
+}
+
+/* ✅ Good: #767676 on white meets 3:1 — only valid for large text (≥ 24px or ≥ 18.67px bold) */
+.large-heading {
+  font-size: 1.5rem; /* 24px at 16px base */
+  font-weight: bold;
+  color: #767676;
+  background-color: #ffffff;
+}
+
+/* ❌ Fail: #cccccc on white is approximately 1.6:1 */
+.placeholder-text {
+  color: #cccccc;
+  background-color: #ffffff;
+}
+```
+
+## Why It Matters
+
+The thresholds in [WCAG 1.4.3 Contrast (Minimum)](https://www.w3.org/TR/WCAG21/#contrast-minimum) and [WCAG 1.4.11 Non-text Contrast](https://www.w3.org/TR/WCAG21/#non-text-contrast) are not aesthetic preferences; they are readability requirements for text and UI states people need to perceive.
+
+- **Low Vision**: Users with moderately low vision (20/80 after correction) may not perceive text below 4.5:1 without assistive magnification.
+- **Color Blindness**: Red-green color blindness affects ~8% of males — color alone cannot distinguish elements; contrast is the universal signal.
+- **Aging Vision**: Contrast sensitivity decreases with age; older users benefit from higher contrast even without a clinical diagnosis.
+- **Environmental Factors**: Bright sunlight washes out screens — higher contrast helps in outdoor use.
+- **Compliance**: WCAG 2.1 Level AA (SC 1.4.3) is the baseline for most legal accessibility regulations (ADA, EN 301 549, AODA).
+
+## Contrast Ratio Requirements
+
+| Content Type | WCAG AA Minimum | WCAG AAA Enhanced |
+|---|---|---|
+| Normal text (< 18pt / < 14pt bold) | **4.5:1** | 7:1 |
+| Large text (≥ 18pt or ≥ 14pt bold) | **3:1** | 4.5:1 |
+| UI components (icons, inputs, buttons) | **3:1** | — |
+| Decorative / inactive / logotypes | Exempt | Exempt |
+
+## Best Practices
+
+- Check contrast in all interactive states: `:hover`, `:focus`, `:active`, `:visited`, and `disabled`.
+- Disabled elements are technically exempt, but overly light disabled states still hurt usability.
+- Use browser DevTools (Chrome/Firefox Accessibility panel) for quick checks during development.
+- Do not rely solely on automated tools — manual checks with real content and backgrounds are needed.
+
+## Tools & Validation
+
+- [WebAIM Contrast Checker](https://webaim.org/resources/contrastchecker/)
+- [Colour Contrast Analyser (TPGi)](https://www.tpgi.com/color-contrast-checker/)
+- [WhoCanUse](https://whocanuse.com/) — simulates how different users perceive your colors
+
+## Exceptions
+
+- Evaluate the rendered experience before treating a static-code smell as a blocker; interaction timing, browser behavior, and assistive technology output often determine severity.
+- Not every secondary accessibility issue deserves equal weight; prioritize the issue that most directly blocks perception, operation, or understanding.
+- Avoid adding redundant markup or ARIA solely to satisfy a rule when a simpler semantic implementation would eliminate the issue entirely.
+
+## Verification
+
+### Automated Checks
+
+- Inspect the browser accessibility tree or accessibility pane for the relevant element, role, or accessible name.
+- Run an automated accessibility checker such as axe or Lighthouse where applicable.
+
+### Manual Checks
+
+- Test the affected UI with keyboard-only navigation and confirm the rule holds in the rendered experience.
+- Re-test one representative user flow with a screen reader if this rule affects a key interaction.
+
+---------------------------
+
+
+The `<title>` tag is the single most important on-page SEO element. It appears in browser tabs, bookmarks, and as the headline in search result listings.
+
+## Code Examples
+
+```html
+<!-- ✅ Good: Descriptive, ~55 chars, keyword-first -->
+<head>
+  <title>Sourdough Bread Recipe — Step-by-Step Guide | BakeCo</title>
+</head>
+```
+
+```html
+<!-- ❌ Bad: Too short and non-descriptive -->
+<head>
+  <title>Page</title>
+</head>
+
+<!-- ❌ Bad: Keyword-stuffed -->
+<head>
+  <title>Bread Bread Recipes Bread Baking Best Bread</title>
+</head>
+```
+
+## Why It Matters
+
+The &lt;title&gt; tag is the most prominent element in search result listings and browser tabs—it directly influences click-through rates and is a confirmed Google ranking signal.
+
+## Character Length Guidelines
+
+| Length | Result |
+|--------|--------|
+| < 10 characters | Too short — not descriptive |
+| 10–60 characters | Ideal — displays fully in SERPs |
+| 61–70 characters | May be truncated |
+| > 70 characters | Truncated in most search results |
+
+Note: Google measures in pixels (~600px max), so exact character count varies with the characters used.
+
+## Title Patterns by Page Type
+
+| Page Type | Pattern | Example |
+|-----------|---------|---------|
+| Homepage | Brand name + tagline | `BakeCo – Artisan Bread Recipes` |
+| Blog post | Topic + Brand | `How to Score Sourdough | BakeCo` |
+| Product page | Product name + key attribute | `Cast Iron Dutch Oven 5.5 Qt – BakeCo` |
+| Category | Category name + Brand | `Sourdough Recipes | BakeCo` |
+
+## Next.js Implementation
+
+```tsx
+// app/blog/[slug]/page.tsx
+import { Metadata } from 'next'
+
+export async function generateMetadata({ params }): Promise<Metadata> {
+  const post = await getPost(params.slug)
+  return {
+    title: `${post.title} | BakeCo`,
+  }
+}
+```
+
+```tsx
+// app/layout.tsx — default title template
+export const metadata: Metadata = {
+  title: {
+    template: '%s | BakeCo',
+    default: 'BakeCo – Artisan Bread Recipes',
+  },
+}
+```
+
+## Common Mistakes
+
+```html
+<!-- ❌ Bad: Missing title entirely -->
+<head>
+  <meta charset="UTF-8" />
+  <!-- no <title> -->
+</head>
+
+<!-- ✅ Good: Unique title per page -->
+<head>
+  <title>Sourdough Starter Guide | BakeCo</title>
+</head>
+
+<!-- ❌ Bad: Same title on every page -->
+<head>
+  <title>BakeCo</title>  <!-- used on every page -->
+</head>
+```
+
+## Exceptions
+
+- Utility or intentionally noindex pages may keep minimal metadata when richer search presentation is not a goal.
+- Template-driven pages can look repetitive in isolation; confirm the fully rendered production output before flagging duplication or omission.
+- If a page is intentionally redirected or excluded from indexation, resolve that crawlability decision before treating metadata polish as the primary issue.
+
+## Verification
+
+### Automated Checks
+
+- View page source and search for `<title>`
+- Check SERP preview with a tool like [SERP Simulator](https://serpsim.com/)
+- Use Google Search Console → Coverage → check for duplicate title warnings
+
+### Manual Checks
+
+- Verify character count (aim for 50–60)
+
+
+-------------------------
+
+The meta description is the short paragraph shown beneath your page title in search results. While not a direct ranking signal, it is your primary organic ad copy.
+
+## Code Examples
+
+```html
+<!-- ✅ Good: Unique, 145 characters, describes value clearly -->
+<head>
+  <meta name="description" content="Learn to bake sourdough bread at home with our step-by-step guide. Covers starter, shaping, scoring, and baking in a Dutch oven." />
+</head>
+```
+
+```html
+<!-- ❌ Bad: Missing description -->
+<head>
+  <title>Sourdough Bread Recipe | BakeCo</title>
+  <!-- no meta description -->
+</head>
+
+<!-- ❌ Bad: Identical description on every page -->
+<head>
+  <meta name="description" content="BakeCo – the best baking website." />
+</head>
+```
+
+## Why It Matters
+
+A compelling meta description acts as organic ad copy in search results—well-written descriptions improve click-through rates even though they are not a direct ranking signal.
+
+## Length Guidelines
+
+| Length | Result |
+|--------|--------|
+| < 70 characters | Too short — wasted opportunity |
+| 120–160 characters | Ideal for desktop SERPs |
+| > 160 characters | Truncated with "…" |
+
+Google measures in pixels (~920px max for desktop), so exact character limits vary.
+
+## Writing Effective Descriptions
+
+- **Answer the user's intent**: What problem does this page solve?
+- **Include a natural CTA**: "Learn how to…", "Discover…", "Shop our…"
+- **Avoid keyword stuffing**: Write for users, not robots
+- **Match the page**: Google may replace your description if it doesn't match the query
+
+## Next.js Implementation
+
+```tsx
+// app/blog/[slug]/page.tsx
+import { Metadata } from 'next'
+
+export async function generateMetadata({ params }): Promise<Metadata> {
+  const post = await getPost(params.slug)
+  return {
+    description: post.excerpt.slice(0, 155),
+  }
+}
+```
+
+```tsx
+// app/layout.tsx — site-wide fallback
+export const metadata: Metadata = {
+  description: 'BakeCo – Step-by-step artisan bread recipes for home bakers.',
+}
+```
+
+## Common Mistakes
+
+```html
+<!-- ❌ Bad: Content attribute missing -->
+<meta name="description" />
+
+<!-- ❌ Bad: HTML tags inside description -->
+<meta name="description" content="<b>Best</b> sourdough recipes" />
+
+<!-- ✅ Good: Plain text, clear value -->
+<meta name="description" content="Master sourdough at home. Our guide walks you through every stage, from building a starter to your first perfect loaf." />
+```
+
+## Exceptions
+
+- Utility or intentionally noindex pages may keep minimal metadata when richer search presentation is not a goal.
+- Template-driven pages can look repetitive in isolation; confirm the fully rendered production output before flagging duplication or omission.
+- If a page is intentionally redirected or excluded from indexation, resolve that crawlability decision before treating metadata polish as the primary issue.
+
+## Verification
+
+### Automated Checks
+
+- View page source and search for `name="description"`
+- Use Google Search Console → Enhancements → check for missing or duplicated descriptions
+- Use Google's Rich Results Test to verify metadata is readable
+
+### Manual Checks
+
+- Preview with a SERP simulator to check truncation
+
+-----------------
+
+Every form control must have a label that is programmatically associated with it to ensure it is accessible to all users. [MDN's `<label>` reference](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/label) and WCAG form guidance both treat this as a baseline requirement, not an enhancement.
+## Code Examples
+
+### Correct Implementation
+```html
+<label for="email-address">Email Address</label>
+<input type="email" id="email-address" name="email">
+
+<!-- Or wrapping the input -->
+<label>
+  Email Address
+  <input type="email" name="email">
+</label>
+```
+
+### Incorrect Implementation
+```html
+<span>Email Address</span>
+<input type="email" name="email">
+```
+
+## Why It Matters
+
+- **Assistive Technology**: Screen readers announce the label when the user focuses on the input.
+- **Usability**: Clicking the label moves focus to the input, providing a larger hit area for users with motor impairments or those on mobile devices.
+- **Form Validation**: Browsers and tools can better associate error messages with the correct fields.
+
+## Best Practices
+
+✅ **Use `for` and `id`**: This is the most robust way to associate labels.
+```html
+<label for="first-name">First Name</label>
+<input type="text" id="first-name">
+```
+
+✅ **Nested Labels**: Alternatively, you can nest the input inside the label.
+```html
+<label>
+  Last Name
+  <input type="text">
+</label>
+```
+
+❌ **Avoid Placeholder-only labels**: Placeholders disappear when the user types and are not a substitute for labels.
+```html
+<!-- Avoid this -->
+<input type="text" placeholder="First Name">
+```
+
+✅ **Use `<fieldset>` and `<legend>` for grouped controls**: Radio buttons and related checkboxes need a programmatic group label, not just bold text above them.
+```html
+<fieldset>
+  <legend>Preferred contact method</legend>
+
+  <label>
+    <input type="radio" name="contact" value="email">
+    Email
+  </label>
+
+  <label>
+    <input type="radio" name="contact" value="phone">
+    Phone
+  </label>
+</fieldset>
+```
+
+## Exceptions
+
+- Evaluate the rendered experience before treating a static-code smell as a blocker; interaction timing, browser behavior, and assistive technology output often determine severity.
+- Not every secondary accessibility issue deserves equal weight; prioritize the issue that most directly blocks perception, operation, or understanding.
+- Avoid adding redundant markup or ARIA solely to satisfy a rule when a simpler semantic implementation would eliminate the issue entirely.
+
+## Standards
+
+- Align the implementation with W3C WAI: WCAG Overview and verify the rendered experience, not only the source code.
+- Align the implementation with MDN: Accessibility and verify the rendered experience, not only the source code.
+
+## Verification
+
+### Automated Checks
+
+- Inspect the browser accessibility tree or accessibility pane for the relevant element, role, or accessible name.
+- Run an automated accessibility checker such as axe or Lighthouse where applicable.
+
+### Manual Checks
+
+- Test the affected UI with keyboard-only navigation and confirm the rule holds in the rendered experience.
+- Re-test one representative user flow with a screen reader if this rule affects a key interaction.
+- Confirm every field still has a visible label after the user starts typing and after browser autofill runs.
+- For radio groups and checkbox groups, confirm the shared question is announced before the individual control labels.
+
+------------------------------
+
+Browser caching stores resources locally to eliminate repeated downloads.
+
+## Code Example
+
+```javascript
+// next.config.js
+module.exports = {
+  async headers() {
+    return [
+      {
+        // Hashed static assets
+        source: '/_next/static/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        // Images
+        source: '/images/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=2592000, stale-while-revalidate=86400',
+          },
+        ],
+      },
+      {
+        // HTML pages - always revalidate
+        source: '/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=0, must-revalidate',
+          },
+        ],
+      },
+    ]
+  },
+}
+```
+
+## Why It Matters
+
+Proper caching eliminates redundant downloads on repeat visits—returning users see near-instant page loads when assets are served from browser cache.
+
+## Cache Header Strategy
+
+| Resource Type | Cache-Control | Duration |
+|---------------|---------------|----------|
+| Hashed assets (CSS, JS) | `public, max-age=31536000, immutable` | 1 year |
+| Images | `public, max-age=2592000` | 30 days |
+| Fonts | `public, max-age=31536000, immutable` | 1 year |
+| HTML pages | `public, max-age=0, must-revalidate` | Always check |
+| API responses | `private, max-age=0, no-store` | No cache |
+
+## Cache-Control Directives
+
+| Directive | Purpose |
+|-----------|---------|
+| `public` | Can be cached by browsers and CDNs |
+| `private` | Only browser can cache (sensitive data) |
+| `max-age=N` | Cache valid for N seconds |
+| `immutable` | Resource won't change (use with hashed filenames) |
+| `must-revalidate` | Check with server when stale |
+| `no-cache` | Always revalidate before using |
+| `no-store` | Never cache (sensitive data) |
+| `stale-while-revalidate=N` | Serve stale, fetch fresh in background |
+
+## Nginx Configuration
+
+```nginx
+# Static assets with hash in filename
+location ~* \.[a-f0-9]{8,}\.(js|css)$ {
+    expires 1y;
+    add_header Cache-Control "public, max-age=31536000, immutable";
+}
+
+# Images
+location ~* \.(jpg|jpeg|png|gif|webp|avif|svg|ico)$ {
+    expires 30d;
+    add_header Cache-Control "public, max-age=2592000, stale-while-revalidate=86400";
+}
+
+# Fonts
+location ~* \.(woff2?|ttf|otf|eot)$ {
+    expires 1y;
+    add_header Cache-Control "public, max-age=31536000, immutable";
+}
+
+# HTML - always revalidate
+location ~* \.html$ {
+    expires -1;
+    add_header Cache-Control "public, max-age=0, must-revalidate";
+}
+```
+
+## Express.js Configuration
+
+```javascript
+import express from 'express'
+
+const app = express()
+
+// Serve static files with caching
+app.use('/static', express.static('public', {
+  maxAge: '1y',
+  immutable: true,
+  etag: true,
+  lastModified: true,
+}))
+
+// Custom middleware for fine-grained control
+app.use((req, res, next) => {
+  // Set cache headers based on file type
+  const ext = req.path.split('.').pop()
+
+  if (['js', 'css'].includes(ext) && req.path.includes('.')) {
+    res.set('Cache-Control', 'public, max-age=31536000, immutable')
+  } else if (['jpg', 'png', 'webp', 'svg'].includes(ext)) {
+    res.set('Cache-Control', 'public, max-age=2592000')
+  }
+
+  next()
+})
+```
+
+## ETags for Cache Validation
+
+```javascript
+// Express.js ETag configuration
+import express from 'express'
+
+const app = express()
+
+// Enable strong ETags
+app.set('etag', 'strong')
+
+// How ETags work:
+// 1. Server sends: ETag: "abc123"
+// 2. Browser caches response
+// 3. On next request, browser sends: If-None-Match: "abc123"
+// 4. If resource unchanged, server responds: 304 Not Modified
+// 5. Browser uses cached version (no body transferred)
+```
+
+## Service Worker Caching
+
+```javascript
+// sw.js - Advanced caching strategies
+const CACHE_NAME = 'v1'
+const STATIC_ASSETS = ['/app.js', '/styles.css', '/logo.svg']
+
+// Cache on install
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(cache => cache.addAll(STATIC_ASSETS))
+  )
+})
+
+// Stale-while-revalidate strategy
+self.addEventListener('fetch', event => {
+  event.respondWith(
+    caches.match(event.request).then(cached => {
+      const fetchPromise = fetch(event.request).then(response => {
+        // Update cache
+        caches.open(CACHE_NAME).then(cache => {
+          cache.put(event.request, response.clone())
+        })
+        return response
+      })
+
+      // Return cached immediately, update in background
+      return cached || fetchPromise
+    })
+  )
+})
+```
+
+## Verifying Cache Headers
+
+```javascript
+// Check cache headers in browser
+async function verifyCaching(url) {
+  const response = await fetch(url, { method: 'HEAD' })
+
+  const headers = {
+    'cache-control': response.headers.get('cache-control'),
+    'etag': response.headers.get('etag'),
+    'last-modified': response.headers.get('last-modified'),
+    'expires': response.headers.get('expires'),
+  }
+
+  console.table(headers)
+  return headers
+}
+
+// In DevTools Network tab:
+// - Size column shows "(disk cache)" or "(memory cache)" for cached resources
+// - Time column shows fast load times for cached resources
+```
+
+## Standards
+
+- Use web.dev: Learn Performance as the standard for measuring the final production behavior, not just local synthetic output.
+- Use Chrome Developers: Lighthouse overview as the standard for measuring the final production behavior, not just local synthetic output.
+
+## Support Notes
+
+- Caching behavior depends on real cache headers, intermediary caches, and revalidation paths, so confirm the final network behavior in production-like conditions.
+- Do not assume origin configuration equals browser behavior when a CDN or service worker can change the effective caching path.
+
+## Verification
+
+### Automated Checks
+
+- Check Network tab—look for "(disk cache)" or "(memory cache)"
+- Verify Cache-Control headers in response
+- Use WebPageTest to compare first vs repeat view
+
+### Manual Checks
+
+- Test repeat visits—assets should load instantly
+- Check service worker caching in Application tab
+
+Cumulative Layout Shift measures unexpected movement of page content.
+
+## Code Examples
+
+```html
+<!-- Always specify width and height -->
+<img
+  src="hero.jpg"
+  alt="Hero image"
+  width="1200"
+  height="600"
+  loading="lazy"
+>
+
+<!-- Or use aspect-ratio CSS -->
+<img
+  src="hero.jpg"
+  alt="Hero image"
+  style="aspect-ratio: 16/9; width: 100%; height: auto;"
+>
+```
+
+```tsx
+// React/Next.js with automatic dimensions
+import Image from 'next/image'
+
+function Hero() {
+  return (
+    <Image
+      src="/hero.jpg"
+      alt="Hero image"
+      width={1200}
+      height={600}
+      priority
+      // Dimensions prevent layout shift
+    />
+  )
+}
+```
+
+## Why It Matters
+
+Layout shifts cause accidental clicks, reading disruption, and user frustration—a good CLS score ensures content stays where users expect it.
+
+## CLS Score Thresholds
+
+| Score | Rating | User Experience |
+|-------|--------|-----------------|
+| 0–0.1 | Good | Stable, no unexpected shifts |
+| 0.1–0.25 | Needs improvement | Noticeable shifts |
+| > 0.25 | Poor | Significant layout instability |
+
+## Common Causes of Layout Shift
+
+| Cause | Impact | Solution |
+|-------|--------|----------|
+| Images without dimensions | High | Always set width/height |
+| Ads and embeds | High | Reserve container space |
+| Web fonts loading | Medium | Use font-display: swap |
+| Dynamic content injection | Medium | Use placeholders |
+| Animations | Low | Use transform/opacity |
+
+## Reserve Space for Dynamic Content
+
+```tsx
+// Reserve space for ads
+function AdBanner() {
+  return (
+    <div
+      style={{
+        minHeight: '250px',
+        width: '300px',
+        backgroundColor: '#f0f0f0',
+      }}
+    >
+      {/* Ad loads here without causing shift */}
+    </div>
+  )
+}
+
+// Skeleton loading for content
+function ArticleCard({ isLoading, article }) {
+  if (isLoading) {
+    return (
+      <div className="article-card">
+        <div className="skeleton" style={{ height: '200px' }} />
+        <div className="skeleton" style={{ height: '24px', width: '80%' }} />
+        <div className="skeleton" style={{ height: '16px', width: '60%' }} />
+      </div>
+    )
+  }
+
+  return (
+    <div className="article-card">
+      <img src={article.image} alt={article.title} width={300} height={200} />
+      <h2>{article.title}</h2>
+      <p>{article.excerpt}</p>
+    </div>
+  )
+}
+```
+
+## Font Loading Strategy
+
+```css
+/* Use font-display to prevent FOIT/FOUT shifts */
+@font-face {
+  font-family: 'CustomFont';
+  src: url('/fonts/custom.woff2') format('woff2');
+  font-display: swap; /* Show fallback immediately, swap when loaded */
+  size-adjust: 100%; /* Match fallback font metrics */
+  ascent-override: 90%;
+  descent-override: 20%;
+}
+
+/* Use similar fallback font */
+body {
+  font-family: 'CustomFont', Arial, sans-serif;
+}
+```
+
+```tsx
+// Next.js font optimization
+import { Inter } from 'next/font/google'
+
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  // Prevents layout shift from font loading
+})
+
+export default function RootLayout({ children }) {
+  return (
+    <html className={inter.className}>
+      <body>{children}</body>
+    </html>
+  )
+}
+```
+
+## Animations Without Layout Shift
+
+```css
+/* Bad: Animating layout properties */
+.bad-animation {
+  animation: slide-bad 0.3s ease-out;
+}
+
+@keyframes slide-bad {
+  from { margin-left: -100px; } /* Causes layout shift */
+  to { margin-left: 0; }
+}
+
+/* Good: Using transform */
+.good-animation {
+  animation: slide-good 0.3s ease-out;
+}
+
+@keyframes slide-good {
+  from { transform: translateX(-100px); } /* No layout shift */
+  to { transform: translateX(0); }
+}
+```
+
+## Avoid Content Injection Above Fold
+
+```tsx
+// Bad: Inserting banner above content
+function Page() {
+  const [showBanner, setShowBanner] = useState(false)
+
+  useEffect(() => {
+    // This causes layout shift when banner appears
+    setTimeout(() => setShowBanner(true), 1000)
+  }, [])
+
+  return (
+    <div>
+      {showBanner && } {/* Pushes content down */}
+      
+    </div>
+  )
+}
+
+// Good: Reserve space for banner
+function Page() {
+  const [showBanner, setShowBanner] = useState(false)
+
+  return (
+    <div>
+      <div style={{ minHeight: '60px' }}>
+        {showBanner && }
+      </div>
+      
+    </div>
+  )
+}
+```
+
+## Measuring CLS
+
+```javascript
+// Using web-vitals library
+import { onCLS } from 'web-vitals'
+
+onCLS(metric => {
+  console.log('CLS:', metric.value)
+
+  // Report to analytics
+  if (metric.value > 0.1) {
+    console.warn('CLS exceeds threshold', metric.entries)
+  }
+})
+
+// Debug which elements caused shifts
+new PerformanceObserver(list => {
+  for (const entry of list.getEntries()) {
+    if (entry.hadRecentInput) continue // Ignore user-triggered shifts
+
+    console.log('Layout shift:', {
+      value: entry.value,
+      sources: entry.sources?.map(s => ({
+        node: s.node,
+        currentRect: s.currentRect,
+        previousRect: s.previousRect
+      }))
+    })
+  }
+}).observe({ type: 'layout-shift', buffered: true })
+```
+
+## Verification
+
+### Automated Checks
+
+- Run Lighthouse—check CLS score in Performance
+- Use Chrome DevTools Performance panel
+- Check PageSpeed Insights for field data
+
+### Manual Checks
+
+- Test on slow connections (reveals timing-based shifts)
+- Monitor with Real User Monitoring
+
+
+-----------------------------------
+
+Interaction to Next Paint measures responsiveness throughout the user session.
+
+## Code Example
+
+```javascript
+// Bad: One long synchronous task
+function processLargeArray(items) {
+  items.forEach(item => {
+    // Heavy processing blocks main thread
+    expensiveOperation(item)
+  })
+}
+
+// Good: Yield to main thread periodically
+async function processLargeArrayAsync(items) {
+  for (let i = 0; i < items.length; i++) {
+    expensiveOperation(items[i])
+
+    // Yield every 50ms to allow interactions
+    if (i % 100 === 0) {
+      await yieldToMain()
+    }
+  }
+}
+
+function yieldToMain() {
+  return new Promise(resolve => {
+    setTimeout(resolve, 0)
+  })
+}
+
+// Even better: Use scheduler API
+async function processWithScheduler(items) {
+  for (const item of items) {
+    expensiveOperation(item)
+
+    // Yield if there's pending user input
+    if ('scheduler' in window) {
+      await scheduler.yield()
+    }
+  }
+}
+```
+
+## Why It Matters
+
+INP replaced FID as a Core Web Vital in 2024—it measures how quickly your page responds to user interactions throughout the session, not just the first interaction.
+
+## INP Score Thresholds
+
+| Score | Rating | User Perception |
+|-------|--------|-----------------|
+| 0–200ms | Good | Instant feedback |
+| 200–500ms | Needs improvement | Noticeable delay |
+| > 500ms | Poor | Sluggish, frustrating |
+
+## INP vs FID
+
+| Metric | Measures | Replaced |
+|--------|----------|----------|
+| INP | All interactions throughout session | No |
+| FID | First interaction only | Yes (by INP) |
+
+## Common INP Issues
+
+| Issue | Impact | Solution |
+|-------|--------|----------|
+| Long tasks (>50ms) | High | Break into chunks |
+| Heavy JavaScript | High | Code split, web workers |
+| Complex event handlers | Medium | Debounce, optimize |
+| Layout thrashing | Medium | Batch DOM reads/writes |
+| Third-party scripts | Medium | Lazy load, defer |
+
+## Use Web Workers for Heavy Computation
+
+```typescript
+// worker.ts
+self.onmessage = (e: MessageEvent) => {
+  const { data, type } = e.data
+
+  if (type === 'process') {
+    // Heavy computation happens off main thread
+    const result = heavyComputation(data)
+    self.postMessage({ type: 'result', data: result })
+  }
+}
+
+function heavyComputation(data: any[]) {
+  // Complex processing that would block main thread
+  return data.map(item => expensiveTransform(item))
+}
+```
+
+```tsx
+// React component using web worker
+import { useEffect, useRef, useState } from 'react'
+
+function DataProcessor({ data }) {
+  const workerRef = useRef<Worker>()
+  const [result, setResult] = useState(null)
+
+  useEffect(() => {
+    workerRef.current = new Worker(
+      new URL('./worker.ts', import.meta.url)
+    )
+
+    workerRef.current.onmessage = (e) => {
+      if (e.data.type === 'result') {
+        setResult(e.data.data)
+      }
+    }
+
+    return () => workerRef.current?.terminate()
+  }, [])
+
+  useEffect(() => {
+    if (data && workerRef.current) {
+      workerRef.current.postMessage({ type: 'process', data })
+    }
+  }, [data])
+
+  return <div>{result ? <Results data={result} /> : }</div>
+}
+```
+
+## Optimize Event Handlers
+
+```tsx
+// Bad: Heavy work in click handler
+function BadButton() {
+  const handleClick = () => {
+    // Blocks main thread during interaction
+    const result = expensiveCalculation()
+    updateUI(result)
+  }
+
+  return <button onClick={handleClick}>Process</button>
+}
+
+// Good: Defer heavy work
+function GoodButton() {
+  const handleClick = () => {
+    // Show immediate feedback
+    setLoading(true)
+
+    // Defer heavy work
+    requestIdleCallback(() => {
+      const result = expensiveCalculation()
+      updateUI(result)
+      setLoading(false)
+    })
+  }
+
+  return <button onClick={handleClick}>Process</button>
+}
+
+// Better: Use startTransition for non-urgent updates
+import { startTransition } from 'react'
+
+function BetterButton() {
+  const handleClick = () => {
+    // Urgent: Show loading state
+    setLoading(true)
+
+    // Non-urgent: Can be interrupted
+    startTransition(() => {
+      const result = expensiveCalculation()
+      setData(result)
+      setLoading(false)
+    })
+  }
+
+  return <button onClick={handleClick}>Process</button>
+}
+```
+
+## Avoid Layout Thrashing
+
+```javascript
+// Bad: Multiple forced reflows
+function badLayoutCode(elements) {
+  elements.forEach(el => {
+    const height = el.offsetHeight // Read (forces layout)
+    el.style.height = height + 10 + 'px' // Write (invalidates layout)
+  })
+}
+
+// Good: Batch reads and writes
+function goodLayoutCode(elements) {
+  // Batch all reads
+  const heights = elements.map(el => el.offsetHeight)
+
+  // Batch all writes
+  elements.forEach((el, i) => {
+    el.style.height = heights[i] + 10 + 'px'
+  })
+}
+```
+
+## Debounce Frequent Events
+
+```typescript
+// Debounce scroll/resize handlers
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState(value)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedValue(value), delay)
+    return () => clearTimeout(timer)
+  }, [value, delay])
+
+  return debouncedValue
+}
+
+// Usage
+function SearchComponent() {
+  const [query, setQuery] = useState('')
+  const debouncedQuery = useDebounce(query, 300)
+
+  useEffect(() => {
+    if (debouncedQuery) {
+      // Only search after user stops typing
+      performSearch(debouncedQuery)
+    }
+  }, [debouncedQuery])
+
+  return <input onChange={e => setQuery(e.target.value)} />
+}
+```
+
+## Measuring INP
+
+```javascript
+// Using web-vitals library
+import { onINP } from 'web-vitals'
+
+onINP(metric => {
+  console.log('INP:', metric.value, 'ms')
+  console.log('Interaction type:', metric.entries[0]?.name)
+
+  if (metric.value > 200) {
+    // Log for debugging
+    console.warn('Slow interaction detected:', {
+      value: metric.value,
+      target: metric.entries[0]?.target,
+    })
+  }
+})
+```
+
+## Verification
+
+### Automated Checks
+
+- Use Chrome DevTools Performance panel
+- Check PageSpeed Insights for field data
+- Run Lighthouse (shows INP in newer versions)
+
+### Manual Checks
+
+- Test with CPU throttling (6x slowdown)
+- Monitor real user metrics with RUM
+
+-----------------------------
+
+Headings help users understand the structure of a page. Skipping heading levels can confuse users of assistive technology who rely on them for navigation, which is why this rule complements broader [heading hierarchy](/en/rules/accessibility/heading-hierarchy) checks.
+## Code Examples
+
+### Correct Implementation
+```html
+<h1>Main Page Title</h1>
+  <h2>Section One</h2>
+    <h3>Sub-section A</h3>
+  <h2>Section Two</h2>
+    <h3>Sub-section B</h3>
+```
+
+### Incorrect Implementation
+```html
+<h1>Main Page Title</h1>
+  <h3>Skipped a level!</h3>
+    <h5>Skipped again!</h5>
+```
+
+## Why It Matters
+
+- **Navigation**: Screen reader users often navigate by jumping from heading to heading.
+- **Outlining**: A correct hierarchy provides an accurate outline of the document content.
+- **SEO**: Search engines use heading structure to understand the importance and relationship of content.
+
+## Best Practices
+
+✅ **Start with `<h1>`**: Each page should typically have one primary `<h1>` representing the main topic.
+
+✅ **Sequential Nesting**: Only go down one level at a time (`<h1>` to `<h2>`, `<h2>` to `<h3>`).
+
+✅ **Styling != Structure**: Don't choose a heading level based on its default font size. Use CSS to style headings while maintaining the correct semantic level.
+
+❌ **Don't use headings for styling**: Don't use a heading tag just to make text bold or large if it isn't actually a section title.
+
+## Exceptions
+
+- Evaluate the rendered experience before treating a static-code smell as a blocker; interaction timing, browser behavior, and assistive technology output often determine severity.
+- Not every secondary accessibility issue deserves equal weight; prioritize the issue that most directly blocks perception, operation, or understanding.
+- Avoid adding redundant markup or ARIA solely to satisfy a rule when a simpler semantic implementation would eliminate the issue entirely.
+
+## Standards
+
+- Align the implementation with W3C WAI: WCAG Overview and verify the rendered experience, not only the source code.
+- Align the implementation with MDN: Accessibility and verify the rendered experience, not only the source code.
+
+## Verification
+
+### Automated Checks
+
+- Inspect the browser accessibility tree or accessibility pane for the relevant element, role, or accessible name.
+- Run an automated accessibility checker such as axe or Lighthouse where applicable.
+
+### Manual Checks
+
+- Test the affected UI with keyboard-only navigation and confirm the rule holds in the rendered experience.
+- Re-test one representative user flow with a screen reader if this rule affects a key interaction.
