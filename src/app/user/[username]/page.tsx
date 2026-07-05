@@ -29,6 +29,16 @@ const ActivityTab = dynamic(() => import("@/components/profile/activity-tab").th
 const ProgressTab = dynamic(() => import("@/components/profile/progress-tab").then(m => ({ default: m.ProgressTab })));
 const AchievementsTab = dynamic(() => import("@/components/profile/achievements-tab").then(m => ({ default: m.AchievementsTab })));
 
+// Prefetch all tab chunks in background after first paint so tab switches feel instant
+function prefetchTabs() {
+  const idle = typeof requestIdleCallback === "function" ? requestIdleCallback : (cb: () => void) => setTimeout(cb, 200);
+  idle(() => {
+    import("@/components/profile/activity-tab").catch(() => {});
+    import("@/components/profile/progress-tab").catch(() => {});
+    import("@/components/profile/achievements-tab").catch(() => {});
+  });
+}
+
 import { UserPlus, UserCheck, Loader2 } from "lucide-react";
 
 type TabId = "overview" | "activity" | "progress" | "achievements";
@@ -67,6 +77,9 @@ export default function UserProfilePage() {
   const [granularity, setGranularity] = useState<HeatmapGranularity>("month");
   
   const [modalType, setModalType] = useState<"followers" | "following" | null>(null);
+
+  // After first paint, prefetch the other tab chunks in the background
+  useEffect(() => { prefetchTabs(); }, []);
 
   // Load profile + sessions
   useEffect(() => {
