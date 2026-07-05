@@ -186,15 +186,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         if (session?.user) {
           setUser(session.user);
-          // Unblock app rendering immediately — profile loads in background
-          setIsLoading(false);
           initHandledRef.current = true;
 
-          // Profile fetch happens after isLoading is cleared
+          // Fetch profile before unblocking — pages need profile data
           const p = await ensureProfileExists(session.user);
           if (mounted) {
             setProfile(p);
             setProfileLoading(false);
+            setIsLoading(false);
           }
         } else {
           // No session — guest mode, loading is done

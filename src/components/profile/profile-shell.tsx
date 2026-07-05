@@ -31,7 +31,7 @@ type TabId = "overview" | "activity" | "progress" | "achievements";
 
 export function ProfileShell() {
   const { activities, loadState, loadError, retryLoad, joinedAt } = useFocus();
-  const { profile, profileLoading } = useAuth();
+  const { profile, isLoading: authLoading } = useAuth();
   
   const [activeTab, setActiveTab] = useState<TabId>("overview");
   const [granularity, setGranularity] = useState<HeatmapGranularity>("month");
@@ -127,7 +127,7 @@ export function ProfileShell() {
   const weeklyChartData = useMemo(() => buildWeeklyChartData(focusSessions), [focusSessions]);
   const monthlyChartData = useMemo(() => buildMonthlyChartData(focusSessions), [focusSessions]);
 
-  if (loadState === "loading" || profileLoading) {
+  if (loadState === "loading" || authLoading) {
     return (
       <div className="mx-auto max-w-[720px] px-4 md:px-8 pb-24 md:pb-10 pt-6 md:pt-10" aria-busy="true" aria-label="Loading profile">
         {/* Profile header skeleton */}
