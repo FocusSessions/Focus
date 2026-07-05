@@ -456,8 +456,7 @@ export function FeedShell() {
           const globalQuery = buildSessionQuery(
             supabase
               .from("sessions")
-              // Join profiles via foreign key — eliminates separate profiles fetch
-              .select("*, profiles(*), likes(user_id), comments(id)")
+              .select("*, likes(user_id), comments(id)")
               .eq("visibility", "public")
               .order("started_at", { ascending: false })
               .limit(25)
@@ -488,7 +487,7 @@ export function FeedShell() {
             const followingQuery = buildSessionQuery(
               supabase
                 .from("sessions")
-                .select("*, profiles(*), likes(user_id), comments(id)")
+                .select("*, likes(user_id), comments(id)")
                 .in("user_id", fIds)
                 .eq("visibility", "public")
                 .order("started_at", { ascending: false })
@@ -512,11 +511,11 @@ export function FeedShell() {
             }
           }
         } else {
-          // Guest: simple global fetch with profile join
+          // Guest: simple global fetch
           const query = buildSessionQuery(
             supabase
               .from("sessions")
-              .select("*, profiles(*), likes(user_id), comments(id)")
+              .select("*, likes(user_id), comments(id)")
               .eq("visibility", "public")
               .order("started_at", { ascending: false })
               .limit(25)
@@ -543,12 +542,22 @@ export function FeedShell() {
           return;
         }
 
-        // Profiles are already joined — no separate fetch needed
+        // Fetch profiles for those users manually (to avoid foreign key errors)
+        const userIds = Array.from(new Set(sessionData.map((s: any) => s.user_id)));
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("*")
+          .in("id", userIds);
+
+        const profileMap = new Map(
+          (profileData as Profile[] | null)?.map((p) => [p.id, p]) ?? []
+        );
+
         if (mounted) {
           setFeedItems(
             sessionData.map((s: any) => ({
               session: cloudToLocal(s),
-              profile: s.profiles as Profile | undefined,
+              profile: profileMap.get(s.user_id),
               likes: s.likes || [],
               comments: s.comments || []
             }))
