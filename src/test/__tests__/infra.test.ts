@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { createSession, createSessionsOverDays, resetFixtures } from '@/test/fixtures';
 
 describe('Test Infrastructure Smoke Test', () => {

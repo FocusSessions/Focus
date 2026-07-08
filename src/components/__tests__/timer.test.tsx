@@ -20,7 +20,7 @@ const mockFocus = {
   dailyGoalMinutes: 240,
   showMilliseconds: true,
   activities: [],
-  timerDirection: 'up' as const,
+  timerDirection: 'up' as 'up' | 'down',
   plannedCategory: 'Study',
   setPlannedCategory: vi.fn(),
   sessionGoalMinutes: 25,

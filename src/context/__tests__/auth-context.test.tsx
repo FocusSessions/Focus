@@ -21,7 +21,7 @@ const { mockSupabase, mockProfile, mockUser, mockSession } = vi.hoisted(() => {
     bio: null,
     avatar_url: null,
     is_public: true,
-    privacy_level: 'public',
+    privacy_level: 'public' as 'public',
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };
