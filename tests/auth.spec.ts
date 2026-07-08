@@ -57,8 +57,8 @@ test.describe('Authentication Flow', () => {
   });
 
   test('real user signup and login flow', async ({ page }) => {
-    // Skip this test in CI environments where real Supabase keys aren't provided
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL.includes('placeholder')) {
+    // Skip this test in CI environments to avoid mutating production data
+    if (process.env.CI || !process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL.includes('placeholder')) {
       test.skip();
     }
 
