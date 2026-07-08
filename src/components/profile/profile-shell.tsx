@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
+// @ts-expect-error - TS 5.7 moduleResolution: bundler bug with Next.js dynamic imports
 import dynamic from "next/dynamic";
 import { useFocus } from "@/context/focus-app";
 import { useAuth } from "@/context/auth-context";

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
+// @ts-expect-error - TS 5.7 moduleResolution: bundler bug with Next.js dynamic imports
 import dynamic from "next/dynamic";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
