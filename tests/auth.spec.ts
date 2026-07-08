@@ -55,4 +55,41 @@ test.describe('Authentication Flow', () => {
 
     await expect(page).toHaveURL(/\/auth/);
   });
+
+  test('real user signup and login flow', async ({ page }) => {
+    // Skip this test in CI environments where real Supabase keys aren't provided
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL.includes('placeholder')) {
+      test.skip();
+    }
+
+    const testEmail = 'ZeroDayZapper@proton.me';
+    const testPassword = 'TestPassword123!';
+
+    await page.goto('/auth');
+
+    // Attempt to Sign In first
+    await page.fill('input#email', testEmail);
+    await page.fill('input#password', testPassword);
+    await page.locator('button[type="submit"]', { hasText: /Sign In/i }).click();
+
+    // If it navigates to Home, we are logged in. If it stays on /auth, check for error.
+    try {
+      await page.waitForURL('http://localhost:3000/', { timeout: 3000 });
+      await expect(page.getByText('Focus Session')).toBeVisible();
+      return; // Successfully logged in
+    } catch {
+      // Sign in failed, meaning the account might not exist yet. Let's try signing up.
+      await page.getByRole('button', { name: 'Sign Up', exact: true }).first().click();
+      
+      await page.fill('input#email', testEmail);
+      await page.fill('input#password', testPassword);
+      await page.fill('input#username', 'zeroday');
+      
+      await page.locator('button[type="submit"]', { hasText: /Create Account/i }).click();
+      
+      // Wait for it to navigate to home, or check if it throws an error
+      await page.waitForURL('http://localhost:3000/', { timeout: 5000 });
+      await expect(page.getByText('Focus Session')).toBeVisible();
+    }
+  });
 });

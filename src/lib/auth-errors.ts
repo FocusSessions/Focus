@@ -3,7 +3,12 @@ import type { AuthError } from "@supabase/supabase-js";
 // Map Supabase error codes to user-friendly messages
 export function friendlyAuthError(error: AuthError): string {
   if (!error || !error.message || error.message === "{}") {
-    return "An unexpected error occurred or credentials are invalid.";
+    // Show the actual raw error object so we can debug why it's failing
+    try {
+      return "Unexpected error: " + JSON.stringify(error);
+    } catch {
+      return "An unexpected error occurred or credentials are invalid.";
+    }
   }
   const msg = error.message.toLowerCase();
   if (msg.includes("invalid login") || msg.includes("invalid credentials")) 
