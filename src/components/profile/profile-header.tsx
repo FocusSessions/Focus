@@ -1,4 +1,4 @@
-// @ts-expect-error - TS 5.7 moduleResolution: bundler bug with Next.js dynamic imports
+// @ts-ignore - TS 5.7 moduleResolution: bundler bug with Next.js dynamic imports
 import dynamic from "next/dynamic";
 import { Flame } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
