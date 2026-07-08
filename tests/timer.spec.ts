@@ -32,9 +32,9 @@ test.describe('Timer Flow', () => {
     }
 
     // Stats section is visible
-    await expect(page.getByText('Current Streak')).toBeVisible();
+    await expect(page.getByText('Current Streak', { exact: true })).toBeVisible();
     await expect(page.locator('p', { hasText: 'Today' })).toBeVisible();
-    await expect(page.getByText('Sessions')).toBeVisible();
+    await expect(page.getByText('Sessions', { exact: true })).toBeVisible();
   });
 
   test('can start, pause, resume, and stop the timer', async ({ page }) => {
