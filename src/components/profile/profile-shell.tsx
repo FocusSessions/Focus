@@ -92,10 +92,13 @@ export function ProfileShell() {
       .slice(0, 5);
   }, [focusSessions]);
 
+  const realJoinedAt = profile?.created_at 
+    ? new Date(profile.created_at).getTime() 
+    : (joinedAt || Date.now());
+
   const joinedDateLabel = useMemo(() => {
-    const timestamp = joinedAt || Date.now();
-    return `Joined ${new Date(timestamp).toLocaleDateString(undefined, { month: "long", year: "numeric" })}`;
-  }, [joinedAt]);
+    return `Joined ${new Date(realJoinedAt).toLocaleDateString(undefined, { month: "long", year: "numeric" })}`;
+  }, [realJoinedAt]);
 
   const followersLabel = (
     <div className="flex flex-col sm:flex-row sm:items-center gap-y-2 sm:gap-y-0 gap-x-6 pt-2">
@@ -135,9 +138,9 @@ export function ProfileShell() {
 
   // Calculate required data — memoized to avoid recomputation on every render
   const stats = useMemo(() => computeStats(focusSessions), [focusSessions]);
-  const { score: productivityScore } = useMemo(() => calculateProductivityScore(activities, joinedAt), [activities, joinedAt]);
+  const { score: productivityScore } = useMemo(() => calculateProductivityScore(activities, realJoinedAt), [activities, realJoinedAt]);
   const weeklyRecap = useMemo(() => generateWeeklyRecap(activities), [activities]);
-  const heatmapDays = useMemo(() => buildHeatmapData(focusSessions, granularity, joinedAt), [focusSessions, granularity, joinedAt]);
+  const heatmapDays = useMemo(() => buildHeatmapData(focusSessions, granularity, realJoinedAt), [focusSessions, granularity, realJoinedAt]);
 
   // Chart Data
   const weeklyChartData = useMemo(() => buildWeeklyChartData(focusSessions), [focusSessions]);
