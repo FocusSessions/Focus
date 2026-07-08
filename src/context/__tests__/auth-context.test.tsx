@@ -14,9 +14,45 @@ import {
 // ---------------------------------------------------------------------------
 
 const { mockSupabase, mockProfile, mockUser, mockSession } = vi.hoisted(() => {
-  const _mockProfile = createMockProfile();
-  const _mockUser = createMockUser();
-  const _mockSession = createMockSession(_mockUser);
+  const _mockProfile = {
+    id: 'test-user-00000000-0000-0000-0000-000000000001',
+    username: 'testuser',
+    display_name: 'Test User',
+    bio: null,
+    avatar_url: null,
+    is_public: true,
+    privacy_level: 'public',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  };
+
+  const _mockUser = {
+    id: 'test-user-00000000-0000-0000-0000-000000000001',
+    aud: 'authenticated',
+    role: 'authenticated',
+    email: 'test@example.com',
+    email_confirmed_at: new Date().toISOString(),
+    phone: '',
+    confirmed_at: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    app_metadata: { provider: 'email', providers: ['email'] },
+    user_metadata: {
+      username: 'testuser',
+      display_name: 'Test User',
+    },
+    identities: [],
+    factors: [],
+  };
+
+  const _mockSession = {
+    access_token: 'mock-access-token',
+    refresh_token: 'mock-refresh-token',
+    expires_in: 3600,
+    expires_at: Math.floor(Date.now() / 1000) + 3600,
+    token_type: 'bearer',
+    user: _mockUser,
+  };
 
   const _mockSupabase = {
     auth: {

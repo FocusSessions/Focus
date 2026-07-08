@@ -210,9 +210,8 @@ export function createMockSupabaseClient(options?: {
 export function mockSupabaseModule(options?: Parameters<typeof createMockSupabaseClient>[0]) {
   const client = createMockSupabaseClient(options);
 
-  vi.mock('@/lib/supabase', () => ({
-    supabase: client,
-  }));
+  // vi.mock cannot be used here because Vitest hoists it aggressively, causing ReferenceError.
+  // Test files should call vi.mock('@/lib/supabase', ...) directly with their own hoisted mock.
 
   return { client };
 }
