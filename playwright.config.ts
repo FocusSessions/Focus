@@ -32,7 +32,7 @@ export default defineConfig({
 
   /* Shared settings for all the projects below. */
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL: 'http://127.0.0.1:3000',
 
     /* Collect trace when retrying the failed test. */
     trace: 'on-first-retry',
@@ -57,7 +57,7 @@ export default defineConfig({
   /* Run the Next.js dev server before starting the tests */
   webServer: {
     command: process.env.CI ? 'npm run start' : 'npm run dev',
-    url: 'http://localhost:3000',
+    url: 'http://127.0.0.1:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 120_000, // 2 min for Next.js cold compile
   },

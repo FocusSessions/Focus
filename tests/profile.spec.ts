@@ -8,7 +8,7 @@ async function enterAsGuestIfNeeded(page: import('@playwright/test').Page) {
     const guestLink = page.getByText('Continue as Guest');
     if (await guestLink.isVisible()) {
       await guestLink.click();
-      await page.waitForURL('http://localhost:3000/');
+      await page.waitForURL('/');
     }
   }
 }

@@ -42,7 +42,7 @@ test.describe('Authentication Flow', () => {
     await guestLink.click();
 
     // Should navigate to the home page (timer)
-    await page.waitForURL('http://localhost:3000/');
+    await page.waitForURL('/');
     await expect(page.getByText('Focus Session')).toBeVisible();
   });
 
@@ -74,7 +74,7 @@ test.describe('Authentication Flow', () => {
 
     // If it navigates to Home, we are logged in. If it stays on /auth, check for error.
     try {
-      await page.waitForURL('http://localhost:3000/', { timeout: 3000 });
+      await page.waitForURL('/', { timeout: 3000 });
       await expect(page.getByText('Focus Session')).toBeVisible();
       return; // Successfully logged in
     } catch {
@@ -88,7 +88,7 @@ test.describe('Authentication Flow', () => {
       await page.locator('button[type="submit"]', { hasText: /Create Account/i }).click();
       
       // Wait for it to navigate to home, or check if it throws an error
-      await page.waitForURL('http://localhost:3000/', { timeout: 5000 });
+      await page.waitForURL('/', { timeout: 5000 });
       await expect(page.getByText('Focus Session')).toBeVisible();
     }
   });
